@@ -1,0 +1,1057 @@
+
+Mother Manual
+=============
+(DocUtils Powered)
+
+Manual for Mother versions >= 0.6.0
+
+
+Index:
+------
+    * `Install Mother`_
+    * `The Database Sample used on this guide`_
+    * `Creating a Mother Environment`_
+    * `Simple Database Actions`_
+    * `Handling Multiple Records`_
+    * `Handling Children`_
+    * `Handling Relations`_
+    * `Handling Complex Children`_
+    * `The MotherFusion Class`_
+    * `Performing Custom queries`_
+    * `Transactions`_
+    * `Sessions and Threaded Environments`_
+    * `Logging`_
+    * `Triggers`_
+    * `Custom Complex Filters`_
+    * `Using Mother without Class Definition`_
+
+Install Mother
+--------------
+
+Before to install mother, you need at least one of the following 
+libraries:
+
+   * psycopg2    http://www.initd.org/ 
+   * apsw        http://initd.org/tracker/pysqlite/wiki/APSW 
+
+Note that you don't need both. If you want to use Mother with a SQlite 
+environment, for example, just install apsw.
+If you plan to use Mother with Postgres, just install psycopg2.
+
+Now that dependencies are satisfied, download a Mother tarball at:
+
+   http://dbmother.org 
+
+Unpack it and go inside the created directory:
+    
+   $ tar xzf mother-x.y.z.tgz
+   $ cd mother-x.y.z
+
+Mother is a standard python module, installable with distutils.
+On Unix, just type (as root):
+
+   # python setup.py install
+
+Beyond the python module, a script will be installed: mothermapper.
+On Unix, for example, this script will reside on /usr/bin/.
+The mothermapper tool will be used to create Mother environments.
+
+
+
+The Database Sample used on this guide
+--------------------------------------
+
+We need a db sample to explain the features of Mother. In this section a
+db scheme is described: this is the db used on this guide. If you want to
+read the Mother manual, it's a good idea to remember this structure.
+
+To explain Mother we need to play with:
+
+ - primary keys
+ - children
+ - relations
+
+Here's a graphic representation of the database:
+::
+
+        Stars
+            \
+             \
+             Planets         Lifes
+              /    \          /
+             /      \        /
+            /        \      /
+     Moons_info     Civiliztions
+
+We have some star sytem. For each star sytem, we have a set of planets that
+live there. For each planet we could have some informatioin about his moons.
+Lifes is the table that store informations about the different form of lifes
+present on the universe. Civilizations is a relation between Lifes and
+Planets: we could store there the information "humans live on earth".
+
+Here's the sql script:
+::
+
+    --
+    -- -- 
+    -- For Posgtgres version >= 8.1 and < 8.2.3: you need to create
+    -- tables WITH OIDS. Remove `WITH OIDS' otherwise. 
+    --
+    -- Note that Mother is scalable and changing postgres version is 
+    -- safe. If you upgrade your postgres to 8.2.3, for example, you 
+    -- don't have to create tables WITH OIDS and your work environment 
+    -- will be working at all.
+    -- --
+    --
+
+    create table stars (
+        star_id         serial,
+        star_name       text,
+        star_age        int,
+        star_mass       int,
+
+        primary key(star_id)
+    ) WHIT OIDS;
+
+    create table planets (
+        star_id         int,
+        planet_id       serial,
+        planet_name     text,
+        planet_mass     int,
+
+        primary key(planet_id),
+        foreign key(star_id) references stars(star_id)
+    ) WITH OIDS;
+
+    create table moons_info (
+        planet_id       int,
+        moon_info_id    serial,
+        num_moons       int,
+
+        primary key(moon_info_id),
+        foreign key(planet_id) references planets(planet_id)
+    ) WITH OIDS;
+
+    create table lifes (
+        life_id         serial,
+        life_name       text,
+        life_age        int,
+
+        primary key(life_id)
+    ) WITH OIDS;
+
+    create table civilizations (
+        life_id         int,
+        planet_id       int,
+        age             int,
+
+        foreign key(life_id) references lifes(life_id),
+        foreign key(planet_id) references planets(planet_id)
+    ) WITH OIDS;
+
+
+
+Creating a Mother Environment
+-----------------------------
+
+To handle a database with Mother we need to create a Mother environment.
+This could be done easily, thanks to the Mother introspection. There is
+no need to write XML and models files: Mother is able to obtain 
+automatically the db structure. 
+The tool to create a Mother environment is the script mothermapper.
+To know what mothermapper could do for you, just type:
+::
+
+    $ mothermapper -h
+
+First of all, we need to create a configuration file where we can configure
+the db parameters, the logging features and the Connectioin Pool.
+To create a configuration file with default values, just do:
+::
+
+    $ mothermapper -P /my/conf/file
+
+Now edit this file, being sure to specify a MOTHER_MAP file and the 
+correct parameters for the db connection. Don't panic: the file is heavy 
+commented.
+
+It's time to test the connection:
+::
+
+    $ mothermapper -c /my/conf/file -t
+
+If the database tables have to be created, we can use mothermapper to execute
+a sql script: to create the tables described on the previous section just save
+the sql script /some/where.sql and do:
+::
+
+    $ mothermapper -c /my/conf/file -e /some/where.sql
+
+The last thing to do is the Mother map. The map is created automatically by
+mothermapper and his location could be specified editing /my/conf/file, setting
+the variable MOTHER_MAP.
+::
+
+    $ mothermapper -c /my/conf/file -s
+
+The environment is ready.
+To use the mother module for this environmant, just initialize mother with his
+configuration file:
+::
+
+    >>> from mother.mothers import init_mother
+    >>> init_mother('/my/conf/file')
+
+
+
+Simple Database Actions
+-----------------------
+
+
+In this section we will handle simple and single records. We use the persitent 
+connection, so make sure that the mother configuration file enables it.
+
+The primary concept of Mother is: declare a short but extendible class for a table: 
+each instance of this class is a table record.
+To explain this concept let's start handling records on the table 'stars'. 
+
+Put the following class declaration inside the file sample.py:
+::
+
+    from mother.mothers import *
+
+    class ClsStars(DbMother):
+        table_name= 'stars'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            DbMother.__init__(self, store, flag, session)
+
+The argument `session` is used when dealing with the connection pool, useful for 
+threaded environments, as web applications. For now, forgive it.
+
+Suppose we want to insert the Sun star on the table stars. The Sun name is 'sun',
+the Sun age is 10 and the Sun mass is 20:
+::
+
+    >>> from sample import *
+    >>> init_mother('/my/conf/file')
+    >>> sun_dict= {'star_name': 'sun', 'star_mass': 20, 'star_age': 10}
+    >>> Sun= ClsStars(sun_dict)
+    >>> Sun.insert()
+    >>> print Sun
+    >>> sun_id = Sun.getField('star_id')
+
+Note that Mother has retrieved for us the primary key of Sun automatically.
+Note also that Mother knows the primary key of the table stars.
+Moreover, Mother knows the fields of that table; try to do:
+::
+
+    >>> wrong_dict= {'foo': 1}
+    >>> Sun= ClsStars(wrong_dict)
+    >>> Sun.insert()
+
+A question arises: what about the initialization argument `flag`? This argument 
+is useful to perform db actions during the initialization. In other words the
+Sun insertion could be made without the insert() call:
+::
+
+    >>> Sun= ClsStars(sun_dict, MO_SAVE)
+
+MO_NOA means "No Action" and is the default value of this argument.
+
+Now we want to modigy the Sun record, setting the star_mass to 15:
+::
+
+    >>> Sun.setField('star_mass', 15)
+    >>> # or Sun.setFields({'star_mass': 15}) to change more fields
+    >>> Sun.update()
+
+If we want to update a record without having his mother instance we have to use
+his primary key:
+::
+
+    >>> Sun= ClsStars({'star_id': sun_id, 'star_mass': 15}, MO_UP)
+
+Note that setField() and setFields() are not allowed to change the primary key
+of the table.
+
+Now, we want to remove the sun record:
+::
+
+    >>> Sun.delete()
+
+of, if we don't have a mother instance for this record, we can do:
+::
+
+    >>> ClsStars({'star_id': sun_id}, MO_DEL)
+
+To delete a record there is no need to specify his primary key:
+::
+
+    >>> ClsStars({'star_name': 'sun'}, MO_DEL)
+
+But note that this call will delete all records on the table stars with 
+star_name= 'sun'.
+If you want to avoid this type of dangerous call, define your mother class
+to be "paranoid":
+::
+
+    class ClsStars(DbMother):
+        table_name= 'stars'
+        paranoid = True
+        def __init__(....):
+            ...
+
+Now Mother will refuse to perform db actions without a primary key.
+
+Finally, we could want to retrieve a record.
+::
+
+    >>> Sun= ClsStars({'star_id': sun_id})
+    >>> Sun.load()
+    >>> # or Sun.load(fields= 'star_name') if we want to load only the name
+    >>> # or Sun= ClsStars({'star_id': sun_id}, MO_LOAD)
+
+There is no need to use the primary key, but remember that this call will raise
+an exception if there isn't a unique record with the specified fields.
+
+If we want to give some sql specific values to some fields, as DEFAULT, NULL, 
+True or False, just use SQL_DEFAULT, SQL_NULL, SQL_FALSE, SQL_TRUE:
+::
+
+    >>> from mother.mothers import SQL_NULL
+    >>> Sun= ClsStars({'star_mass': SQL_NULL, 'star_name': 'sun'}, MO_SAVE)
+    >>> print Sun
+    >>> print Sun.getFields()
+
+Note that the methods getFields() and getField() accept an optional argument:
+autoload. If autoload is True, the requested fields will be retrieved from the
+database if necessary.
+
+All the described methods have a good inline doc:
+::
+
+    >>> print Sun.getFields.__doc__
+
+
+Handling Multiple Records
+-------------------------
+
+In the previous section we learned how to handle one record at time. Now we 
+begin to deal with a set of records. To do that a specific class is used:
+MotherBox.
+
+If an instance of a Mother class represents a record on a table, an instance 
+of a MotherBox class is a set of record of one table. Differently by DbMother,
+we don't need to create a class for each table.
+
+Let's start retrieving all records on the table stars:
+::
+
+    >>> from sample import *
+    >>> init_mother('/my/conf/file')
+    >>> star_box= MotherBox(ClsStars, filter= None, flag= MO_LOAD)
+    >>> print len(star_box)
+
+Now the star_box instance contains the records. len(star_box) gives us the
+number of retrieved records. We can choose to take them as dictionnaries or as 
+Mother instances:
+::
+
+    >>> mommas= star_box.getRecords(flag_obj= True)
+    >>> dicts= star_box.getRecords()
+    >>> for momma in mommas:
+    ...    print momma
+    ...
+    >>> for d in dicts:
+    ...    print d
+    ...
+
+The MotherBox technology is more complex: a lot of args could be specified
+during the initialization. First of all, the filters. Just take all records
+with star_mass equal to 10:
+::
+
+    >>> star_box= MotherBox(ClsStars, filter= {'star_mass': 10}, flag= MO_LOAD)
+    >>> star_box= MotherBox(ClsStars, filter= 'star_mass = 10', flag= MO_LOAD)
+
+As you can see, fiilters are dicts or strings. Filter could be also MoFilter
+instances: this allows to escape strings, adding security. This type of
+filters is explained after: for now, know that all the Mother operations are
+safe: SQL is escaped so that SQL injection is not allowed.
+
+We could be interested to retrieve only the star_name:
+::
+
+    >>> star_box= MotherBox(ClsStars, fields= ['star_name'], flag= MO_LOAD)
+
+We could be interested to retrieve records oredered by star_id:
+::
+
+    >>> star_box= MotherBox(ClsStars, order= ['star_id'], flag= MO_LOAD)
+
+Now that we know how to load records, it's time to see how to delete and
+update them. To delete all records on stars with star_mass > 15, we can do:
+::
+
+    >>> MotherBox(ClsStars, filter= 'star_mass > 15', flag= MO_DEL)
+
+To update all records on stars with star_mass = 15, setting star_age = 2, just
+do:
+::
+
+    >>> fup= {'star_age': 2}
+    >>> filter= {'star_mass': 15}
+    >>> MotherBox(ClsStars, filter= filter, fields= fup, flag= MO_UP)
+
+
+
+
+
+Handling Children
+-----------------
+
+The table planets is a child of the table stars: a planet could be in a
+particular star system. Now we learn how to handle children.
+
+First of all we need to create a Mother class for the table planets: after
+that we have to enable the children Manager for the ClsStars class, specifiyng
+a list of children that we want to handle. Working on sample.py:
+::
+
+    from mother.mothers import *
+
+    class ClsPlanets(DbMother):
+        table_name= 'planets'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            DbMother.__init__(self, store, flag, session)
+
+    class ClsStars(DbMother, MotherManager):
+        table_name= 'stars'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            self.initChildManager([ClsPlanets])
+            DbMother.__init__(self, store, flag, session)
+
+Note that we have subclassed the ClsStars class with MotherManager and called
+the initChildManager() method to specify that we want to handle planets
+children.
+
+Now, let's create the Sun star and insert the planet Earth:
+::
+
+    >>> from sample import *
+    >>> init_mother('/my/conf/file')
+    >>> Sun= ClsStars({'star_name': 'sun'}, MO_SAVE)
+    >>> Earth= Sun.insertPlanets({'planet_name': 'earth'})
+    >>> print Earth
+
+Note that:
+
+    - the method insertPlanets() is created automatically
+    - the foreign key 'star_id' was not specified and it's assigned automatically
+
+Now we want all the planets living on the solar system:
+::
+
+    >>> planet_box= Sun.getMultiplePlanets()
+
+Now all planets on the solar system with planet_mass > 12, ordered by
+planet_id:
+::
+
+    >>> ftr= 'planet_mass > 12'
+    >>> order= ['planet_id']
+    >>> planet_box= Sun.getMultiplePlanets(filter= ftr, order= order)
+
+If we are interested only on planet names, we can specify to load only this
+field:
+::
+
+    >>> planet_box= Sun.getMultiplePlanets(fields= ['planet_name'])
+
+If we want to retrieve a unique planet we can do:
+::
+
+    >>> Earth= Sun.getPlanets({'planet_name': 'earth'})
+
+Note that this call will raise an exception if there isn't a unique record on
+the table planets with planet_name = 'earth' and star_id =
+Sun.getField('star_id').
+
+We can use this fact to test planet existence:
+::
+
+    >>> try:
+    ...   planet= Sun.getPlanets({'planet_name': 'earth'})
+    ... except:
+    ...   print "No planet on the solar system with name earth"
+    >>>
+
+Now it's time to update:
+::
+
+    >>> ftr= {'planet_name': 'earth'}
+    >>> Sun.updateMultiplePlanets({'planet_mass': 42}, filter= ftr)
+
+This call update all planets on the solar system with planet_name = 'earth',
+setting planet_mass= 42.
+
+Deleting children is similar:
+::
+
+    >>> Sun.deleteMultiplePlanets("planet_mass > 12 ")
+    >>> Sun.deleteMultiplePlanets({'planet_mass': 2})
+
+
+
+
+Handling Relations
+------------------
+
+As for the children of one table we can handle relations with Mother.
+Now we focus our attention on the table Lifes, Planets and Civilizations.
+
+A record on the Civilizations table means that a certain form of life lives on
+a certein planet.
+
+To handle children we need to enable the Children Manager calling
+initChildManager(). To enable the relation manager we have to call
+initRelationManager().
+
+Let's edit sample.py, inserting a class for the Lifes table:
+::
+
+    from mother.mothers import *
+
+    class ClsLifes(DbMother):
+        table_name= 'lifes'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            DbMother.__init__(self, store, flag, session)
+
+    class ClsPlanets(DbMother, MotherManager):
+        table_name= 'planets'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            self.initRelationManager([ClsLifes])
+            DbMother.__init__(self, store, flag, session)
+
+Now we can start to handle lifes and civilization in a powerful way:
+::
+
+    >>> from sample import *
+    >>> init_mother('/my/conf/file')
+    >>> Mars= ClsPlanets({'planet_name': 'mars'}, MO_SAVE)
+    >>> martians_dict= {'life_name': 'green_people'}
+    >>> Martians= Mars.assignLifes(martians_dict, MO_SAVE)
+
+What happens? A new record is inserted on the table Lifes (MO_SAVE) and, after 
+that, a new record is inserted on the table Civilizations.
+Martians is a Mother instance for the record inserted on the table lifes.
+
+We have two different ways to do that; the flag MO_SAVE on the assignLifes()
+call means that the record Martians has to be created before to assign the
+relatioin:
+::
+
+    >>> Martians= ClsLifes(martian_dict, MO_SAVE)
+    >>> Mars.assignLifes(Martians.getFields())
+
+If, instead, we have already inserted the Martians record and we want to load this
+record we can:
+::
+
+    >>> martians_dict= {'life_id': 1}
+    >>> Martians= Mars.assignLifes(martians_dict, MO_LOAD)
+    >>> print Martians
+
+If we want to insert some informations on the relation record, for example the
+field `age`, which specifies that a certain form of life lives on a certain
+planet from age years, we can do it:
+::
+
+    >>> Mars.assignLifes(martians_dict, MO_NOA, params= {'age': 12})
+
+Dropping relation is easy too. To drop all relations between Mars and Lifes with 
+age > 5:
+::
+
+    >>> Mars.dropMultipleLifes(filter= 'age > 5')
+
+If we want to use a filter on the table Lifes, we have to specify the argument
+jfilter:
+::
+
+    >>> Mars.dropMultipleLifes(jfilter= {'life_name': 'green_people'})
+
+Moreover, we can decide to act also on the table Lifes:
+::
+
+    >>> Mars.dropMultipleLifes(filter= 'age > 5', flag= MO_DEL)
+
+With this call we delete not only the relation records, but also the records on 
+the table lifes that live on Mars from at least 5 years.
+
+Now we want all form of lifes thae live on Mars:
+::
+
+    >>> lifes_box= Mars.joinLifes()
+
+If we are interested only about life names, we can specify this passing a list
+of fields:
+::
+
+    >>> lifes_box= Mars.joinLifes(fields= 'life_name')
+
+We can filter and/or order the records:
+::
+
+    >>> filter= 'age > 5'
+    >>> jfilter= {'life_name': 'green_people'}
+    >>> lifes_box= Mars.joinLifes(order= ['life_id'], filter= filter)
+    >>> lifes_box= Mars.joinMultipleLifes(filter= filter, jfilter= jfilter)
+
+Finally, we could be interested about the relation record between Mars and
+Martions:
+::
+
+    >>> rel= Mars.paramsLifes(Martians)
+    >>> # we can also use dicts:
+    >>> martian_dict= {'life_id': Martians.getField('life_id')}
+    >>> rel= Mars.paramsLifes(martian_dict)
+
+We could be interested to retrive also a specific field:
+::
+
+    >>> rel= Mars.paramsLifes(Martians, fields= ['age'])
+
+We could retrieve a Mother class (there is no need to define the class on
+sample.py):
+::
+
+    >>> momma=  Mars.paramsLifes(Martians, flag_obj= True)
+
+
+
+
+
+Handling Complex Children
+-------------------------
+
+
+What about if we want to retrieve planets of the solar system with two moons
+or planets on the solar system where humans live?
+
+Mother is able to handle this type of JOIN queries in an easy and transaparent
+way.
+
+Let's start retreving all planets on the solar system where humans live:
+::
+
+    >>> humans_filter = {'life_id': 1}
+    >>> box= Sun.getMultiplePlanets(jbuilder= ClsLifes, jfilter= humans_filter)
+
+The same concept applies when dealing with Moons (it's your work to define the 
+class ClsMoons on sample.py):
+::
+
+    >>> moons_filter= {'num_moons': 2}
+    >>> box= Sun.getMultiplePlanets(jbuilder= ClsMoonsInfo, jfilter= moons_filter)
+
+Note that Mother is able to understand which tables have to be joined, altought 
+the two situations are very different.
+
+Obviously you can use at the same time the other arguments for the 
+getMultiplePlanets() method:
+::
+
+    >>> Sun.getMultiplePlanets(filter= 'planet_mass > 5', jbuilder= ClsLifes, 
+    ...                         jfilter= humans_filter)
+
+
+
+The MotherFusion Class
+----------------------
+
+The MotherFusion class was introduced with mother version 0.6.2.
+All the Mother classes presented just now are able to load records only
+from a unique table.
+
+The MotherFusion class allows to load records from two or three tables.
+For example, we could be interested to load stars and planets at the 
+same time, performing a join between the two tables:
+::
+
+    >>> from mother.mothers import MotherFusion
+    >>> momma= MohterFusion(ClsStars, ClsPlanets)
+    >>> print len(momma)
+    >>> momma.getRecords()
+    >>> momma.getRecords(flag_obj= True)
+
+The table 'planets' is a child of the table 'stars'. As we can expect,
+the MotherFusion class is able to understand the database structure. 
+So we can use it for two tables linked with a relation, as for the tables
+'planet' and 'lifes', that are linked with the table 'civilizations':
+::
+
+    >>> momma= MotherFusion(ClsPlanets, ClsLifes)
+
+Note that in both cases, you don't need to specify the nature of the
+tables relation: Mother is able to understand it.
+
+As we can expect, we can use filters as usual:
+::
+
+    >>> momma= MotherFusion(ClsPlanets, ClsStars, filter= 'planet_mass > 12')
+    >>> momma= MotherFusion(ClsPlanets, ClsStars, filter= {'star_mass': 14})
+
+We can use also a MoFilter class to specify a complex filter.
+
+We can specify also which fields we want to load; to do it, we can choose 
+different ways. If there is no problem for ambiguity, we can list them:
+::
+
+    >>> momma= MotherFusion(ClsStars, ClsPlanets, \
+            fields= ['star_mass', 'planet_id'])
+
+If there is an ambiguity problem, we can provide two dicts or two list
+with a tuple:
+::
+
+    >>> momma= MotherFusion(ClsStars, ClsPlanets, \
+            fields= ({'star_name': 'foo'}, {'planet_mass': 'bar'}))
+
+This will produce: "SELECT stars.star_nams AS foo, planet.planet_mass AS bar".
+
+Obvioulsy, we can provide a MotherSession and an order:
+::
+
+    >>> momma= MotherFusion(ClsLifes, ClsPlanets, 
+            session= MySession, order= ['star_name'])
+
+If we set to True the 'distinct' argument, we will have a "SELECT DISTINCT"
+statement:
+::
+
+    >>> momma= MotherFusion(ClsLifes, ClsPlanets, distinct= True)
+
+If the two tables are not Father-Child (or Child-Fater) tables, we can
+force the relation table to be used:
+::
+
+    >>> momma= MohterFusion(ClsLifes, ClsPlanets, rtbl= 'civilizations')
+
+In the same case, we could be interested to load also the records on
+the relation tables (for example 'civilizations.age').
+If we set params= True, MotherFusion will load all the fields on the
+relation table, excluding the foreign keys:
+::
+
+    >>> momma= MotherFusion(ClsLifes, ClsPlanets, params= True)
+
+We can also specify manually which field to load on the relation table:
+::
+
+    >>> momma= MotherFusion(ClsLifes, ClsPlanets, params= ['age'])
+
+
+
+Performing Custom queries
+-------------------------
+
+SQL is a rich language: we need to perform some custom queries.
+To do that, we need to use the Mother database adapter. 
+Once more we assumes that the persistent connection is used (sessions are explained
+after).
+::
+
+    >>> from mother.mothers import *
+    >>> init_mother('/my/conf/file')
+    >>> from mother.abdbda import DbOne
+    >>> # one commit query, no return
+    >>> DbOne.oc_query('delete from stars')
+    >>> # one value query: a value is returned
+    >>> DbOne.ov_query('select star_name where star_id = 1)
+    >>> # one record query: a unique dict is returned
+    >>> one_record= DbOne.or_query('select * from starts where star_id = 1')
+    >>> # multiple records query: a list of dict is returned
+    >>> record_list= DbOne.mr_query('select * from stars')
+
+Note that the same functions are exported to each Mother instace, so there is no need
+to import abdbda:
+::
+
+    >>> sun= ClsStars()
+    >>> one_record= sun.or_query('select * from lifes where star_id = 1')
+
+
+
+Transactions
+------------
+
+Transactions are handled by Mother, which allow nested transactions. In this section
+we deal once more with the persistent connection.
+
+As for the methods to perform action queries, beginTrans(), commit() and rollback()
+are DbOne methods, but they are exported to each Mother instance. Note that calling
+these methods from a Mother instance or calling them from the DbOne class produces 
+the same effect:
+::
+
+    >>> DbOne.beginTrans()
+    >>> try:
+    ...     Sun.insert()
+    ...     Sun.commit()
+    ... except:
+    ...     Sun.commit()
+    >>>
+
+The chance to call nested transactions is very useful: if we call two times 
+beginTrans() we need to call two times commit() to commit our queries.
+Instead, rollback could be called once (and calling rollback more times does
+not produce any errror).
+
+This allows the following code:
+::
+
+    >>> def foo():
+    >>>   Sun.beginTrans()
+    ...   try:
+    ...     Sun.insert()
+    ...     Sun.commit()
+    ...   except:
+    ...     Sun.rollback()
+    ...     raise 'Foo'
+    >>>
+    >>> def bar():
+    ...   DbOne.beginTrans()
+    ...   try:
+    ...     DbOne.oc_query(myquery)
+    ...     foo()
+    ...     DbOne.commit()
+    ...   except:
+    ...     DbOne.rollback()
+    ...     raise 'Bar'
+    >>>
+    >>> bar()
+
+The function foo() is not dangerous for his transaction: we can safely call 
+it from everywhere, because Mother is able to deal with nested transaction,
+doing exactly what you need: calling bar(), queries will be committed only
+with the last commit() statement inside bar() itself.
+
+Obviously you can call directly foo(), obtaining now a classic behaviour.
+
+
+
+Sessions and Threaded Environments
+----------------------------------
+
+When we need to develop applications in a threaded environments, we need 
+isolated transactions. In fact the persistent connection is not enough, 
+because different flux of code have to behave indipendently, while the 
+persistent connection is shared to each Mother instance.
+
+Mother implements a connection pool: editing the Mother configuration file
+it's possible to tune it in a deep way. The file is strongly commented. 
+
+To get a session, the MotherSession() call is used; we can give a name to
+each session: this is very useful for debugging purposes, but you can safely
+call this function without arguments: Mother will assign a random name to your
+session:
+::
+
+    >>> from mother.mothers import *
+    >>> init_mother('/my/conf/file')
+    >>> session= MotherSession('hello_world')
+
+Now that a session is ready, we can begin to use it:
+::
+
+    >>> Sun= ClsStars(sun_dict, MO_SAVE, session)
+    >>> earth= Sun.insertPlanets(earth_dict)
+    >>> earth.setField('planet_mass', 34)
+    >>> earth.update()
+
+The db actions are now inside your session: note that this applies also to the
+db actions produced by Earth, because Earth is born inside a session.
+
+Sessions are always in a transaction state. To commit the queries we can call
+commit() or endSession(). Calling endSession() closes also the transactions, 
+which is putted back to the pool:
+::
+
+    >>> session.endSession()
+
+To rollback the queries inside a session we use rollback():
+::
+    
+    >>> session= MotherSession('hello_world')
+    >>> try:
+    ...   Sun= ClsStars(sun_dict, MO_SAVE, session)
+    ...   earth= Sun.insertPlanets(earth_dict)
+    ...   earth.setField('planet_mass', 34)
+    ...   earth.update()
+    ... except:
+    ...   session.rollback()
+    >>>
+    >>> session.endSession()
+
+To perform custom queries inside sessions, just use the session methods or 
+the Mother instance methods:
+::
+
+    >>> session= MotherSession('aaaa')
+    >>> try:
+    ...   Sun= ClsStars(sun_dict, MO_SAVE, session)
+    ...   Sun.oc_query('delete from planets')
+    ...   session.or_query('select * from lifes where life_id = 1')
+    ... except:
+    ...   session.rollback()
+    >>>
+    >>> session.endSession()
+
+When you develop internal methods, make sure to propagate the session:
+::
+
+    >>> class ClsFoo(DbMother):
+    ...   table_name= 'foo'
+    ...   def __init__(....):
+    ...     ...
+    ...
+    ...   def wrong_method(self, *args):
+    ...     ClsBar(mydict, MO_SAVE)
+    ...
+    ...   def correct_method(self, *args):
+    ...     # this works also if no session was used to
+    ...     # initialize this instance:
+    ...     ClsBar(mydict, MO_SAVE, self.session)
+    ...   
+    ...   def always_correct(self, *args):
+    ...     # this query is executed inside a session
+    ...     # if this instance was initialized with a
+    ...     # session, with the persistent connection
+    ...     # otherwise.
+    ...     self.oc_query('delete from foobar')
+
+
+
+Finally, to monitor the connection pool, use the following methods:
+::
+
+    >>> from mother.mothers import MotherPoolStatus, MotherPoolStratus
+    >>> print MotherPoolStatus()
+    >>> print MotherPoolStratus()
+
+
+Logging
+-------
+
+Logging, as for the pool, is configurable on the Mother configuration file.
+::
+
+    >>> from mother.Speaker import RED, GREEN, YELLOW
+    >>> import datetime
+    >>> Sun.log_info('It's %s', GREEN(datetime.datetime.today))
+    >>> Sun.log_warning('aia aia %s %s', RED(1), YELLOW('foo'))
+    >>> from mother.speaker import *
+    >>> Speaker.log_debug('the same methods are callable from the Speaker class')
+    >>> Speaker.log_noise('Noise Noise %s', RED('noise'))
+    >>> Speaker.log_insane('Insane Insane %s', RED('noise'))
+    >>> Sun.log_noise('Soft Soft %s', RED('noise'))
+
+Setting the configuration level, some of the previous logged string will be dropped.
+To use a custom logging level, use log_log():
+::
+
+    >>> Speaker.log_log(23, 'hi %s %s %s', 1, 2 ,'a')
+
+If smtp logging is enabled, the following function will be available: log_mail().
+
+
+
+
+Triggers
+--------
+
+Let's use triggers:
+::
+
+    >>> from mother.mothers import *
+    >>> from mother.speaker import *
+    >>> def before_trigger(*args):
+    ...   Speaker.log_info(GREEN('this is my before trigger'))
+    >>>
+    >>> def after_trigger(*args):
+    ...   Speaker.log_info(GREEN('this is my after trigger'))
+    >>>
+    >>> class TriggeredStar(DbMother):
+    ...   table_name= 'stars'
+    ...   def __init__(self, store= {}, flag= MO_NOA, session= None):
+    ...       self.add_trigger(MO_SAVE, MO_BEFORE, before_trigger)
+    ...       self.add_trigger(MO_SAVE, MO_AFTER, after_trigger)
+    ...       DbMother.__init__(self, store, flag, session)
+    >>>
+    >>> sun= TriggeredStar({'star_name': 'sun'}, MO_SAVE)
+
+
+
+Custom Complex Filters
+----------------------
+
+Sometime we have to use strings as filters. For example, to get all planets
+with planet_mass > 5, we must do:
+::
+
+    >>> MotherBox(ClsPlanets, filter= 'planet_mass > 5', flag= MO_LOAD)
+
+When no-string filters are provided, Mother is able to escape correctly the
+various variables, but when we work with strings, we are tempted to do:
+::
+
+    >>> filter= 'blabla %s %s' % (foo, bar)
+    >>> MotherBox(ClsPlanets, filter= 'planet_mass > 5', flag= MO_LOAD)
+
+This is not good, because SQL injection is possible. To let Mother escapes
+also you string filter, you have to use a class: MoFilter.
+
+It's easy, instead of:
+::
+
+    >>> filter= 'blabla %(foo)s %(bar)s' % {'foo': foo, 'bar': bar}
+
+it's possible to do:
+::
+
+    >>> from mother.mothers import MoFilter
+    >>> store= {'foo': foo, 'bar': bar}
+    >>> filter= MoFilter('blabla %(foo)s %(bar)s', store= store}
+
+Now Mother will escape for you the filter, adding the security layer vs SQL
+injection.
+
+Moreover, we can add different type of filter in the same class:
+::
+
+    >>> filter= MoFilter('blabla %(foo)s %(bar)s', store= store}
+    >>> filter.add_filter({'age': 1})
+    >>> filter.add_filter('dkafsak %(az)s', {'az': 5})
+    >>> MotherBox(ClsPlanets, filter= filter, flag= MO_LOAD)
+
+
+
+Using Mother without Class Definition
+-------------------------------------
+
+Sometimes we don't need the Child Manager, the Relation Manager or other
+complex tools: we just want to perform basic action on some table.
+
+To perform the basic db actions there is no need to define Mother classes:
+it's possible to create on demand these classes:
+::
+
+    >>> from mother.mothers import getMotherBuilder
+    >>> FastClsStars= getMotherBuilder('stars')
+    >>> FastClsStart({'star_name': 'sun'}, MO_SAVE, MySession)
+
+This is a very fast way to perform basic actions without writing useless lines
+of code.
+
+

@@ -1,0 +1,11 @@
+* mothermapper has a slow computatinal model. For great DB, it's slow.
+  Optimizations should be nice (see postgres autodoc).
+
+* mothermapper new option -M: write the declaration of  Mother classes
+  for each table on the DB, using MotherManager automatically when a 
+  table has children or relations. Perhaps this is not a good idea
+
+* Let use MoFilter at the upper level
+
+* adding other database is now easy
+  It seems that only pgres and sqlite are mother compatible

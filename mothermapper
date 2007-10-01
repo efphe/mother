@@ -1,0 +1,825 @@
+#!/usr/bin/python -OO
+
+import sys
+import copy
+import getopt
+import os
+
+from mother.speaker import *
+from mother.abdbda import *
+from mother.mothers import *
+
+
+__version__= '0.6.2'
+
+#        
+##      
+### Twirl 
+##      Inspired by portage (Gentoo)     
+#     
+
+twirl_sequence = "/-\\|/-\\|/-\\|/-\\|\\-/|\\-/|\\-/|\\-/|"
+twirl_spinops=0
+twirl_len=len(twirl_sequence)
+
+
+def twirl():
+    global twirl_sequence
+    global twirl_spinops
+    global twirl_len
+    twirl_spinops=(twirl_spinops + 1) % twirl_len
+    outlog("\b\b "+ twirl_sequence[twirl_spinops])
+    return True
+
+
+
+_QUIET= False
+def quiet():
+    global _QUIET
+    _QUIET= True
+
+#
+## Print
+#
+
+def loginfo(s):
+    sys.stderr.write(s)
+    sys.stderr.flush()
+
+def stdoutinfo(s):
+    sys.stdout.write(s)
+    sys.stdout.flush()
+
+def outlog(s):
+    if not _QUIET:
+        loginfo(s)
+
+_DROP_TABLES_SPEED_UP= False
+
+
+#
+## Meta Info are disposed on a Divina Commedia structure:
+#
+
+class God:
+    def __init__(self, devil):
+        self.children= set()
+        self.orphaned= set()
+        self.devil= devil
+        self.disordered= set()
+
+    def clean(self):
+        self.children=set()
+        self.orphaned= set()
+        self.disordered= set()
+        self.devil.clean()
+
+    def load_tables(self):
+        tables= DbOne._iface_instance.get_tables()
+        return tables
+
+    def fill_God(self):
+        OKI_COL_DONE= OKI_COL("Done")+'\n'
+        outlog( "\tLoading DB World...   ")
+        sys.stdout.flush()
+        twirl()
+        tables= self.load_tables()
+        twirl()
+        for tbl in tables:
+            twirl()
+            orphan= Tbl(tbl)
+            self.orphaned.add(orphan)
+            self.disordered.add(orphan)
+        outlog("\b\b %s" % OKI_COL_DONE)
+
+    def add_child(self, c):
+        self.children.add(c)
+
+    def find_fathers(self, tbl):
+        res=set()
+        for child in self.children:
+            res |= child.find_fathers(tbl)
+        return res
+
+    def build_God(self):
+        OKI_COL_DONE= OKI_COL("Done")+'\n'
+        outlog("\tBuilding DB Picture...   ")
+        sys.stdout.flush()
+
+        # first of all, get prophetes
+
+        oped= self.orphaned
+        twirl()
+        _oped= oped.copy()
+
+        temp_l= [orphan for orphan in oped \
+                if orphan.is_god_child()]
+
+        twirl()
+        temp_set=set(temp_l)
+        self.children |= temp_set
+        oped-= temp_set
+
+        l= len(oped)
+        while l:
+            twirl()
+            temp_set.clear()
+            for o in oped:
+                twirl()
+                o_fathers= o.get_unlinked_fathers()
+                for f in o_fathers:
+                    twirl()
+                    s=self.find_fathers(f)
+                    for pf in s:
+                        twirl()
+                        o.add_father(pf)
+
+                if o.is_parented():
+                    temp_set.add(o)
+
+            twirl()
+            oped-=temp_set
+            l= len(oped)
+
+        devil= self.devil
+        for o in _oped:
+            twirl()
+            if not len(o.children):
+                devil.add_father(o)
+        outlog("\b\b %s" % OKI_COL_DONE)
+        #outlog( "\b\b\b\n")
+
+
+
+class Devil:
+    def __init__(self):
+        self.fathers=set()
+
+    def add_father(self, f):
+        self.fathers.add(f)
+
+    def pop_damned(self):
+        res=[]
+        second_level= set()
+        for f in self.fathers:
+            second_level |= f.fathers
+            for ff in f.get_fathers():
+                f.del_father(ff)
+            res.append(f)
+
+        self.fathers.clear()
+        for f in second_level:
+            if f.is_devil_father():
+                self.add_father(f)
+
+        return res
+    
+    def clean(self):
+        self.fathers=set()
+
+
+class Tbl:
+    def __init__(self, name):
+        self.name= name
+        self.fields= []
+        self.pkeys= []
+        self.fathers_map= [] # (mykey, tbl, key)
+        self.unlinked_fathers= set()
+        self.fathers= set()
+        self.children= set()
+
+        self.load_keys()
+        self.load_pkeys()
+        self.load_fkeys()
+
+    def get_father_map(self, tbl):
+        for a,b,c in self.fathers_map:
+            if b==tbl:
+                return a,c
+
+    def is_god_child(self):
+        if len(self.fathers_map):
+            return False
+        return True
+    
+    def is_devil_father(self):
+        if len(self.children):
+            return False
+        return True
+
+    def load_pkeys(self):
+        self.pkeys= DbOne._iface_instance.get_table_pkeys(self.name)
+
+    def load_fkeys(self):
+        res= DbOne._iface_instance.get_table_fkeys(self.name)
+        for mk, tbl, fk in res:
+            self.fathers_map.append((mk, tbl, fk))
+            self.unlinked_fathers.add(tbl)
+
+    def load_keys(self):
+        self.keys= DbOne._iface_instance.get_table_fields(self.name)
+
+    def add_father(self, tbl_obj):
+        tbl= tbl_obj.name
+        self.unlinked_fathers.remove(tbl)
+        self.fathers.add(tbl_obj)
+        tbl_obj.add_child(self)
+
+    def del_father(self, tbl_obj):
+        self.fathers.remove(tbl_obj)
+        tbl_obj.children.remove(self)
+
+    def add_child(self, tbl_obj):
+        self.children.add(tbl_obj)
+
+    def is_parented(self):
+        return len(self.unlinked_fathers)==0
+
+    def get_fathers(self):
+        return self.fathers.copy()
+
+    def get_unlinked_fathers(self):
+        return list(self.unlinked_fathers)
+
+    def find_fathers(self, tbl):
+        res=set()
+        if self.name==tbl:
+            res.add(self)
+        for child in self.children:
+            res |= child.find_fathers(tbl)
+        return res
+
+class MotherWorld:
+    def __init__(self, scripts= []):
+        # Devil first, and after that, God.
+        devil= Devil()
+        self.devil= devil
+        # Yes, God needs Devil
+        self.god= God(devil)
+        self.world_created= False
+        self.scripts= scripts
+        self.symbols_files= []
+        self.pcfile= None
+        self.scfile= None
+
+    def _create_cfile(self, ccfile, dbtype):
+
+        outlog("Creating Default Configuration file %s ... " % ccfile)
+
+        buf= "#\n## Created by mothermapper\n#\n\n"
+
+        try:
+            from mother import _defconf
+        except:
+            loginfo("Error: unable to create configuration file: "\
+                    "Mother module not found.\n")
+            return
+
+        mod= sys.modules['mother._defconf']
+        nfil= mod.__file__
+        if nfil.endswith('pyc') or nfil.endswith('pyo'): 
+            nfil= nfil[:-1]
+
+        fil= open(nfil)
+        buf+= fil.read()
+        fil.close()
+
+        if dbtype == 0:
+            mod_name= '_def_pgres.py'
+        elif dbtype == 1:
+            mod_name= '_def_sqlite.py'
+
+        nfil= nfil.replace('_defconf.py', '%s' % mod_name)
+
+        try:
+            fil= open(nfil)
+        except:
+            loginfo("Error: unable to create configuration file: "\
+                    "Mother module not found.\n")
+            return
+        buf+= fil.read()
+        fil.close()
+
+        fil= open(ccfile, 'w')
+        fil.write(buf)
+        fil.close()
+
+        outlog(OKI_COL("Done")+'\n')
+
+    def create_pcfile(self):
+        ccfile= self.pcfile
+        self._create_cfile(ccfile, 0)
+
+    def create_scfile(self):
+        ccfile= self.scfile
+        self._create_cfile(ccfile, 1)
+        loginfo("Note: SQLite support is not tested deeply; "
+                "if you encounter bugs, don't panic:\n\tsignal them and they "
+                "will be fixed!\n")
+
+    def add_symbols_file(self, f):
+        if not f.endswith('.py'):
+            loginfo("Symbols file has to be a python file. "\
+                    "%s won't be loaded.\n" % ERR_COL(f))
+            return -1
+        
+        self.symbols_files.append(f[:-3])
+        return 0
+
+    def load_symbols_file(self):
+        f= self.symbols_files.pop(0)
+        init_mother(self.cfile)
+        self._load_symbols_files(f)
+
+    def _update_table_symbols(self, t, news, ses):
+        outlog("\tWorking on table %s... " % OKI_COL(t))
+        builder= getMotherBuilder(t)
+        olds= MotherBox(builder, None, MO_LOAD, session= ses).getRecords()
+        to_add= []
+        to_del= []
+
+        for n in news:
+            adding= True
+            for o in olds:
+                if o == n:
+                    adding= False
+                    break
+            if adding:
+                to_add.append(n)
+
+        for o in olds:
+            deleting= True
+            for n in news:
+                if n == o:
+                    deleting= False
+            if deleting:
+                to_del.append(o)
+
+        add_n= len(to_add)
+        del_n= len(to_del)
+
+        outlog("Inserting %s, deleting %s ... " % 
+                (OKI_COL(add_n), ERR_COL(del_n)))
+
+        for o in to_del:
+            getMotherObj(t, o, MO_DEL, session= ses)
+        for n in to_add:
+            getMotherObj(t, n, MO_SAVE, session= ses)
+
+        outlog("%s.\n" % OKI_COL("Done"))
+        return add_n, del_n
+
+
+    def _load_symbols_files(self, f):
+        p= os.path
+        pyfil= "%s.py" % f
+        outlog("Processing symbol file %s ...\n" % OKI_COL(pyfil))
+
+        cfil= p.abspath(f)
+        bfil= p.basename(f)
+
+        index= cfil.index(bfil)
+        if index:
+            bdir= cfil[:index]
+            sys.path= [bdir]+ sys.path
+
+        try:
+            mod=__import__(bfil)
+        except:
+            loginfo("\n\tError: unable to import %s. "\
+                    "Symbol file won't be processed.\n" % ERR_COL(bfil))
+            return
+
+        tbi= mod.RECORDS_TO_BE_INSERTED
+
+        added= 0
+        deleted= 0
+
+        for t, dl in tbi:
+            try:
+                adds, dels= self._update_table_symbols(t, dl, None)
+                added+= adds
+                deleted+= dels
+            except Exception, ss:
+                loginfo("Error on %s: %s\n" % (ERR_COL(t), ERR_COL(ss)))
+                DbOne.rollback()
+
+        outlog('Symbols Resume:\n')
+        outlog("\tTables: %s\n" % INF_COL(len(tbi)))
+        outlog("\tInserted %s symbols.\n" % OKI_COL(added))
+        outlog("\tDeleted  %s symbols.\n" % ERR_COL(deleted))
+
+
+    def create_world(self):
+
+        if self.world_created:
+            return
+
+        outlog( "Creating Mother World (this could take a long time)...\n")
+        god= self.god
+        god.clean()
+        god.fill_God()
+        god.build_God()
+        outlog("\n")
+        self.world_created= True
+
+    def pop_damned(self):
+        return self.devil.pop_damned()
+
+    def drop_all_tables(self):
+
+        # XXX TODO XXX use _DROP_TABLES_SPEED_UP 
+        # for postgres
+
+        ERR_COL_D=ERR_COL('D')
+        outlog("Deleting all tables...\n")
+        if _DROP_TABLES_SPEED_UP:
+            tbls= self.god.load_tables()
+            outlog("\n")
+            count=0
+            for t in tbls:
+                DbOne.oc_query("DROP TABLE %s cascade" % t)
+                outlog( "\t%s %s\n" % (ERR_COL_D, ERR_COL(t)))
+                count+=1
+            self.world_created= False
+            outlog("Dropped %s tables.\n" % ERR_COL(count))
+            return
+
+        self.create_world()
+
+        count=0
+        r= self.pop_damned()
+        while r:
+            for tbl_obj in r:
+                tbl= tbl_obj.name
+                DbOne.oc_query('DROP TABLE %s' % tbl)
+                outlog( "\t%s %s\n" % (ERR_COL_D, ERR_COL(tbl)))
+                count+=1
+            r= self.pop_damned()
+
+        self.world_created= False
+        outlog("Dropped %s tables\n" % ERR_COL(count))
+
+    def drop_all_records(self):
+        self.create_world()
+
+        world= copy.copy(self)
+        ERR_COL_D=ERR_COL('D')
+
+        r= world.pop_damned()
+        while r:
+            for tbl_obj in r:
+                tbl= tbl_obj.name
+                DbOne.oc_query("DELETE FROM %s" % tbl)
+                outlog( "\t%s %s.%s\n" % (ERR_COL_D, ERR_COL(tbl), OKI_COL("*")))
+            r= self.pop_damned()
+
+        del world
+
+    def add_script(self, s):
+        self.scripts.append(s)
+
+    def exec_script(self):
+        s=self.scripts.pop(0)
+        self._exec_script(s)
+
+    def _exec_script(self, script):
+        OKI_COL_DONE= OKI_COL("Done")+'\n'
+        outlog("Executing script %s... " % INF_COL(script))
+        try:
+            fil=open(script)
+            buf= fil.read()
+            fil.close()
+        except:
+            outlog("%s: unable to read script.\n" % ERR_COL("Error"))
+            return
+
+        try:
+            DbOne.oc_query(buf)
+        except Exception, s:
+            loginfo("%s: %s" % (ERR_COL("Error"), s))
+            sys.exit(1)
+
+        outlog(OKI_COL_DONE)
+
+    def find_dbstruct_dest(self):
+        cfile= self.cfile
+        d= {}
+        from mother import speaker
+        from mother import abdbda
+        names_dict= speaker.__dict__.copy()
+        names_dict.update(abdbda.__dict__)
+        execfile(cfile, names_dict, d)
+        return d['MOTHER_MAP']
+
+    def create_db_struct(self):
+
+        dbstruct= self.find_dbstruct_dest()
+
+        self.create_world()
+        outlog("Creating db structure... ")
+
+        tfd= {}
+        tpd= {}
+
+        for tbl_obj in self.god.disordered:
+            tbl= tbl_obj.name
+            #TBL= "TABLE_%s" % tbl.upper()
+            #buf+=("%s= '%s'\n" % (TBL, tbl))
+            #buf+=("TABLE_FIELDS_DICT['%s']= %s\n" % (tbl, list(tbl_obj.keys)))
+            #buf+=("TABLE_PKEYS_DICT['%s']= %s\n\n" % (tbl, list(tbl_obj.pkeys)))
+            tfd[tbl]= list(tbl_obj.keys)
+            tpd[tbl]= list(tbl_obj.pkeys)
+
+        outlog(OKI_COL('Done\n'))
+        tcd, trd= self.create_db_rels()
+
+        outlog("\nDB Properties:\n")
+        outlog("\tTables: %s\n" % INF_COL(len(tfd)))
+        outlog("\tRelations: %s\n" % INF_COL(len(trd)))
+        outlog("\tFathers: %s\n" % INF_COL(len(tcd)))
+        tset= set()
+        for k in tcd:
+            for v in tcd[k]:
+                tset.add(v)
+        outlog("\tChildren: %s\n" % INF_COL(len(tset)))
+
+        outlog("\nSaving mother map to %s... " % INF_COL(dbstruct))
+
+        map_dicts= {
+                'K': tfd,
+                'P': tpd,
+                'C': tcd,
+                'R': trd
+                }
+
+        import cPickle
+        fil=open(dbstruct, 'wb')
+        dump= cPickle.dump(map_dicts, fil, 2)
+        fil.close()
+
+        outlog(OKI_COL('Done')+'\n')
+
+    def create_db_rels(self):
+
+        self.create_world()
+        outlog("Creating relations rules... ")
+
+        tcd= {}
+        trd= {}
+
+        for tbl_obj in self.god.disordered:
+
+            tbl= tbl_obj.name
+
+            if len(tbl_obj.fathers)>1:
+                #rf, buf= self._relation_buf(tbl_obj)
+                #count_rels+= 1
+                #count_frels+= rf
+                #rbuf+= buf
+
+                trd[frozenset([obj.name for obj in tbl_obj.fathers])]= tbl
+
+            if tbl_obj.is_devil_father():
+                continue
+
+            tcd[tbl]= {}
+            newd= tcd[tbl]
+            for child in tbl_obj.children:
+                mkey, fkey= child.get_father_map(tbl)
+                newd[child.name]= {fkey:mkey}
+
+            #cc, buf= self._depdict_buf(tbl_obj)
+            #count_fathers+= 1
+            #count_children+= cc
+            #dbuf+= buf
+
+        
+        #dbuf+=("}\n\n")
+        #rbuf+=("}\n")
+        #buf= dbuf+ rbuf
+
+        outlog(OKI_COL('Done\n'))
+
+        #outlog("\nWrited %s dependencies dict(s) for %s child(ren).\n" %\
+        #    (OKI_COL(count_fathers),OKI_COL(count_children)))
+        #outlog("Writed %s relation dict(s) for %s father(s).\n" %\
+        #    (OKI_COL(count_rels),OKI_COL(count_frels)))
+
+        return  tcd, trd
+
+def fill_symbols_usage():
+    loginfo(
+            """
+  mothermapper -f file
+
+With this option is possible to sync records tables with
+python dictionnaries.
+RECORDS_TO_BE_INSERTED is a list where you can specify 
+a set of records for each table. 
+For example, consider the following file:
+
+ ##
+ ### BEGIN FILE ###
+
+ records_star= [
+    dict(star_name= 'Sun', star_mass= 1),
+    dict(star_name= 'Mars', star_mass= 2) ]
+
+ records_lifes= [
+    dict(life_name= 'Humans') ]
+
+ RECORDS_TO_BE_INSERTED = [
+    ('stars', records_star), ('lifes', records_lifes) ]
+
+ ### END FILE ###
+ ##
+
+When you use this file with `mothermapper -f`, each record
+specified for each table will be inserted if and only if
+the record is not present on the table.
+
+Moreover, each record present on the table, but not on your
+list, will be removed.
+
+So, the tables will be sync`ed with these dicts.\n\n""")
+
+    sys.exit(1)
+
+def version():
+    from mother import __version__ as mov
+    from mother import __contact__ as moc
+    loginfo("Mother version %s\n" % mov)
+    loginfo("mothermapper version %s\n" % __version__)
+    loginfo("Author: Federico Tomassini aka efphe\n")
+    loginfo('\n'+moc+'\n')
+    sys.exit(0)
+
+def usage():
+    loginfo(
+    """
+  mothermapper is the central tool for Mother (Py Module) configuration.
+
+  Usage: 
+    mothermapper -c conf_file OPTIONS
+    mothermapper -P conf_file
+    mothermapper -S conf_file
+
+  OPTIONS:
+      -q (--quiet)                  Don't you love loqaucity?
+      -Q (--no-color)               No colors on output. Note: on win32 systems,
+                                    colors are always disabled.
+
+      -t (--testdb)                 Test db connection.
+      -d (--drop-tables)            Drop all db tables.
+      -E (--empty-tables)           Drop all records in all tables.
+      -e (--exec-script=script)     Execute the SQL script `script'.
+
+      -c (--cfile=file)             Use the Mother configuration file `file'.
+      -s (--dbstructure)            Create the Mother Db map: you have to specify a 
+                                    mother configuration file with `-c' option.
+      -P (--create-pfile=file)      Create a new configuration Mother file with default 
+                                    values. Useful to create a new Mother environment 
+                                    for Postgresql. 
+      -S (--create-sfile=file)      Create a new configuration Mother file with default 
+                                    values. Useful to create a new Mother environment 
+                                    for SQLite. 
+
+      -f (--fill-symbols=file)      Fill db symbols. `-f help' to know more.
+
+      -v (--version)                Mother and mothermapper Version.
+      -h (--help)                   Help me please\n\n""")
+
+    sys.exit(1)
+
+def main():
+
+    opts= "qQtdEe:sc:P:S:f:vh"
+    opts_long=[
+            'quiet',
+            'no-color',
+            'testdb',
+            'drop-tables',
+            'empty-tables',
+            'exec-script=',
+            'dbstructure',
+            'cfile=',
+            'create-pfile=',
+            'create-sfile=',
+            'fill-symbols=',
+            'version',
+            'help',
+            ]
+
+    try:
+        ops, args= getopt.getopt(sys.argv[1:], opts, opts_long)
+        assert len(ops)
+    except:
+        usage()
+
+    w= MotherWorld()
+    functors=[]
+
+    cfile_needed= False
+    cfile= None
+
+    color= True
+
+    dbtest= False
+
+    for o, a in ops:
+
+        if o in ['-q','--quiet']:
+            quiet()
+
+        elif o in ['-Q','--no-color']:
+            color= False
+
+        elif o in ['-t', '--testdb']:
+            dbtest= True
+            cfile_needed= True
+
+        elif o in ['-d','--drop-tables']:
+            functors.append(w.drop_all_tables)
+            cfile_needed= True
+
+        elif o in ['-E','--empty-tables']:
+            functors.append(w.drop_all_records)
+            cfile_needed= True
+
+        elif o in ['-e','--exec-script']:
+            w.add_script(a)
+            functors.append(w.exec_script)
+            cfile_needed= True
+
+        elif o in ['-s','--dbstructure']:
+            functors.append(w.create_db_struct)
+            cfile_needed= True
+
+        elif o in ['-c','--cfile']:
+            cfile= a
+
+        elif o in ['-P','--create-pfile']:
+            w.pcfile= a
+            functors.append(w.create_pcfile)
+
+        elif o in ['-S','--create-sfile']:
+            w.scfile= a
+            functors.append(w.create_scfile)
+
+        elif o in ['-f','--fill-symbols']:
+            if a=='help':
+                fill_symbols_usage()
+            res= w.add_symbols_file(a)
+            if not res:
+                functors.append(w.load_symbols_file)
+                cfile_needed= True
+
+        elif o in ['-v','--version']:
+            version()
+
+        elif o in ['-h','--help']:
+            usage()
+
+        else:
+            loginfo("Invalid option '%s'\n" % o)
+
+    if cfile_needed and not cfile:
+        loginfo("Error: Mother configuration file not specified.\n")
+        sys.exit(1)
+
+    if cfile and not os.path.isfile(cfile):
+        loginfo("Error: Invalid Mother configuration file "
+                "(permissions? wrong path?).\n")
+        sys.exit(1)
+
+    init_speaker()
+    Speaker.set_log_level(0)
+    # On `nt` system, the call is ignored
+    # and colors are always disabled.
+    Speaker.set_log_color(color)
+
+    if dbtest:
+        try:
+            init_abdbda(cfile)
+            outlog("Database Connection is %s.\n" % OKI_COL('OK'))
+            return 0
+        except Exception, s:
+            outlog("Database Connection %s: %s\n" % (ERR_COL('BROKEN'),s))
+            return -1
+
+    if not functors:
+        usage()
+
+    if cfile:
+        w.cfile= cfile
+        init_abdbda(cfile, {'DB_PERSISTENT_ONE': True, 'DB_POOL': False})
+        #init_mother(cfile)
+
+    for f in functors:
+        f()
+
+
+ 
+if __name__=='__main__':
+    main()

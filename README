@@ -1,0 +1,39 @@
+    __        __   _                          
+    \ \      / /__| | ___ ___  _ __ ___   ___ 
+     \ \ /\ / / _ \ |/ __/ _ \| '_ ` _ \ / _ \
+      \ V  V /  __/ | (_| (_) | | | | | |  __/
+       \_/\_/ \___|_|\___\___/|_| |_| |_|\___|
+
+                                                to
+
+                                o       o
+                               <|>     <|>
+                               < >     / >
+ \o__ __o__ __o     o__ __o     |      \o__ __o      o__  __o   \o__ __o
+  |     |     |>   /v     v\    o__/_   |     v\    /v      |>   |     |>
+ / \   / \   / \  />       <\   |      / \     <\  />      //   / \   < >
+ \o/   \o/   \o/  \         /   |      \o/     o/  \o    o/     \o/
+  |     |     |    o       o    o       |     <|    v\  /v __o   |
+ / \   / \   / \   <\__ __/>    <\__   / \    / \    <\/> __/>  / \
+
+
+
+
+Thanks to using Mother: enjoy!
+Feel free to do, to think, to get, to give. 
+Mother is free as in Freedom.
+
+The better idea is to start reading the micro-howto at
+www.dbmother.org or inside the directory doc/
+
+The UserGuide is more complete:
+
+    http://www.fenilot.org/mother_manual.html
+
+To install the module, just run the script setup.py as
+usual (read INSTALL to know more).
+
+Please, if you encounter Bugs, report them to the
+Mother Mailing List: it will be very appreciated.
+If you don't want to subscribe to the mailing list
+you can contact the main author: efphe@dbmother.org

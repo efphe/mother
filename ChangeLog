@@ -1,0 +1,275 @@
+
+VERSION = 0.6.2
+
+	* MotherFusion: __len__ method
+	* MotherFusion: introduces distinct
+	* MotherFusion: introduced order
+	* MohterFusion is explained on the Manual
+	* `mothermapper -f help` prints a human readable help
+	* MotherFusion is able to exclude redundant params
+	* MotherFusion can load relation params
+	* new class MotherFusion
+	* code cleaned
+	* new _DbMap._sqlFreeJoin method
+	* _sqlJoin&C moved from MotherManager to _DbMap class
+	* mothermapper --help: deleted -C option
+
+
+VERSION = 0.6.1
+
+	* defconf.py -> _defconf.py
+	* def_pgres.py -> _def_pgres.py
+	* def_sqlite.py -> _def_sqlite.py
+	* mothermapper: removed *C option, added -P and -S
+	* added new modules: def_pgres and def_sqlite
+	* debugging MohterManager methods
+
+
+VERSION = 0.6.0
+
+	* Sqlite Support
+	* rewrited initalization methods 
+	* dbda removed: added abdbda
+	* added specific db interface: postgres.py sqlite.py
+	* mothermapper uses always a persistent connection
+	* mothermapper meta queries reside now on the db core
+	* MO_ULOAD action is now obsolete
+	* no primary key is needed to load one record
+	* no primary key is needed to modify db record
+	* added the flag 'paranoid' to the Mother classes
+	* added class filter MoFilter
+	* Mother uses now MoFilter instances as internal filters
+	* writed a new documentation guide
+	* _sqlBuildFilter() removed from DbMother
+	* mogrify() is used only for postgres
+	* logs are more clear
+	* controlling fields on getField()
+	* tester.py: a test unit
+
+
+VERSION = 0.5.6
+
+	* dbg: Psygres reconnection 
+	* logging is more accurate
+	* Mother uses only the pkeys to build filters (MO_ULOAD exception)
+
+
+VERSION = 0.5.5
+
+	* exceptions are handled more simply
+	* mother is now able to restore a broken connection.
+	   This is the case of a postgres restart, for example.
+	   Note that psycopg2 is broken and this feature is not 
+	   working, depending on the psycopg2 version.
+	* getChild() is now reimplemented
+	* Avoid wildcard on select queries
+	* DbMother.load() returns now the getFields() dict
+	* fnaming function debugging
+	* init_mother() tests the function fnaming when provided
+	* MotherPoolStratus()
+	* getField: obsolete parameter `value`. New paramater `autoload`.
+
+
+VERSION = 0.5.4
+
+	* new concept of `calm` for the pool
+	* inserted controls testing sessions initializaztion
+	* logs about pool are now cleaner
+	* default configuration file changed
+	* it's now possible, when using pool, to disable the base connection
+	* implemented Pool Types: LIMITED, ELASTIC, GROWING
+	* dropped sessions are now directly closed (reference leaks)
+	* fixed the "Session VS Persistent" gap for internal transactions
+	* DbMother class: three wrappers to handle transactions internally
+	* new method: DbMother.getField()
+	* mothermapper and symbols: no more massive DELETE (sync pattern)
+	* mothermapper: no more transatctions: now MotherSession
+
+
+VERSION = 0.5.3-r1
+
+	* Fixed bug about colors on win32: mothermapper/set_log_color()
+	* Fixed a not compliant query (fields IS NULL (VS) field= NULL)
+	* Fixed a bug on MotherBox._retrieve_mothers()
+
+
+VERSION = 0.5.3
+
+	* Some output changed
+	* Colors are always disabled on win32 systems.
+	* A stupid bug fixed on _moMap
+
+
+VERSION = 0.5.2-r1
+
+	* Bug fixed: broken map on win32 platforms (cPickle)
+
+
+VERSION = 0.5.2
+
+	* It's now possible to commit() queries inside sessions.
+	* new method MotherPoolStatus()
+	* PsygresPool.back_home -> PsygresPool.backHome
+	* PsygresPool is not Speaker child
+	* PsygresPoll attrs are now private _attrs
+	* PsygresPool.session_number -> PsygresPoll.status
+	* PsygresPool remembers the orphaned sessions
+	* PsygresPool has now a detailed method: status()
+	* introduced a new argument on relParams(): flag_obj
+
+
+VERSION = 0.5.1
+
+	* offensive logs removed
+	* the map dicts are now copied when Mother reads them
+	* log_rotate debugged
+	* The Mother Map is saved as pickled dict
+	* Various optimizations on code
+	* MotherMapped family functions dropped
+	* The DB map is loaded by init_mother(), once
+	* init_dbda() bug fixed (DB_PORT when using Unix sockets)
+	* assignRelation debugged
+	* symbols on MotherMap removed (optimization)
+	* initRelationManager builds the relParams() wrapper
+	* new method on Mothermanager: relParams()
+	* debugged getChildren (when jbuilder is specified)
+
+
+VERSION = 0.5.0
+
+	* mothermapper debugged
+	* _insertNoOid() debugged when pkey is absent
+	* inline docs more complete 
+	* lambdas removed
+
+
+VERSION = 0.4.9
+
+	* from mother.speaker import * not needed on the conf file
+	* added a tester script
+	* a lot of global vars removed
+	* joining accepts new argument: jfilter!
+	* all database actions converted to new OIDs conf
+	* DbMother._sqlPkeysFromOid added
+	* DbMother._sqlWhereOid dropped
+	* MotherBox is not using OIDs anymore
+	* init_mother test MOTHER_OIDS and does what has to be done
+	* Mother conf file accepts keyword MOTHER_OIDS
+	* Mother is preparing to drop completely OIDs
+	* The MotherBox accepts now the new arg notriggers (defaults True)
+	* oid is removed almost everywhere: it remains in _insert()
+
+
+VERSION = 0.4.8-r2
+
+	* a few bugs
+
+
+VERSION = 0.4.8-r1
+
+	* DbMother.update() bug fixed.
+	* On install, check if psycopg2 is installed. If not, print a warning.
+
+
+VERSION = 0.4.8
+
+	* DbMother.update takes now an argument
+	* MotherCaster accepts required_fields
+	* filters fixed
+	* inline docs are now fine
+	* updateChildren had a bug due to the last updates
+	* New Plugin Mothercaster 
+	* New submodule mother.plugins
+	* Mother RAM Optimizations: _trigger_actions and _flag_actions are
+		now staticmethod
+
+
+VERSION = 0.4.7
+
+	* SQL optimizations: oid loading is now not needed everywhere
+		Note that queries will be executed with less controls, but more faster.
+	* SQL optimizations: MotherBox don't need to SELECT from DB to fire triggers
+	* SQL optimizations: sql string methods are now faster and cleaner
+	* Pretty Print: debug messages more friendly
+	* Some debug on dbda.py
+	* SQL_DEFAULT is always applied 
+	* Memory Optimizations: Multiple Variables inside functions
+	* Color Wrappers OKI_COL, ERR_COL, INF_COL
+	* MotherBox from scratch: unneeded methods removed and optimizations
+	* DbMother controls fields
+
+
+VERSION = 0.4.6
+
+	* mothermapper has the new option `-v'
+	* conf files and maps are loaded with execfile: import avoided
+	* INSTALL 
+	* mothermapper accepts new options: Q, S, C. Obsolete options: r
+	* multiple global variables removed from speaker
+	* setup.py has been created: Mother become a standard python module!!
+	* the map file could be created everywhere: init_mother(), init_dbda() 
+		and init_speaker depend now on the location of this file.
+	* dbstruct.py and rels.py are merged in a unique file: the map file
+	* dbmapper.py is moved on mothermapper and it's installed as system script
+	* new documentation: mother_threads.txt
+	* metaqry.py merged in dbmapper.py
+	* Mothers classes store sessions 
+	* conf.py is now almost commented: default values defined
+	* Sessions naming
+	* New API MotherSession()
+	* Initialization methods don't use globals() (more safe)
+	* New Class PsygresPool to use a pool of persistent connections
+	* New Class PsygresFly to use isolated DB Sessions
+
+
+VERSION = 0.4.5 
+
+	* new svn layout 
+	* Added support for log file rotation
+	* mothers should be Win32 compatible
+	* speaker supports now: log_to_file, log_to_syslog, log_to_stdout, log_to_smtp
+	* box.py removed: MotherBox is merged on mothers.py
+	* dbda.py and speaker.py from scratch using Classes and staticmethods
+	* supersingleton pattern removed
+	* init_methods() introduced
+	* shared.py removed
+	* headers files removed (speaker_h.py, mothers_h.py)
+	* speaker uses now the logging module instead of syslog: API is changed!!!
+
+
+VERSION = 0.4.4-r1
+
+	* mothers.py cleaned from old unused variables
+	* mother_init works at the same time with ZpsycoPGDA and psycopg2
+	* MotherBox debugged: store -> _store
+	* MotherFly accepts now the argument oid
+
+
+VERSION = 0.4.4
+
+	* MotherBox debugged: select oid -> select tbl.oid
+	* dbmapper uses now DEFAULT_LOGGER
+	* pop inserted on MotherBox.getFields
+	* MotherBox.getFields and MotherBox.filterBox optimized
+	* Database adapter is implemented with SuperSingleton design pattern
+	* Introduced test.py: example and test module
+
+
+VERSION = 0.4.3
+
+	* triggers debugged. The bug was heavy, so the new release.
+
+
+VERSION = 0.4.2
+
+	* debugged mothers.py:805
+	* MotherBox._sqlBuildFilterBox: controls when WHERE is present in the filter.
+	* MotherManager.deleteChildren: no more using getChildren
+	* debug on MotherBox
+	* Speaker.log_int_raise was printing 2 times the error string
+	* _sqlJoinParent debugged
+
+
+VERSION < 0.4.2
+
+	* First official release (Cit. 42.. galaxy....).

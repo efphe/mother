@@ -1,0 +1,100 @@
+import apsw
+from mother.speaker import Speaker
+from mother.commons import ERR_COL, INF_COL
+
+from mother.eccez import QueryError, BrokenConnection
+
+class _SqliteInfo:
+    dbfile= None
+
+
+class MotherSqlite:
+    
+    def __init__(self):
+        Speaker.log_insane('Initializing sqlite connection (db = %s)...', 
+                INF_COL(_SqliteInfo.dbfile))
+        self._connect()
+
+    def _connect(self):
+        dbfile= _SqliteInfo.dbfile
+        #import os
+        #if not os.path.isfile(dbfile):
+            #Speaker.log_int_raise('Invalid Database %s', ERR_COL(dbfile))
+
+        try:
+            self.connection= apsw.Connection(dbfile)
+            self.cursor= self.connection.cursor()
+        except Exception, ss:
+            Speaker.log_raise('Unable to establish a connection '
+                    'with the database: %s', ERR_COL(ss), 
+                    BrokenConnection)
+
+        if self.connection.getautocommit():
+            self.cursor.execute('BEGIN')
+
+    def _rollback(self):
+        self.cursor.execute('ROLLBACK')
+        self.cursor.execute('BEGIN')
+
+    def _commit(self):
+        self.cursor.execute('COMMIT')
+        self.cursor.execute('BEGIN')
+
+    def _close(self):
+        self.connection= None
+
+    def _lastrowid(self):
+        return self.connection.last_insert_rowid()
+
+    def _execute(self, q, d):
+        d= d or {}
+        try:
+            self.cursor.execute(q, d)
+        except Exception, ss:
+            Speaker.log_raise(ERR_COL(ss), QueryError)
+
+    def _gquery(self, q, d):
+        self._execute(q, d)
+        c= self.cursor
+        res= []
+        for rec in c:
+            drec= {}
+            rec_descr= c.getdescription()
+            for n, field in enumerate(rec):
+                drec[rec_descr[n][0]]= field
+            res.append(drec)
+
+        return res
+    
+    def _qquery(self, q, d):
+
+        self._execute(q, d)
+
+    def get_tables(self):
+        qry= ("SELECT tbl_name FROM SQLITE_MASTER WHERE type='table'")
+        res= self._gquery(qry, {})
+        return [d['tbl_name'] for d in res]
+
+    def get_table_fkeys(self, tbl):
+        qry= ('pragma foreign_key_list(%s)' % tbl)
+        res= self._gquery(qry, {})
+        return [(d['to'], d['table'], d['from']) for d in res]
+
+    def get_table_fields(self, tbl):
+        qry= ('pragma table_info(%s)' % tbl)
+        res= self._gquery(qry, {})
+        return [d['name'] for d in res]
+
+    def get_table_pkeys(self, tbl):
+        qry= ('pragma table_info(%s)' % tbl)
+        res= self._gquery(qry, {})
+        return [d['name'] for d in res if d['pk']]
+
+
+
+def init_sqlite(vars):
+    try:
+        _SqliteInfo.dbfile= vars['DB_FILE']
+    except:
+        Speaker.log_int_raise('Variable %s not specified!', ERR_COL('DB_FILE'))
+    
