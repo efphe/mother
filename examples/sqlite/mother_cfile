@@ -1,0 +1,29 @@
+#
+## Created by mothermapper
+#
+# To know more, create a Mother configuration
+# file with `mothermapper -S my_conf_file` and
+# read comments.
+#
+
+# Where mother map will be created...
+MOTHER_MAP= 'mother_map'
+
+# we want to use the pool.. isn't it?
+DB_POOL= True
+
+# we want also a persistent connection
+# used by default
+DB_PERSISTENT_ONE = True
+
+# when init pool, create a unique connection
+DB_POOL_MIN= 1
+
+# no more than 4 connections on our Pool
+DB_POOL_MAX= 4
+
+# postgres or sqlite?
+DB_ENGINE= DB_ENGINE_SQLITE
+
+# where the db resides
+DB_FILE= 'sqlite_db'

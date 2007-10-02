@@ -23,12 +23,14 @@ Thanks to using Mother: enjoy!
 Feel free to do, to think, to get, to give. 
 Mother is free as in Freedom.
 
-The better idea is to start reading the micro-howto at
-www.dbmother.org or inside the directory doc/
-
-The UserGuide is more complete:
+There is an interactive example on examples/sqlite.
+The better idea is to read a little bit the official 
+guide at:
 
     http://www.fenilot.org/mother_manual.html
+
+and then running this sample. Note that before that 
+you need to install Mother.
 
 To install the module, just run the script setup.py as
 usual (read INSTALL to know more).
