@@ -7,6 +7,5 @@ For example, on Unix:
 
   # python setup.py install
 
-
 A new module will be created in site-packages and a script
 will be installed: mothermapper.
