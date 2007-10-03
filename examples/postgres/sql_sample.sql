@@ -6,13 +6,13 @@
 -- configuration file.
 --
 -- if your postgres version is < 8.1 you
--- can remove WITH OIDS but you have to set
--- MOTHER_OIDS = True.
+-- can remove WITH OIDS from your tables, but you 
+-- have to set MOTHER_OIDS = True.
 --
 -- Otherwise use WITH_OIDS and set MOTHER_OIDS
 -- to True
 --
--- Note that updating postgres in not critical for
+-- Note that updating postgres is not critical for
 -- mother: just follow the previous advices.
 
 create table stars (

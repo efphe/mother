@@ -288,7 +288,8 @@ class DbOne(Speaker):
 
         except QueryError, e:
             DbOne._rollback()
-            Speaker.log_raise('Rollbacked queries: %s.', ERR_COL(e), QueryError)
+            Speaker.log_raise('%s queries: %s.', 
+                    ERR_COL('Rollbacked'), ERR_COL(e), QueryError)
 
 
     @staticmethod
@@ -381,6 +382,7 @@ class DbFly(Speaker):
         self.session_name= name or self._default_session
         self._import_iface()
         self._connect()
+        self._queries_n= 0
 
     def _import_iface(self):
         iface= self._iface_instance= _DbInfo.iface_builder()
@@ -413,12 +415,14 @@ class DbFly(Speaker):
         self.log_debug("Rollbacking queries for Session %s", 
                 self.session_name)
         self._rollback()
+        self._queries_n= 0
 
     def commit(self):
         try:
             self._commit()
-            self.log_debug("Syncing queries for Session %s.", 
-                    OKI_COL(self.session_name))
+            self.log_debug("Syncing (%s) queries for Session %s.", 
+                    OKI_COL(self._queries_n), OKI_COL(self.session_name))
+            self._queries_n= 0
             return 0
         except Exception, ss: 
             return ss
@@ -465,7 +469,9 @@ class DbFly(Speaker):
             self.log_info("%s: QSQL- %s, Filter= %s" , INF_COL(self.session_name), s, d)
 
         try:
-            return execattr(s, d)
+            res= execattr(s, d)
+            self._queries_n+= 1
+            return res
 
         except BrokenConnection, e:
 
@@ -485,7 +491,8 @@ class DbFly(Speaker):
 
         except QueryError, e:
             self._rollback()
-            self.log_raise('Rollbacked queries: %s.', ERR_COL(e), QueryError)
+            self.log_raise('%s queries: %s.', ERR_COL('Rollbacked'), 
+                    ERR_COL(e), QueryError)
 
 
     def _get_query(self, s, filter= None):

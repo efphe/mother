@@ -1,16 +1,14 @@
 # Testing and Example script
 
-from sample import *
+from mo_classes import *
 
-init_mother('PUT_HERE_YOUR_CONF_FILE')
+init_mother('mother_cfile')
 
 # Insert the Sun Star
 SunDict= dict(star_name='sun', star_mass=20, star_age=10)
 Sun= ClsStars(SunDict, MO_SAVE)
 
-# Insert two plantes on the solar syste...
-# note that foreign keys are not specified: Mother handle
-# automatically the situation:
+# Insert two plantes on the solar system...
 EarthDict= dict(planet_name='earth', planet_mass=1)
 MarsDict= dict(planet_name='mars', planet_mass=2)
 
@@ -29,6 +27,7 @@ HumanDict=   dict(life_name='humans', life_age= 12)
 MartianDict= dict(life_name='martians')
 MouseDict=  dict(life_name='mouses', life_age= 12)
 
+# Inside Session, because Earth and Mars are there
 Humans=   Earth.assignLifes(HumanDict, MO_SAVE)
 Martians= Mars.assignLifes(MartianDict, MO_SAVE)
 Mouses=   Earth.assignLifes(MouseDict, MO_SAVE)
@@ -41,5 +40,6 @@ MyFilter= dict(num_moons=2)
 MyBox= Sun.getMultiplePlanets(jbuilder= ClsMoons, jfilter= MyFilter)
 
 # take all planets with humans
-MyFilter= dict(Humans.getField('life_id'))
+MyFilter= Humans.getFields(['life_id'])
 MyBox= Sun.getMultiplePlanets(jbuilder= ClsLifes, jfilter= MyFilter)
+

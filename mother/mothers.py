@@ -305,7 +305,7 @@ class _DbMap(DbOne):
 
         s+=" WHERE "
         s+=_A(
-            ["%s.%s = %%(%s)s " % (r_tbl, v, k)
+            ["%s.%s = %s " % (r_tbl, v, DbMother._mo_arg_format % k)
                 for k, v in r_key.iteritems()])
 
         return s
