@@ -334,7 +334,8 @@ class _DbMap(DbOne):
         else:
             s=" JOIN %s on " % j_tbl
 
-        s+=_A([" %(tbl)s.%(k)s = %(j_tbl)s.%(v)s " % locals() for k,v in m_d.iteritems()])
+        # am i crazy or i have to change k <-> v ?
+        s+=_A([" %(tbl)s.%(v)s = %(j_tbl)s.%(k)s " % locals() for k,v in m_d.iteritems()])
 
         return s, j_tbl
 
