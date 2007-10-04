@@ -2085,7 +2085,7 @@ class MotherFusion(_DbMap):
 
     def __init__(self, builderA, builderB, filter= None, fields= None,
                     order= None, session= None, distinct= False, 
-                    rtbl= None, params= False):
+                    rtbl= None, params= False, jfilter= None):
 
         if session: session._export_iface(self)
         self.session= session
@@ -2096,6 +2096,8 @@ class MotherFusion(_DbMap):
         else:
             filter= MoFilter()
         self.filter= filter
+
+        self.jfilter= jfilter
 
 
         if order:
@@ -2150,14 +2152,28 @@ class MotherFusion(_DbMap):
             return _J(['%s AS %s' % (k, v) 
                 for k, v in fields.iteritems()])
 
+        # recursion
         sw= self._selectWhat
+
         # no params:
         if len(fields) == 2:
-            return _J([sw(fields[0], self.tblA), 
-                            sw(fields[1], self.tblB)])
-        return _J([sw(fields[0], self.tblA), 
-                            sw(fields[1], self.tblB),
-                            sw(fields[2], self.rtbl)])
+            a= sw(fields[0], self.tblA)
+            b= sw(fields[1], self.tblB)
+
+            if a and b:
+                return _J(a, b)
+            return a or b
+
+        a= sw(fields[0], self.tblA)
+        b= sw(fields[1], self.tblB)
+        r= sw(fields[2], self.rtbl)
+
+        # if you provided three dict, it's possible
+        # to assume that params are specified.
+        if a and b:
+            return _J(a, b, r)
+
+        return _J(a or b, r)
 
     def joinBuilder(self):
 
@@ -2185,6 +2201,8 @@ class MotherFusion(_DbMap):
         qry_filter = self._sqlFreeJoin(ta, r_tbl, tb, a_d, b_d)
         ftr= self.filter
         ftr.add_filter(qry_filter)
+        if self.jfilter:
+            ftr.add_filter(self.jfilter, self.rtbl)
 
         params= self.params
         if params:
