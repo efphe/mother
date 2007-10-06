@@ -188,8 +188,8 @@ the sql script /some/where.sql and do:
     $ mothermapper -c /my/conf/file -e /some/where.sql
 
 The last thing to do is the Mother map. The map is created automatically by
-mothermapper and his location could be specified editing /my/conf/file, setting
-the variable MOTHER_MAP.
+mothermapper (remember, his location is specified on the Mother conf file 
+with the variable MOTHER_MAP):
 ::
 
     $ mothermapper -c /my/conf/file -s
@@ -374,10 +374,10 @@ with star_mass equal to 10:
     >>> star_box= MotherBox(ClsStars, filter= {'star_mass': 10}, flag= MO_LOAD)
     >>> star_box= MotherBox(ClsStars, filter= 'star_mass = 10', flag= MO_LOAD)
 
-As you can see, fiilters are dicts or strings. Filter could be also MoFilter
+As you can see, fiilters could be dicts or strings. Filter could be also MoFilter
 instances: this allows to escape strings, adding security. This type of
-filters is explained after: for now, know that all the Mother operations are
-safe: SQL is escaped so that SQL injection is not allowed.
+filters is explained after: for now, know that all the Mother internal operations 
+are safe: SQL is escaped so that SQL injection is not allowed.
 
 We could be interested to retrieve only the star_name:
 ::

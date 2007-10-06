@@ -5,7 +5,8 @@
   for each table on the DB, using MotherManager automatically when a 
   table has children or relations. Perhaps this is not a good idea
 
-* Let use MoFilter at the upper level
+* Let use MoFilter at the upper level.
+    Done? Test!
 
 * adding other database is now easy
   It seems that only pgres and sqlite are mother compatible

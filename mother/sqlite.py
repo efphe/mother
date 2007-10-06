@@ -78,7 +78,7 @@ class MotherSqlite:
     def get_table_fkeys(self, tbl):
         qry= ('pragma foreign_key_list(%s)' % tbl)
         res= self._gquery(qry, {})
-        return [(d['to'], d['table'], d['from']) for d in res]
+        return [(d['from'], d['table'], d['to']) for d in res]
 
     def get_table_fields(self, tbl):
         qry= ('pragma table_info(%s)' % tbl)

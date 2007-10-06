@@ -300,12 +300,12 @@ class _DbMap(DbOne):
 
         s= "JOIN %s ON %s" % (r_tbl, 
            _A(
-            [" %s.%s = %s.%s " % (r_tbl, k, j_tbl, v)
+            [" %s.%s = %s.%s " % (r_tbl, v, j_tbl, k)
                 for k, v in j_key.iteritems()]))
 
         s+=" WHERE "
         s+=_A(
-            ["%s.%s = %s " % (r_tbl, k, DbMother._mo_arg_format % v)
+            ["%s.%s = %s " % (r_tbl, v, DbMother._mo_arg_format % k)
                 for k, v in r_key.iteritems()])
 
         return s
@@ -334,7 +334,8 @@ class _DbMap(DbOne):
         else:
             s=" JOIN %s on " % j_tbl
 
-        s+=_A([" %(tbl)s.%(v)s = %(j_tbl)s.%(k)s " % locals() for k,v in m_d.iteritems()])
+        s+=_A([" %(tbl)s.%(k)s = %(j_tbl)s.%(v)s " % locals() 
+                                for k, v in m_d.iteritems()])
 
         return s, j_tbl
 
@@ -380,7 +381,7 @@ class _DbMap(DbOne):
         Given the dependencies mapping_dict, a new dict is created,
         filled and returned with father values.
         If father is None, self is assumed.
-	Note: mapping_dict is {key_child: key_father}
+	    Note: mapping_dict is {key_child: key_father}
         """
 
         father= father or self
@@ -389,7 +390,7 @@ class _DbMap(DbOne):
                 "Exporting values %s ",
                 str(mapping_dict))
                         
-        fkeys= set(mapping_dict.values())
+        fkeys= set(mapping_dict.keys())
 
         try:
             d= father.getFields(fkeys)
@@ -399,9 +400,9 @@ class _DbMap(DbOne):
             
         new_d={}
         for mapkey, mapped_key in mapping_dict.iteritems():
-            #mapped_field= mapping_dict[mapkey]
-            #new_d[mapped_field]= d[mapkey]
-	    new_d[mapkey]= d[mapped_key]
+            #mapped_field= mapped_key
+            new_d[mapped_key]= d[mapkey]
+            #new_d[mapkey]= d[mapkey]
 
         return new_d
 
