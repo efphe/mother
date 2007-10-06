@@ -1,6 +1,7 @@
 
 VERSION = 0.6.2
 
+	* Heavy bug in _getDepDict()
 	* Heavy Bug on joinParent()
 	* MotherFusion: it's now possible to specify jfilter
 	* debugged arg_format usage

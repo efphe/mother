@@ -318,12 +318,13 @@ class MotherWorld:
                 "will be fixed!\n")
 
     def add_symbols_file(self, f):
-        if not f.endswith('.py'):
-            loginfo("Symbols file has to be a python file. "\
-                    "%s won't be loaded.\n" % ERR_COL(f))
-            return -1
+        #if not f.endswith('.py'):
+        #    loginfo("Symbols file has to be a python file. "\
+        #            "%s won't be loaded.\n" % ERR_COL(f))
+        #    return -1
         
-        self.symbols_files.append(f[:-3])
+        #self.symbols_files.append(f[:-3])
+        self.symbols_files.append(f)
         return 0
 
     def load_symbols_file(self):
@@ -371,26 +372,37 @@ class MotherWorld:
 
 
     def _load_symbols_files(self, f):
-        p= os.path
-        pyfil= "%s.py" % f
-        outlog("Processing symbol file %s ...\n" % OKI_COL(pyfil))
+        #p= os.path
+        #pyfil= "%s.py" % f
+        outlog("Processing symbol file %s ...\n" % OKI_COL(f))
 
-        cfil= p.abspath(f)
-        bfil= p.basename(f)
-
-        index= cfil.index(bfil)
-        if index:
-            bdir= cfil[:index]
-            sys.path= [bdir]+ sys.path
-
+        space= {}
         try:
-            mod=__import__(bfil)
-        except:
-            loginfo("\n\tError: unable to import %s. "\
-                    "Symbol file won't be processed.\n" % ERR_COL(bfil))
+            execfile(f, {}, space)
+        except Exception, e:
+            loginfo("\n\tError: unable to read %s: %s. "\
+                    "Symbol file won't be processed.\n" % 
+                    (ERR_COL(f), ERR_COL(str(e))))
             return
 
-        tbi= mod.RECORDS_TO_BE_INSERTED
+        tbi= space['RECORDS_TO_BE_INSERTED']
+            
+        #cfil= p.abspath(f)
+        #bfil= p.basename(f)
+
+        #index= cfil.index(bfil)
+        #if index:
+            #bdir= cfil[:index]
+            #sys.path= [bdir]+ sys.path
+
+        #try:
+            #mod=__import__(bfil)
+        #except:
+            #loginfo("\n\tError: unable to import %s. "\
+                    #"Symbol file won't be processed.\n" % ERR_COL(bfil))
+            #return
+
+        #tbi= mod.RECORDS_TO_BE_INSERTED
 
         added= 0
         deleted= 0

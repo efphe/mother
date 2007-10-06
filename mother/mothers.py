@@ -300,12 +300,12 @@ class _DbMap(DbOne):
 
         s= "JOIN %s ON %s" % (r_tbl, 
            _A(
-            [" %s.%s = %s.%s " % (r_tbl,v,j_tbl,k)
+            [" %s.%s = %s.%s " % (r_tbl, k, j_tbl, v)
                 for k, v in j_key.iteritems()]))
 
         s+=" WHERE "
         s+=_A(
-            ["%s.%s = %s " % (r_tbl, v, DbMother._mo_arg_format % k)
+            ["%s.%s = %s " % (r_tbl, k, DbMother._mo_arg_format % v)
                 for k, v in r_key.iteritems()])
 
         return s
@@ -334,7 +334,6 @@ class _DbMap(DbOne):
         else:
             s=" JOIN %s on " % j_tbl
 
-        # am i crazy or i have to change k <-> v ?
         s+=_A([" %(tbl)s.%(v)s = %(j_tbl)s.%(k)s " % locals() for k,v in m_d.iteritems()])
 
         return s, j_tbl
@@ -381,16 +380,16 @@ class _DbMap(DbOne):
         Given the dependencies mapping_dict, a new dict is created,
         filled and returned with father values.
         If father is None, self is assumed.
+	Note: mapping_dict is {key_child: key_father}
         """
 
         father= father or self
-        new_d={}
 
         self.log_insane( 
                 "Exporting values %s ",
                 str(mapping_dict))
                         
-        fkeys= set(mapping_dict.keys())
+        fkeys= set(mapping_dict.values())
 
         try:
             d= father.getFields(fkeys)
@@ -398,9 +397,11 @@ class _DbMap(DbOne):
             self.log_int_raise("Cannot inherit needed values from father: %s.",
                     ERR_COL(list(fkeys)))
             
-        for mapkey in mapping_dict:
-            mapped_field= mapping_dict[mapkey]
-            new_d[mapped_field]= d[mapkey]
+        new_d={}
+        for mapkey, mapped_key in mapping_dict.iteritems():
+            #mapped_field= mapping_dict[mapkey]
+            #new_d[mapped_field]= d[mapkey]
+	    new_d[mapkey]= d[mapped_key]
 
         return new_d
 
@@ -2162,7 +2163,7 @@ class MotherFusion(_DbMap):
             b= sw(fields[1], self.tblB)
 
             if a and b:
-                return _J(a, b)
+                return _J([a, b])
             return a or b
 
         a= sw(fields[0], self.tblA)
@@ -2178,6 +2179,7 @@ class MotherFusion(_DbMap):
 
     def joinBuilder(self):
 
+	self.log_insane('MotherFusion: join relation')
         # useful vars
         ba= self.builderA
         bb= self.builderB
@@ -2195,8 +2197,8 @@ class MotherFusion(_DbMap):
         a_d = self.getChildDeps(r_tbl, ba)
         b_d = self.getChildDeps(r_tbl, bb)
         
-        self.log_insane("Joining %s and %s with relation %s "
-                        "and fields %s ...", ta, tb)
+        self.log_insane("Joining %s and %s with relation %s ",
+                         ta, tb, r_tbl)
                         
         # Make the base filter query ...
         qry_filter = self._sqlFreeJoin(ta, r_tbl, tb, a_d, b_d)
@@ -2229,6 +2231,8 @@ class MotherFusion(_DbMap):
         bb= self.builderB
         ta= ba.table_name
         tb= bb.table_name
+	self.log_insane('MotherFusion: direct join: %s father, %s child', 
+			INF_COL(ta), INF_COL(tb))
 
         what= self._selectWhat(self.fields)
         jfilter, joining_table= self._sqlJoinParent(ba, bb)
