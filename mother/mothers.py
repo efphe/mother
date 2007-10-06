@@ -274,19 +274,22 @@ class _DbMap(DbOne):
 
     @staticmethod
     def _isChildOf(c, f):
-        return c in _DbMap._map_children[f]
+        try:
+            return c in _DbMap._map_children[f]
+        except:
+            return False
 
     @staticmethod
     def _sqlFreeJoin(otbl, rtbl, jtbl, ord, jrd):
 
         s= "JOIN %s ON %s" % (rtbl, 
            _A(
-            [" %s.%s = %s.%s " % (otbl, v, rtbl, k)
+            [" %s.%s = %s.%s " % (otbl, k, rtbl, v)
                 for k, v in ord.iteritems()]))
 
         r= "JOIN %s ON %s" % (jtbl, 
            _A(
-            [" %s.%s = %s.%s " % (jtbl, v, rtbl, k)
+            [" %s.%s = %s.%s " % (jtbl, k, rtbl, v)
                 for k, v in jrd.iteritems()]))
 
         return s + r
@@ -2090,6 +2093,10 @@ class MotherFusion(_DbMap):
                     order= None, session= None, distinct= False, 
                     rtbl= None, params= False, jfilter= None):
 
+        self.direct= None
+
+        builderA, builderB= self.swap(builderA, builderB)
+
         if session: session._export_iface(self)
         self.session= session
 
@@ -2111,32 +2118,32 @@ class MotherFusion(_DbMap):
         self.rtbl= None
         self.params= params
 
-        ta= builderA.table_name
-        tb= builderB.table_name
+        self.builderA= builderA
+        self.builderB= builderB
+        self.tblA= ta= builderA.table_name
+        self.tblB= tb= builderB.table_name
 
         if fields:
             self.fields= fields
         else:
             self.fields= (self._table_fields(ta), self._table_fields(tb))
 
-        if self._isChildOf(ta, tb):
-            self.builderA= builderB
-            self.builderB= builderA
-            self.tblA= builderB.table_name
-            self.tblB= builderA.table_name
+        if self.direct:
             self.directJoin()
-
         else:
-            self.builderA= builderA
-            self.builderB= builderB
-            self.tblA= builderA.table_name
-            self.tblB= builderB.table_name
+            self.rtbl= rtbl
+            self.joinBuilders()
 
-            if self._isChildOf(tb, ta):
-                self.directJoin()
-            else:
-                self.rtbl= rtbl
-                self.joinBuilder()
+    def swap(self, a, b):
+
+        ta= a.table_name
+        tb= b.table_name
+        if self._isChildOf(ta, tb):
+            self.direct= True
+            return b, a
+        if self._isChildOf(tb, ta):
+            self.direct= True
+        return a, b
 
     def __len__(self):
         return len(self._store)
@@ -2178,7 +2185,7 @@ class MotherFusion(_DbMap):
 
         return _J(a or b, r)
 
-    def joinBuilder(self):
+    def joinBuilders(self):
 
 	self.log_insane('MotherFusion: join relation')
         # useful vars
