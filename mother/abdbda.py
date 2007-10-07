@@ -381,10 +381,11 @@ class DbFly(Speaker):
 
         self.session_name= name or self._default_session
         self._import_iface()
-        self._connect()
+        #self._connect()
         self._queries_n= 0
 
     def _import_iface(self):
+
         iface= self._iface_instance= _DbInfo.iface_builder()
 
         for attr in self._iface_attrs:
@@ -846,7 +847,7 @@ def init_abdbda(conf, forced= {}):
 
     if not pool or db_one:
         DbOne._import_iface()
-        DbOne._connect()
+        #DbOne._connect()
         DbOne._db_initialized= True
 
     if not pool:

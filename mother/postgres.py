@@ -32,10 +32,11 @@ class _PostgresInfo:
 class MotherPostgres:
     
     def __init__(self):
-        Speaker.log_insane('Initializing connection...')
         self._connect()
 
     def _connect(self):
+
+        Speaker.log_insane('Initializing postgres connection...')
         from psycopg2.extras import DictCursor as _cf
         try:
             s= _PostgresInfo._connect_str()

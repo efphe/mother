@@ -5,21 +5,20 @@ from mother.commons import ERR_COL, INF_COL
 from mother.eccez import QueryError, BrokenConnection
 
 class _SqliteInfo:
-    dbfile= None
 
+    dbfile= None
 
 class MotherSqlite:
     
     def __init__(self):
-        Speaker.log_insane('Initializing sqlite connection (db = %s)...', 
-                INF_COL(_SqliteInfo.dbfile))
+
         self._connect()
 
     def _connect(self):
+
+        Speaker.log_insane('Initializing sqlite connection (db = %s)...', 
+                INF_COL(_SqliteInfo.dbfile))
         dbfile= _SqliteInfo.dbfile
-        #import os
-        #if not os.path.isfile(dbfile):
-            #Speaker.log_int_raise('Invalid Database %s', ERR_COL(dbfile))
 
         try:
             self.connection= apsw.Connection(dbfile)
