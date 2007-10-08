@@ -420,9 +420,9 @@ class DbFly(Speaker):
 
     def commit(self):
         try:
-            self._commit()
-            self.log_debug("Syncing (%s) queries for Session %s.", 
+            self.log_info("Syncing (%s) queries for Session %s.", 
                     OKI_COL(self._queries_n), OKI_COL(self.session_name))
+            self._commit()
             self._queries_n= 0
             return 0
         except Exception, ss: 
