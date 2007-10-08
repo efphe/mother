@@ -1,7 +1,7 @@
 from mother.mothers import *
 
-class ClsLifes(DbMother):
-    table_name= 'lifes'
+class ClsLifeforms(DbMother):
+    table_name= 'lifeforms'
     def __init__(self, store= {}, flag= MO_NOA, session= None):
         DbMother.__init__(self, store, flag, session)
 
@@ -13,7 +13,7 @@ class ClsMoons(DbMother):
 class ClsPlanets(DbMother, MotherManager):
     table_name= 'planets'
     def __init__(self, store= {}, flag= MO_NOA, session= None):
-        self.initRelationManager([ClsLifes])
+        self.initRelationManager([ClsLifeforms])
         self.initChildManager([ClsMoons])
         DbMother.__init__(self, store, flag, session)
 

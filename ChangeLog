@@ -1,6 +1,7 @@
 
 VERSION = 0.6.2
 
+	* cleaned doc: Lifes -> Lifeforms
 	* DbOne was calling twice _connect()
 	* Removed HeavyBug on Sqlite-Map creation
 	* mothermapper -f: removed __import__, used execfile()

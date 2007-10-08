@@ -28,7 +28,7 @@ try:
  # Take all planets on solar system with mass > 1:
  MyBox= Sun.getMultiplePlanets(filter= 'planet_mass>1')
 
- # Create new form of lifes and, at the same time,
+ # Create new form of life and, at the same time,
  # create a relation with planets to say that a form
  # of life is living on the planet:
  HumanDict=   dict(life_name='humans', life_age= 12)
@@ -36,12 +36,12 @@ try:
  MouseDict=  dict(life_name='mouses', life_age= 12)
 
  # Inside Session, because Earth and Mars are there
- Humans=   Earth.assignLifes(HumanDict, MO_SAVE)
- Martians= Mars.assignLifes(MartianDict, MO_SAVE)
- Mouses=   Earth.assignLifes(MouseDict, MO_SAVE)
+ Humans=   Earth.assignLifeforms(HumanDict, MO_SAVE)
+ Martians= Mars.assignLifeforms(MartianDict, MO_SAVE)
+ Mouses=   Earth.assignLifeforms(MouseDict, MO_SAVE)
 
- # take all form of lifes living on Earth:
- MyBox= Earth.joinLifes()
+ # take all form of life living on Earth:
+ MyBox= Earth.joinLifeforms()
 
  # take all planets with two moons
  MyFilter= dict(num_moons=2)
@@ -49,7 +49,7 @@ try:
 
  # take all planets with humans
  MyFilter= Humans.getFields(['life_id'])
- MyBox= Sun.getMultiplePlanets(jbuilder= ClsLifes, jfilter= MyFilter)
+ MyBox= Sun.getMultiplePlanets(jbuilder= ClsLifeforms, jfilter= MyFilter)
 
 # rollback session if some wrongs
 except Exception, ss:

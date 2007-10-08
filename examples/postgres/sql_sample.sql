@@ -43,7 +43,7 @@ create table moons_info (
     foreign key(planet_id) references planets(planet_id)
 ) WITH OIDS;
 
-create table lifes (
+create table lifeforms (
     life_id         serial,
     life_name       text,
     life_age        int,
@@ -56,6 +56,6 @@ create table civilizations (
     planet_id       int,
     age             int,
 
-    foreign key(life_id) references lifes(life_id),
+    foreign key(life_id) references lifeforms(life_id),
     foreign key(planet_id) references planets(planet_id)
 ) WITH OIDS;

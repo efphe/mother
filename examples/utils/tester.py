@@ -79,29 +79,29 @@ Sun.deleteMultiplePlanets(filter= {'planet_name': 'earth'})
 Earth= Sun.insertPlanets({'planet_name': 'earth', 'planet_mass': 42})
 Mars= Sun.insertPlanets({'planet_name': 'mars'})
 
-GreenPeople= Mars.assignLifes({'life_name': 'green people'}, MO_SAVE)
+GreenPeople= Mars.assignLifeforms({'life_name': 'green people'}, MO_SAVE)
 green_id= GreenPeople.getField('life_id')
 print ' ## inserted green people with id: ', green_id
 
-params= Mars.paramsLifes(GreenPeople)
+params= Mars.paramsLifeforms(GreenPeople)
 print ' ## relation between mars and green people: ', params
 
-Worms = Mars.assignLifes({'life_name': 'worms'}, MO_SAVE, params= {'age': 22})
-params= Mars.paramsLifes(Worms.getFields())
+Worms = Mars.assignLifeforms({'life_name': 'worms'}, MO_SAVE, params= {'age': 22})
+params= Mars.paramsLifeforms(Worms.getFields())
 print ' ## relation between mars and worms: ', params
 
-mars_lifes= Mars.joinLifes(fields= ['life_name', 'life_id'])
+mars_lifes= Mars.joinLifeforms(fields= ['life_name', 'life_id'])
 for m in mars_lifes.getRecords(flag_obj= True):
     print ' ## On mars %s lives' % m.getField('life_name')
 
-mars_lifes= Mars.joinLifes(fields= ['life_name'], jfilter= {'life_name': 'worms'}, filter= {'age': 22})
+mars_lifes= Mars.joinLifeforms(fields= ['life_name'], jfilter= {'life_name': 'worms'}, filter= {'age': 22})
 print ' ## there are %d lifes on mars named worms, age 22' % len(mars_lifes)
 
-Mars.dropMultipleLifes(jfilter= {'life_name': 'worms'}, filter= {'age': 22}, flag= MO_DEL)
-Mars.dropMultipleLifes(jfilter= {'life_name': 'green people'}, flag= MO_NOA)
-Mars.assignLifes({'life_id': green_id})
+Mars.dropMultipleLifeforms(jfilter= {'life_name': 'worms'}, filter= {'age': 22}, flag= MO_DEL)
+Mars.dropMultipleLifeforms(jfilter= {'life_name': 'green people'}, flag= MO_NOA)
+Mars.assignLifeforms({'life_id': green_id})
 
-lifes= MotherBox(ClsLifes, filter= None, flag= MO_LOAD, session = session)
+lifes= MotherBox(ClsLifeforms, filter= None, flag= MO_LOAD, session = session)
 print ' ## There are %d lifes on universe' % len(lifes)
 
 marsmoons= Mars.insertMoonsInfo({'num_moons': 3})
@@ -116,13 +116,13 @@ print ' ## there are %d planets not named rere on the solar system with 3 moons'
 box= Sun.getMultiplePlanets(fields= ['planet_name'], filter= {"planet_name": 'rere'}, jbuilder= ClsMoon, jfilter= {'num_moons': 3})
 print ' ## there are %d planets named rere on the solar system with 3 moons' % len(box)
 
-box= Sun.getMultiplePlanets(jbuilder= ClsLifes, jfilter= {'life_id': green_id})
+box= Sun.getMultiplePlanets(jbuilder= ClsLifeforms, jfilter= {'life_id': green_id})
 print ' ## there are %d planets on the solar system where green people lives' % len(box)
 
-box= Sun.getMultiplePlanets(filter= "planet_name != 'rere'", jbuilder= ClsLifes, jfilter= {'life_id': green_id})
+box= Sun.getMultiplePlanets(filter= "planet_name != 'rere'", jbuilder= ClsLifeforms, jfilter= {'life_id': green_id})
 print ' ## there are %d planets not named rere on the solar system where green people lives' % len(box)
 
-box= Sun.getMultiplePlanets(fields= ['planet_name'], filter= {"planet_name": 'rere'}, jbuilder= ClsLifes, jfilter= {'life_id': green_id})
+box= Sun.getMultiplePlanets(fields= ['planet_name'], filter= {"planet_name": 'rere'}, jbuilder= ClsLifeforms, jfilter= {'life_id': green_id})
 print ' ## there are %d planets named rere on the solar system where green lives' % len(box)
 
 if session:

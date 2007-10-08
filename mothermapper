@@ -666,11 +666,11 @@ For example, consider the following file:
     dict(star_name= 'Sun', star_mass= 1),
     dict(star_name= 'Mars', star_mass= 2) ]
 
- records_lifes= [
+ records_lifeforms= [
     dict(life_name= 'Humans') ]
 
  RECORDS_TO_BE_INSERTED = [
-    ('stars', records_star), ('lifes', records_lifes) ]
+    ('stars', records_star), ('lifeforms', records_lifeforms) ]
 
  ### END FILE ###
  ##

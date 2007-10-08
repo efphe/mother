@@ -299,7 +299,7 @@ ul.auto-toc {
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#install-mother">Install Mother</a></li>
-<li><a class="reference" href="#the-database-sample-used-on-this-guide">The Database Sample used on this guide</a></li>
+<li><a class="reference" href="#the-database-example-used-on-this-guide">The Database example used on this guide</a></li>
 <li><a class="reference" href="#creating-a-mother-environment">Creating a Mother Environment</a></li>
 <li><a class="reference" href="#simple-database-actions">Simple Database Actions</a></li>
 <li><a class="reference" href="#handling-multiple-records">Handling Multiple Records</a></li>
@@ -319,62 +319,57 @@ ul.auto-toc {
 </div>
 <div class="section">
 <h1><a id="install-mother" name="install-mother">Install Mother</a></h1>
-<p>Before to install mother, you need at least one of the following
-libraries:</p>
+<p>Pre-install requirements, one of the 2 libraries:</p>
 <blockquote>
 <ul class="simple">
-<li>psycopg2    <a class="reference" href="http://www.initd.org/">http://www.initd.org/</a></li>
-<li>apsw        <a class="reference" href="http://initd.org/tracker/pysqlite/wiki/APSW">http://initd.org/tracker/pysqlite/wiki/APSW</a></li>
+<li>psycopg2  <a class="reference" href="http://www.initd.org/">http://www.initd.org/</a>            { If your using Postgres }</li>
+<li>apsw      <a class="reference" href="http://initd.org/tracker/pysqlite/wiki/APSW">http://initd.org/tracker/pysqlite/wiki/APSW</a>  { for SQLite }</li>
 </ul>
 </blockquote>
-<p>Note that you don't need both. If you want to use Mother with a SQlite
-environment, for example, just install apsw.
-If you plan to use Mother with Postgres, just install psycopg2.</p>
-<p>Now that dependencies are satisfied, download a Mother tarball at:</p>
+<p>Grab the DBMother tarball at:</p>
 <blockquote>
-<a class="reference" href="http://dbmother.org">http://dbmother.org</a></blockquote>
-<p>Unpack it and go inside the created directory:</p>
-<blockquote>
+<ul class="simple">
+<li><a class="reference" href="http://dbmother.org/download">http://dbmother.org/download</a></li>
+</ul>
+</blockquote>
+<p>Untar it and change directory to the created directory:</p>
+<pre class="literal-block">
 $ tar xzf mother-x.y.z.tgz
-$ cd mother-x.y.z</blockquote>
-<p>Mother is a standard python module, installable with distutils.
-On Unix, just type (as root):</p>
-<blockquote>
-# python setup.py install</blockquote>
-<p>Beyond the python module, a script will be installed: mothermapper.
-On Unix, for example, this script will reside on /usr/bin/.
-The mothermapper tool will be used to create Mother environments.</p>
+$ cd mother-x.y.z
+</pre>
+<p>To install Mother, just use distutils:</p>
+<pre class="literal-block">
+# python setup.py install
+</pre>
+<p>Be sure to run the previous command as root on Unix systems, or
+to use the absolute python path on Windows if python won't be
+recognized as valid command.</p>
+<p>Besides the addition of the python module, a command line tool called
+&quot;mothermapper&quot; will also get installed (normally in &quot;/usr/bin/&quot; on Unix
+systems).</p>
 </div>
 <div class="section">
-<h1><a id="the-database-sample-used-on-this-guide" name="the-database-sample-used-on-this-guide">The Database Sample used on this guide</a></h1>
-<p>We need a db sample to explain the features of Mother. In this section a
-db scheme is described: this is the db used on this guide. If you want to
-read the Mother manual, it's a good idea to remember this structure.</p>
-<p>To explain Mother we need to play with:</p>
-<blockquote>
-<ul class="simple">
-<li>primary keys</li>
-<li>children</li>
-<li>relations</li>
-</ul>
-</blockquote>
+<h1><a id="the-database-example-used-on-this-guide" name="the-database-example-used-on-this-guide">The Database example used on this guide</a></h1>
+<p>Example code has been included with DBMother.  We use the following schema
+for the sample code and our tutorial. Please pay close attention to the
+following description because we will use throughout our tutorial.</p>
 <p>Here's a graphic representation of the database:</p>
 <pre class="literal-block">
    Stars
        \
         \
-        Planets         Lifes
+        Planets       Lifeforms
          /    \          /
         /      \        /
        /        \      /
 Moons_info     Civiliztions
 </pre>
-<p>We have some star sytem. For each star sytem, we have a set of planets that
-live there. For each planet we could have some informatioin about his moons.
-Lifes is the table that store informations about the different form of lifes
-present on the universe. Civilizations is a relation between Lifes and
-Planets: we could store there the information &quot;humans live on earth&quot;.</p>
-<p>Here's the sql script:</p>
+<p>We have a need to keep track of star systems. For each star system, we have
+a set of planets. For each planet we could have some information about it's
+moons. Lifeforms is a table that store information about the different forms
+of life present in our universe. Civilizations is a relation between Lifeforms
+and Planets: we will use it to store information like, &quot;humans live on earth&quot;.</p>
+<p>Here's the sql script (shipped with the tarball):</p>
 <pre class="literal-block">
 --
 -- --
@@ -416,7 +411,7 @@ create table moons_info (
     foreign key(planet_id) references planets(planet_id)
 ) WITH OIDS;
 
-create table lifes (
+create table lifeforms (
     life_id         serial,
     life_name       text,
     life_age        int,
@@ -429,54 +424,66 @@ create table civilizations (
     planet_id       int,
     age             int,
 
-    foreign key(life_id) references lifes(life_id),
+    foreign key(life_id) references lifeforms(life_id),
     foreign key(planet_id) references planets(planet_id)
 ) WITH OIDS;
 </pre>
 </div>
 <div class="section">
 <h1><a id="creating-a-mother-environment" name="creating-a-mother-environment">Creating a Mother Environment</a></h1>
-<p>To handle a database with Mother we need to create a Mother environment.
-This could be done easily, thanks to the Mother introspection. There is
-no need to write XML and models files: Mother is able to obtain
-automatically the db structure.
-The tool to create a Mother environment is the script mothermapper.
-To know what mothermapper could do for you, just type:</p>
+<p>To handle a database with DBMother we need to create a DBMother environment,
+using the mothermapper tool.
+If you are ever in doubt what parameters you could use with mothermapper, try:</p>
 <pre class="literal-block">
 $ mothermapper -h
 </pre>
-<p>First of all, we need to create a configuration file where we can configure
-the db parameters, the logging features and the Connectioin Pool.
-To create a configuration file with default values, just do:</p>
+<p>Thanks to DBMother's introspection, there is no need to write XML and models
+files: DBMother is able to automatically obtain the database structure.</p>
+<p>First of all, we need to create a configuration file which allows one to specify:</p>
+<blockquote>
+<ul class="simple">
+<li>database parameters</li>
+<li>logging features</li>
+<li>and the Connection Pool</li>
+</ul>
+</blockquote>
+<p>To create a configuration file with default values (using Postgres as the backend),
+just do:</p>
 <pre class="literal-block">
-$ mothermapper -P /my/conf/file
+$ mothermapper -P /usr/myhome/first/dbmother.conf
 </pre>
-<p>Now edit this file, being sure to specify a MOTHER_MAP file and the
-correct parameters for the db connection. Don't panic: the file is heavy
-commented.</p>
-<p>It's time to test the connection:</p>
+<p>otherwise use -S for SQLite:</p>
 <pre class="literal-block">
-$ mothermapper -c /my/conf/file -t
+$ mothermapper -S /usr/myhome/first/dbmother.conf
 </pre>
-<p>If the database tables have to be created, we can use mothermapper to execute
-a sql script: to create the tables described on the previous section just save
-the sql script /some/where.sql and do:</p>
+<p>At this point you need to edit the newly created map file and set the parameters
+for your particular environment.  Don't worry: the map file is heavy commented
+and most options contain suitable default values.  One value you should pay
+attention to is &quot;MOTHER_MAP&quot;.  Here you should place a reasonable directory and
+file name value like &quot;/usr/myhome/first/dbmother.map&quot;.</p>
+<p>When you are done with your edits, test your configuration like so:</p>
 <pre class="literal-block">
-$ mothermapper -c /my/conf/file -e /some/where.sql
+$ mothermapper -c /usr/myhome/first/dbmother.conf -t
 </pre>
-<p>The last thing to do is the Mother map. The map is created automatically by
-mothermapper (remember, his location is specified on the Mother conf file
-with the variable MOTHER_MAP):</p>
+<p>Now the database needs tables. Altough this is not mandatory, We can use
+&quot;mothermapper&quot; to run a sql script (the sql script example is shipped with
+the tarball, we assume that it was saved on /usr/myhome/first/db1.sql):</p>
 <pre class="literal-block">
-$ mothermapper -c /my/conf/file -s
+$ mothermapper -c /usr/myhome/first/dbmother.conf -e /usr/myhome/first/db1.sql
 </pre>
-<p>The environment is ready.
-To use the mother module for this environmant, just initialize mother with his
-configuration file:</p>
+<p>Finally we need to create the DBMother map file. The map is created automatically
+by &quot;mothermapper&quot;  (assuming you remembered to set the &quot;MOTHER_MAP&quot; value in the
+DBMother config file) try the following:</p>
+<pre class="literal-block">
+$ mothermapper -c /usr/myhome/first/dbmother.conf -s
+</pre>
+<p>Done.  If all went well you can do a final test by importing your configuration
+file like so:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from mother.mothers import init_mother
-&gt;&gt;&gt; init_mother('/my/conf/file')
+&gt;&gt;&gt; init_mother('/usr/myhome/first/dbmother.conf')
 </pre>
+<p>Success!!</p>
 </div>
 <div class="section">
 <h1><a id="simple-database-actions" name="simple-database-actions">Simple Database Actions</a></h1>
@@ -730,108 +737,108 @@ setting planet_mass= 42.</p>
 <div class="section">
 <h1><a id="handling-relations" name="handling-relations">Handling Relations</a></h1>
 <p>As for the children of one table we can handle relations with Mother.
-Now we focus our attention on the table Lifes, Planets and Civilizations.</p>
+Now we focus our attention on the table Lifeforms, Planets and Civilizations.</p>
 <p>A record on the Civilizations table means that a certain form of life lives on
 a certein planet.</p>
 <p>To handle children we need to enable the Children Manager calling
 initChildManager(). To enable the relation manager we have to call
 initRelationManager().</p>
-<p>Let's edit sample.py, inserting a class for the Lifes table:</p>
+<p>Let's edit sample.py, inserting a class for the Lifeforms table:</p>
 <pre class="literal-block">
 from mother.mothers import *
 
-class ClsLifes(DbMother):
-    table_name= 'lifes'
+class ClsLifeforms(DbMother):
+    table_name= 'lifeforms'
     def __init__(self, store= {}, flag= MO_NOA, session= None):
         DbMother.__init__(self, store, flag, session)
 
 class ClsPlanets(DbMother, MotherManager):
     table_name= 'planets'
     def __init__(self, store= {}, flag= MO_NOA, session= None):
-        self.initRelationManager([ClsLifes])
+        self.initRelationManager([ClsLifeforms])
         DbMother.__init__(self, store, flag, session)
 </pre>
-<p>Now we can start to handle lifes and civilization in a powerful way:</p>
+<p>Now we can start to handle lifeforms and civilization in a powerful way:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from sample import *
 &gt;&gt;&gt; init_mother('/my/conf/file')
 &gt;&gt;&gt; Mars= ClsPlanets({'planet_name': 'mars'}, MO_SAVE)
 &gt;&gt;&gt; martians_dict= {'life_name': 'green_people'}
-&gt;&gt;&gt; Martians= Mars.assignLifes(martians_dict, MO_SAVE)
+&gt;&gt;&gt; Martians= Mars.assignLifeforms(martians_dict, MO_SAVE)
 </pre>
-<p>What happens? A new record is inserted on the table Lifes (MO_SAVE) and, after
-that, a new record is inserted on the table Civilizations.
+<p>What happens? A new record is inserted on the table Lifeforms (MO_SAVE) and,
+after that, a new record is inserted on the table Civilizations.
 At the end, Martians is a Mother instance for the record inserted on the table
-lifes.</p>
+lifeforms.</p>
 <p>We did two things in one: we inserted the martian Life and we assigned a
 relation between the planet Mars and this form of life.
 What about if the martian Life is already present?
 It's simple:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; Martians= ClsLifes(martian_dict, MO_SAVE)
-&gt;&gt;&gt; Mars.assignLifes(Martians.getFields())
+&gt;&gt;&gt; Martians= ClsLifeforms(martian_dict, MO_SAVE)
+&gt;&gt;&gt; Mars.assignLifeforms(Martians.getFields())
 </pre>
 <p>We can also load the related record:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; martians_dict= {'life_id': 1}
-&gt;&gt;&gt; Martians= Mars.assignLifes(martians_dict, MO_LOAD)
+&gt;&gt;&gt; Martians= Mars.assignLifeforms(martians_dict, MO_LOAD)
 &gt;&gt;&gt; print Martians
 </pre>
 <p>If we want to insert some informations on the relation record, for example the
-field <cite>age</cite>, which specifies that a certain form of life lives on a certain
-planet from age years, we can do it:</p>
+field &quot;age&quot;, which specifies that a certain form of life lives on a certain
+planet from &quot;age&quot; years, we can do it:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; Mars.assignLifes(martians_dict, MO_NOA, params= {'age': 12})
+&gt;&gt;&gt; Mars.assignLifeforms(martians_dict, MO_NOA, params= {'age': 12})
 </pre>
-<p>Dropping relation is easy too. To drop all relations between Mars and Lifes with
-age &gt; 5:</p>
+<p>Dropping relation is easy too. To drop all relations between Mars and Lifeforms
+with age &gt; 5:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; Mars.dropMultipleLifes(filter= 'age &gt; 5')
+&gt;&gt;&gt; Mars.dropMultipleLifeforms(filter= 'age &gt; 5')
 </pre>
-<p>If we want to use a filter on the table Lifes, we have to specify the argument
-jfilter:</p>
+<p>If we want to use a filter on the table Lifeforms, we have to specify the
+argument jfilter:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; Mars.dropMultipleLifes(jfilter= {'life_name': 'green_people'})
+&gt;&gt;&gt; Mars.dropMultipleLifeforms(jfilter= {'life_name': 'green_people'})
 </pre>
 <p>These calls delete records on the table Civilizations.
-Moreover, we can decide to act also on the table Lifes:</p>
+Moreover, we can decide to act also on the table Lifeforms:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; Mars.dropMultipleLifes(filter= 'age &gt; 5', flag= MO_DEL)
+&gt;&gt;&gt; Mars.dropMultipleLifeforms(filter= 'age &gt; 5', flag= MO_DEL)
 </pre>
 <p>With this call we delete not only the relation records, but also the records on
-the table lifes that live on Mars from at least 5 years.</p>
-<p>Now we want all form of lifes thae live on Mars:</p>
+the table lifeforms that live on Mars from at least 5 years.</p>
+<p>Now we want all form of life thae live on Mars:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; lifes_box= Mars.joinLifes()
+&gt;&gt;&gt; lifes_box= Mars.joinLifeforms()
 </pre>
 <p>If we are interested only about life names, we can specify this passing a list
 of fields:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; lifes_box= Mars.joinLifes(fields= ['life_name'])
+&gt;&gt;&gt; lifes_box= Mars.joinLifeforms(fields= ['life_name'])
 </pre>
 <p>We can filter and/or order the records:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; filter= 'age &gt; 5'
 &gt;&gt;&gt; jfilter= {'life_name': 'green_people'}
-&gt;&gt;&gt; lifes_box= Mars.joinLifes(order= ['life_id'], filter= filter)
-&gt;&gt;&gt; lifes_box= Mars.joinMultipleLifes(filter= filter, jfilter= jfilter)
+&gt;&gt;&gt; lifes_box= Mars.joinLifeforms(order= ['life_id'], filter= filter)
+&gt;&gt;&gt; lifes_box= Mars.joinMultipleLifeforms(filter= filter, jfilter= jfilter)
 </pre>
 <p>Finally, we could be interested about the relation record between Mars and
 Martions:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; rel= Mars.paramsLifes(Martians)
+&gt;&gt;&gt; rel= Mars.paramsLifeforms(Martians)
 &gt;&gt;&gt; # we can also use dicts:
 &gt;&gt;&gt; martian_dict= {'life_id': Martians.getField('life_id')}
-&gt;&gt;&gt; rel= Mars.paramsLifes(martian_dict)
+&gt;&gt;&gt; rel= Mars.paramsLifeforms(martian_dict)
 </pre>
 <p>We could be interested to retrive also a specific field:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; rel= Mars.paramsLifes(Martians, fields= ['age'])
+&gt;&gt;&gt; rel= Mars.paramsLifeforms(Martians, fields= ['age'])
 </pre>
 <p>It's possible to retrieve a Mother class (there is no need to define the
 class on sample.py):</p>
 <pre class="literal-block">
-&gt;&gt;&gt; momma=  Mars.paramsLifes(Martians, flag_obj= True)
+&gt;&gt;&gt; momma=  Mars.paramsLifeforms(Martians, flag_obj= True)
 </pre>
 </div>
 <div class="section">
@@ -843,7 +850,7 @@ way.</p>
 <p>Let's start retreving all planets on the solar system where humans live:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; humans_filter = {'life_id': 1}
-&gt;&gt;&gt; box= Sun.getMultiplePlanets(jbuilder= ClsLifes, jfilter= humans_filter)
+&gt;&gt;&gt; box= Sun.getMultiplePlanets(jbuilder= ClsLifeforms, jfilter= humans_filter)
 </pre>
 <p>The same concept applies when dealing with Moons (it's your work to define the
 class ClsMoons on sample.py):</p>
@@ -856,8 +863,8 @@ the two situations are a little bit different.</p>
 <p>Obviously you can use at the same time the other arguments for the
 getMultiplePlanets() method:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; Sun.getMultiplePlanets(filter= 'planet_mass &gt; 5', jbuilder= ClsLifes,
-...                         jfilter= humans_filter)
+&gt;&gt;&gt; Sun.getMultiplePlanets(filter= 'planet_mass &gt; 5',
+...                 jbuilder= ClsLifeforms, jfilter= humans_filter)
 </pre>
 </div>
 <div class="section">
@@ -878,9 +885,9 @@ same time, performing a join between the two tables:</p>
 <p>The table 'planets' is a child of the table 'stars'. As we can expect,
 the MotherFusion class is able to understand the database structure.
 So we can use it for two tables linked with a relation, as for the tables
-'planet' and 'lifes', that are linked with the table 'civilizations':</p>
+'planet' and 'lifeforms', that are linked with the table 'civilizations':</p>
 <pre class="literal-block">
-&gt;&gt;&gt; momma= MotherFusion(ClsPlanets, ClsLifes)
+&gt;&gt;&gt; momma= MotherFusion(ClsPlanets, ClsLifeforms)
 </pre>
 <p>Note that in both cases, you don't need to specify the nature of the
 tables relation: Mother is able to understand it.</p>
@@ -905,29 +912,29 @@ with a tuple:</p>
 <p>This will produce: &quot;SELECT stars.star_nams AS foo, planet.planet_mass AS bar&quot;.</p>
 <p>Obvioulsy, we can provide a MotherSession and an order:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; momma= MotherFusion(ClsLifes, ClsPlanets,
+&gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets,
         session= MySession, order= ['star_name'])
 </pre>
 <p>If we set to True the 'distinct' argument, we will have a &quot;SELECT DISTINCT&quot;
 statement:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; momma= MotherFusion(ClsLifes, ClsPlanets, distinct= True)
+&gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, distinct= True)
 </pre>
 <p>If the two tables are not Father-Child (or Child-Fater) tables, we can
 force the relation table to be used:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; momma= MohterFusion(ClsLifes, ClsPlanets, rtbl= 'civilizations')
+&gt;&gt;&gt; momma= MohterFusion(ClsLifeforms, ClsPlanets, rtbl= 'civilizations')
 </pre>
 <p>In the same case, we could be interested to load also the records on
 the relation tables (for example 'civilizations.age').
 If we set params= True, MotherFusion will load all the fields on the
 relation table, excluding the foreign keys:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; momma= MotherFusion(ClsLifes, ClsPlanets, params= True)
+&gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, params= True)
 </pre>
 <p>We can also specify manually which field to load on the relation table:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; momma= MotherFusion(ClsLifes, ClsPlanets, params= ['age'])
+&gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, params= ['age'])
 </pre>
 </div>
 <div class="section">
@@ -953,7 +960,7 @@ after).</p>
 to import abdbda:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; sun= ClsStars()
-&gt;&gt;&gt; one_record= sun.or_query('select * from lifes where star_id = 1')
+&gt;&gt;&gt; one_record= sun.or_query('select * from lifeforms where star_id = 1')
 </pre>
 </div>
 <div class="section">
@@ -1058,7 +1065,7 @@ the Mother instance methods:</p>
 &gt;&gt;&gt; try:
 ...   Sun= ClsStars(sun_dict, MO_SAVE, session)
 ...   Sun.oc_query('delete from planets')
-...   session.or_query('select * from lifes where life_id = 1')
+...   session.or_query('select * from lifeforms where life_id = 1')
 ... except:
 ...   session.rollback()
 &gt;&gt;&gt;
