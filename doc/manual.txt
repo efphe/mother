@@ -544,18 +544,19 @@ Now we can start to handle lifes and civilization in a powerful way:
 
 What happens? A new record is inserted on the table Lifes (MO_SAVE) and, after 
 that, a new record is inserted on the table Civilizations.
-Martians is a Mother instance for the record inserted on the table lifes.
+At the end, Martians is a Mother instance for the record inserted on the table 
+lifes.
 
-We have two different ways to do that; the flag MO_SAVE on the assignLifes()
-call means that the record Martians has to be created before to assign the
-relatioin:
+We did two things in one: we inserted the martian Life and we assigned a
+relation between the planet Mars and this form of life.
+What about if the martian Life is already present?
+It's simple:
 ::
 
     >>> Martians= ClsLifes(martian_dict, MO_SAVE)
     >>> Mars.assignLifes(Martians.getFields())
 
-If, instead, we have already inserted the Martians record and we want to load this
-record we can:
+We can also load the related record:
 ::
 
     >>> martians_dict= {'life_id': 1}
@@ -569,6 +570,7 @@ planet from age years, we can do it:
 
     >>> Mars.assignLifes(martians_dict, MO_NOA, params= {'age': 12})
 
+
 Dropping relation is easy too. To drop all relations between Mars and Lifes with 
 age > 5:
 ::
@@ -581,6 +583,7 @@ jfilter:
 
     >>> Mars.dropMultipleLifes(jfilter= {'life_name': 'green_people'})
 
+These calls delete records on the table Civilizations. 
 Moreover, we can decide to act also on the table Lifes:
 ::
 
@@ -598,7 +601,7 @@ If we are interested only about life names, we can specify this passing a list
 of fields:
 ::
 
-    >>> lifes_box= Mars.joinLifes(fields= 'life_name')
+    >>> lifes_box= Mars.joinLifes(fields= ['life_name'])
 
 We can filter and/or order the records:
 ::
@@ -622,8 +625,8 @@ We could be interested to retrive also a specific field:
 
     >>> rel= Mars.paramsLifes(Martians, fields= ['age'])
 
-We could retrieve a Mother class (there is no need to define the class on
-sample.py):
+It's possible to retrieve a Mother class (there is no need to define the 
+class on sample.py):
 ::
 
     >>> momma=  Mars.paramsLifes(Martians, flag_obj= True)
@@ -656,7 +659,7 @@ class ClsMoons on sample.py):
     >>> box= Sun.getMultiplePlanets(jbuilder= ClsMoonsInfo, jfilter= moons_filter)
 
 Note that Mother is able to understand which tables have to be joined, altought 
-the two situations are very different.
+the two situations are a little bit different.
 
 Obviously you can use at the same time the other arguments for the 
 getMultiplePlanets() method:
@@ -800,7 +803,7 @@ the same effect:
     ...     Sun.insert()
     ...     Sun.commit()
     ... except:
-    ...     Sun.commit()
+    ...     Sun.rollback()
     >>>
 
 The chance to call nested transactions is very useful: if we call two times 
@@ -874,7 +877,7 @@ The db actions are now inside your session: note that this applies also to the
 db actions produced by Earth, because Earth is born inside a session.
 
 Sessions are always in a transaction state. To commit the queries we can call
-commit() or endSession(). Calling endSession() closes also the transactions, 
+commit() or endSession(). The endSession() call closes also the transactions, 
 which is putted back to the pool:
 ::
 
@@ -898,7 +901,7 @@ To perform custom queries inside sessions, just use the session methods or
 the Mother instance methods:
 ::
 
-    >>> session= MotherSession('aaaa')
+    >>> session= MotherSession('CustomQueries')
     >>> try:
     ...   Sun= ClsStars(sun_dict, MO_SAVE, session)
     ...   Sun.oc_query('delete from planets')
@@ -944,7 +947,7 @@ Finally, to monitor the connection pool, use the following methods:
 Logging
 -------
 
-Logging, as for the pool, is configurable on the Mother configuration file.
+Logging, likw the pool, is configurable on the Mother configuration file.
 ::
 
     >>> from mother.Speaker import RED, GREEN, YELLOW
@@ -1006,11 +1009,11 @@ When no-string filters are provided, Mother is able to escape correctly the
 various variables, but when we work with strings, we are tempted to do:
 ::
 
-    >>> filter= 'blabla %s %s' % (foo, bar)
-    >>> MotherBox(ClsPlanets, filter= 'planet_mass > 5', flag= MO_LOAD)
+    >>> ftr= 'blabla %s %s' % (foo, bar)
+    >>> MotherBox(ClsPlanets, filter= ftr, flag= MO_LOAD)
 
 This is not good, because SQL injection is possible. To let Mother escapes
-also you string filter, you have to use a class: MoFilter.
+your string filters, you have to use a class: MoFilter.
 
 It's easy, instead of:
 ::
@@ -1023,6 +1026,7 @@ it's possible to do:
     >>> from mother.mothers import MoFilter
     >>> store= {'foo': foo, 'bar': bar}
     >>> filter= MoFilter('blabla %(foo)s %(bar)s', store= store}
+    >>> # For SQLite you have to use:   'blabla :foo :bar'
 
 Now Mother will escape for you the filter, adding the security layer vs SQL
 injection.
@@ -1032,7 +1036,7 @@ Moreover, we can add different type of filter in the same class:
 
     >>> filter= MoFilter('blabla %(foo)s %(bar)s', store= store}
     >>> filter.add_filter({'age': 1})
-    >>> filter.add_filter('dkafsak %(az)s', {'az': 5})
+    >>> filter.add_filter('dkafsak %(az)s', store= {'az': 5})
     >>> MotherBox(ClsPlanets, filter= filter, flag= MO_LOAD)
 
 

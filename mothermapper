@@ -341,9 +341,9 @@ class MotherWorld:
     def create_scfile(self):
         ccfile= self.scfile
         self._create_cfile(ccfile, 1)
-        loginfo("Note: SQLite support is not tested deeply; "
-                "if you encounter bugs, don't panic:\n\tsignal them and they "
-                "will be fixed!\n")
+        #loginfo("Note: SQLite support is not tested deeply; "
+                #"if you encounter bugs, don't panic:\n\tsignal them and they "
+                #"will be fixed!\n")
 
     def add_symbols_file(self, f):
         #if not f.endswith('.py'):

@@ -2095,7 +2095,7 @@ class MotherFusion(_DbMap):
 
         self.direct= None
 
-        builderA, builderB= self.swap(builderA, builderB)
+        builderA, builderB, fields= self.swap(builderA, builderB, fields)
 
         if session: session._export_iface(self)
         self.session= session
@@ -2134,16 +2134,24 @@ class MotherFusion(_DbMap):
             self.rtbl= rtbl
             self.joinBuilders()
 
-    def swap(self, a, b):
+    def swap(self, a, b, fields):
 
         ta= a.table_name
         tb= b.table_name
+
         if self._isChildOf(ta, tb):
+
             self.direct= True
-            return b, a
+
+            if fields and isinstance(fields, tuple):
+                fields= (fields[1], fields[0])
+
+            return b, a, fields
+
         if self._isChildOf(tb, ta):
             self.direct= True
-        return a, b
+
+        return a, b, fields
 
     def __len__(self):
         return len(self._store)
