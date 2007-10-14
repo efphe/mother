@@ -27,7 +27,8 @@ mo_classifiers=[
         'Topic :: Software Development :: Libraries :: Python Modules'
 ]
 
-setup(name='Mother',
+setup(
+    name='Mother',
     version= __version__,
     author='Federico Tomassini aka efphe',
     author_email='efphe@dbmother.org',
