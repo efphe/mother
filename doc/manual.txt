@@ -731,6 +731,19 @@ with a tuple:
             fields= ({'star_name': 'foo'}, {'planet_mass': 'bar'}))
 
 This will produce: "SELECT stars.star_nams AS foo, planet.planet_mass AS bar".
+Following this case, remember that an empty dict means 'all table fields':
+::
+
+    >>> momma= MohterFusion(ClsStars, ClsPlanets, \
+            fields= ({}, {'planet_mass': 'bar'}))
+
+will produce: "SELECT stars.*, planet.planet_mass as bar".
+The following fields specification is also valid:
+::
+
+    >>> fields= (['star_name'], {'planet_mass': 'bar'})
+    >>> fields= (['star_name', 'star_id'], {})
+    >>> fields= (['star_name'], {})
 
 Obvioulsy, we can provide a MotherSession and an order:
 ::

@@ -1793,7 +1793,7 @@ class MotherManager:
         def rel_params(builder):
             def fly_rel_params(d, fields= None, flag_obj= False):
                 if not isinstance(d, DbMother):
-                    d= builder(d)
+                    d= builder(d, session= self.session)
                 return self.relParams([d], fields, flag_obj)
             return fly_rel_params
 
@@ -2109,7 +2109,6 @@ class MotherFusion(_DbMap):
 
         self.jfilter= jfilter
 
-
         if order:
             self.filter.add_post('ORDER BY %s' % _J(order))
 
@@ -2173,25 +2172,20 @@ class MotherFusion(_DbMap):
         # recursion
         sw= self._selectWhat
 
-        # no params:
-        if len(fields) == 2:
-            a= sw(fields[0], self.tblA)
-            b= sw(fields[1], self.tblB)
+        fa= fields[0]
+        fb= fields[1]
 
-            if a and b:
-                return _J([a, b])
-            return a or b
+        a= fa and sw(fa, self.tblA) or '%s.*' % self.tblA
+        b= fb and sw(fb, self.tblB) or '%s.*' % self.tblB
 
-        a= sw(fields[0], self.tblA)
-        b= sw(fields[1], self.tblB)
-        r= sw(fields[2], self.rtbl)
+        if len(fields) == 3:
+            fr= fields[2]
+            r= fr and sw(fr, self.rtbl) or '%s.*' % self.rtbl
+            
+            return _J([a, b, r])
 
-        # if you provided three dict, it's possible
-        # to assume that params are specified.
-        if a and b:
-            return _J(a, b, r)
+        return _J([a, b])
 
-        return _J(a or b, r)
 
     def joinBuilders(self):
 

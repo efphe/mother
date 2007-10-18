@@ -1,3 +1,8 @@
+VERSION = 0.6.2-r1
+
+	* relParams debugged: session was not exported
+	* MotherFusion: fields handler improved
+
 
 VERSION = 0.6.2
 
