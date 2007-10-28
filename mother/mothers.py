@@ -11,6 +11,7 @@ Where the main Mother Classes and methods are defined:
  * DbMother
  * MotherManager
  * MotherBox
+ * MotherFusion
  * MotherSession
  * MotherPoolStatus
  * MotherPoolStratus
@@ -567,7 +568,7 @@ class DbMother(_DbMap):
     def setParanoia(self):
         setattr(self, 'paranoid', 1)
 
-    def unserParanoia(self):
+    def unsetParanoia(self):
         setattr(self, 'paranoid', 0)
         
 
