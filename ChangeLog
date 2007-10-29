@@ -1,3 +1,9 @@
+
+VERSION = 0.6.3
+
+	* MotherFusion: new __init__ arg `side`
+
+
 VERSION = 0.6.2-r1
 
 	* relParams debugged: session was not exported

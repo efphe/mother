@@ -2092,9 +2092,10 @@ class MotherFusion(_DbMap):
 
     def __init__(self, builderA, builderB, filter= None, fields= None,
                     order= None, session= None, distinct= False, 
-                    rtbl= None, params= False, jfilter= None):
+                    rtbl= None, params= False, jfilter= None, side= ""):
 
         self.direct= None
+        self.side= side
 
         builderA, builderB, fields= self.swap(builderA, builderB, fields)
 
@@ -2231,7 +2232,8 @@ class MotherFusion(_DbMap):
 
         what= self._selectWhat(self.fields)
         distinct= self.distinct and 'DISTINCT' or ''
-        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s' % locals()
+        side= self.side
+        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s $(side)s' % locals()
 
         self._store= self.mr_query(qry, ftr)
 
@@ -2249,7 +2251,8 @@ class MotherFusion(_DbMap):
         jfilter, joining_table= self._sqlJoinParent(ba, bb)
 
         distinct= self.distinct and 'DISTINCT' or ''
-        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s %(jfilter)s' % locals()
+        side= self.side
+        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s %(side)s %(jfilter)s' % locals()
         self._store= self.mr_query(qry, self.filter)
 
     def getRecords(self, flag_obj= False):
