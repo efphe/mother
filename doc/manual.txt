@@ -776,6 +776,14 @@ We can also specify manually which field to load on the relation table:
 
     >>> momma= MotherFusion(ClsLifeforms, ClsPlanets, params= ['age'])
 
+From version 0.6.3 or later, the initialization of Mother accepts a new
+argument, named 'side'. With this argument is possible to do a RIGHT or
+LEFT join:
+
+    >>> momma= MotherFusion(ClsLifeforms, ClsPlanets, side="RIGHT")
+    >>> momma= MotherFusion(ClsLifeforms, ClsPlanets, side="LEFT")
+
+Note that, whed using side, the order of the two Mother builders is important.
 
 
 Performing Custom queries

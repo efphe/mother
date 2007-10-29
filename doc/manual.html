@@ -948,6 +948,16 @@ relation table, excluding the foreign keys:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, params= ['age'])
 </pre>
+<p>From version 0.6.3 or later, the initialization of Mother accepts a new
+argument, named 'side'. With this argument is possible to do a RIGHT or
+LEFT join:</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, side=&quot;RIGHT&quot;)
+&gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, side=&quot;LEFT&quot;)
+</pre>
+</blockquote>
+<p>Note that, whed using side, the order of the two Mother builders is important.</p>
 </div>
 <div class="section">
 <h1><a id="performing-custom-queries" name="performing-custom-queries">Performing Custom queries</a></h1>
