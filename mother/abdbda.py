@@ -179,7 +179,9 @@ class DbOne(Speaker):
             '_rollback',
             '_commit',
             '_gquery',
-            '_qquery'
+            '_qquery',
+            '_mqquery',
+            '_mgquery'
             ]
 
     # Iface methods
@@ -244,26 +246,7 @@ class DbOne(Speaker):
         return DbOne._iface_instance._lastrowid()
 
     @staticmethod
-    def _do_query(s, filter= None, result= True):
-
-        execattr= result and DbOne._gquery or DbOne._qquery
-
-        if not filter:
-            d= {}
-        elif isinstance(filter, MoFilter):
-            s, d= filter.return_ftrqry(s)
-        elif isinstance(filter, dict):
-            d= filter
-        else:
-            Speaker.log_int_raise('Invalid Filter Type: %s', 
-                    ERR_COL(type(filter)))
-
-        # logging info...
-        mogrify= getattr(DbOne._iface_instance, '_mogrify', None)
-        if mogrify is not None:
-            Speaker.log_info("QSQL- %s", mogrify(s, d))
-        else:
-            Speaker.log_info("QSQL- %s, Filter= %s" % (s, d))
+    def _safe_execute(execattr, s, d):
 
         try:
             return execattr(s, d)
@@ -291,6 +274,29 @@ class DbOne(Speaker):
             Speaker.log_raise('%s queries: %s.', 
                     ERR_COL('Rollbacked'), ERR_COL(e), QueryError)
 
+    @staticmethod
+    def _do_query(s, filter= None, result= True):
+
+        execattr= result and DbOne._gquery or DbOne._qquery
+
+        if not filter:
+            d= {}
+        elif isinstance(filter, MoFilter):
+            s, d= filter.return_ftrqry(s)
+        elif isinstance(filter, dict):
+            d= filter
+        else:
+            Speaker.log_int_raise('Invalid Filter Type: %s', 
+                    ERR_COL(type(filter)))
+
+        # logging info...
+        mogrify= getattr(DbOne._iface_instance, '_mogrify', None)
+        if mogrify is not None:
+            Speaker.log_info("QSQL- %s", mogrify(s, d))
+        else:
+            Speaker.log_info("QSQL- %s, Filter= %s" % (s, d))
+
+        return DbOne._safe_execute(execattr, s, d)
 
     @staticmethod
     def _get_query(s, filter= None):
@@ -344,6 +350,30 @@ class DbOne(Speaker):
 
         return res[0]
 
+    @staticmethod
+    def mq_query(s, l):
+        """ Multiple Quiet Query: execute a multiple, quiet query."""
+
+        Speaker.log_debug("Executing Massive Query...")
+
+        DbOne._safe_execute(DbOne._mqquery, s, l)
+
+        if not DbOne.trans_level:
+            DbOne._commit()
+
+    @staticmethod
+    def mg_query(s, l):
+        """ Multiple Get Query: execute a multiple, get query."""
+
+        Speaker.log_debug("Executing Massive Query...")
+
+        res= DbOne._safe_execute(DbOne._mgquery, s, l)
+
+        if not DbOne.trans_level:
+            DbOne._commit()
+
+        return res
+
 class DbFly(Speaker):
 
     # Iface methods
@@ -362,6 +392,8 @@ class DbFly(Speaker):
             '_commit',
             '_gquery',
             '_qquery',
+            '_mqquery',
+            '_mgquery',
             '_close'
             ]
 
@@ -371,6 +403,7 @@ class DbFly(Speaker):
             'ov_query',
             'mr_query',
             'or_query',
+            'mm_query',
             'beginTrans',
             'commit',
             'rollback',
@@ -449,25 +482,7 @@ class DbFly(Speaker):
 
         MotherPool.backHome(self)
 
-    def _do_query(self, s, filter= None, result= True):
-
-        execattr= result and self._gquery or self._qquery
-
-        if not filter:
-            d= {}
-        elif isinstance(filter, MoFilter):
-            s, d= filter.return_ftrqry(s)
-        elif isinstance(filter, dict):
-            d= filter
-        else:
-            self.log_int_raise('Invalid Filter Type: %s', 
-                    ERR_COL(type(filter)))
-
-        mogrify= getattr(self._iface_instance, '_mogrify', None)
-        if mogrify is not None:
-            self.log_info("%s: QSQL- %s", INF_COL(self.session_name), mogrify(s, d))
-        else:
-            self.log_info("%s: QSQL- %s, Filter= %s" , INF_COL(self.session_name), s, d)
+    def _safe_execute(self, execattr, s, d):
 
         try:
             res= execattr(s, d)
@@ -495,6 +510,27 @@ class DbFly(Speaker):
             self.log_raise('%s queries: %s.', ERR_COL('Rollbacked'), 
                     ERR_COL(e), QueryError)
 
+    def _do_query(self, s, filter= None, result= True):
+
+        execattr= result and self._gquery or self._qquery
+
+        if not filter:
+            d= {}
+        elif isinstance(filter, MoFilter):
+            s, d= filter.return_ftrqry(s)
+        elif isinstance(filter, dict):
+            d= filter
+        else:
+            self.log_int_raise('Invalid Filter Type: %s', 
+                    ERR_COL(type(filter)))
+
+        mogrify= getattr(self._iface_instance, '_mogrify', None)
+        if mogrify is not None:
+            self.log_info("%s: QSQL- %s", INF_COL(self.session_name), mogrify(s, d))
+        else:
+            self.log_info("%s: QSQL- %s, Filter= %s" , INF_COL(self.session_name), s, d)
+
+        return self._safe_execute(execattr, s, d)
 
     def _get_query(self, s, filter= None):
 
@@ -537,6 +573,26 @@ class DbFly(Speaker):
 
         return res[0]
 
+    def mq_query(self, s, l):
+        """ Multiple Quiet Query: execute a multiple quiet query."""
+
+        Speaker.log_debug("%s: Executing Massive Query...", 
+                        INF_COL(self.session_name))
+
+        res= self._safe_execute(self._mqquery, s, l)
+        # len(l) - 1: because a query is added by safe_execute
+        self._queries_n+= len(l) - 1
+
+    def mg_query(self, s, l):
+        """ Multiple Get Query: execute a multiple get query."""
+
+        Speaker.log_debug("%s: Executing Massive Query...", 
+                        INF_COL(self.session_name))
+
+        res= self._safe_execute(self._mgquery, s, l)
+        # len(l) - 1: because a query is added by safe_execute
+        self._queries_n+= len(l) - 1
+        return res
 
 class MotherPool:
 

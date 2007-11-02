@@ -42,19 +42,9 @@ class MotherSqlite:
     def _close(self):
         self.connection= None
 
-    def _lastrowid(self):
-        return self.connection.last_insert_rowid()
-
-    def _execute(self, q, d):
-        d= d or {}
-        try:
-            self.cursor.execute(q, d)
-        except Exception, ss:
-            Speaker.log_raise(ERR_COL(ss), QueryError)
-
-    def _gquery(self, q, d):
-        self._execute(q, d)
+    def _extract(self):
         c= self.cursor
+
         res= []
         for rec in c:
             drec= {}
@@ -64,10 +54,41 @@ class MotherSqlite:
             res.append(drec)
 
         return res
+
+    def _lastrowid(self):
+        return self.connection.last_insert_rowid()
+
+    def _execute(self, q, d):
+        d= d or {}
+        try:
+            self.cursor.execute(q, d)
+        except Exception, ss:
+            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
+
+    def _gquery(self, q, d):
+
+        self._execute(q, d)
+        return self._extract()
     
     def _qquery(self, q, d):
 
         self._execute(q, d)
+
+    def _mqquery(self, q, l):
+        try:
+            self.cursor.executemany(q, l)
+        except Exception, ss:
+            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
+
+        return None
+
+    def _mgquery(self, q, l):
+        try:
+            self.cursor.executemany(q, l)
+        except Exception, ss:
+            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
+
+        return self._extract()
 
     def get_tables(self):
         qry= ("SELECT tbl_name FROM SQLITE_MASTER WHERE type='table'")

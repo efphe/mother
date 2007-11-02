@@ -56,6 +56,15 @@ class MotherPostgres:
     def _close(self):
         self.connection.close()
 
+    def _extract(self, res):
+        lres= []
+        for r in res:
+            d= {}
+            d.update(r)
+            lres.append(d)
+
+        return lres
+
     def _lastrowid(self):
         return self.cursor.lastrowid
 
@@ -66,26 +75,42 @@ class MotherPostgres:
         except psycopg2.OperationalError:
             Speaker.log_raise('Connection is broken...', BrokenConnection)
         except Exception, ss:
-            Speaker.log_raise(ERR_COL(ss), QueryError)
-
+            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
 
     def _gquery(self, q, d):
         self._execute(q, d)
         c= self.cursor
         res= c.fetchall()
 
-        # we need to conver dictRow to dict
-        lres= []
-        for r in res:
-            d= {}
-            d.update(r)
-            lres.append(d)
+        return self._extract(res)
 
-        return lres
-    
     def _qquery(self, q, d):
 
         self._execute(q, d)
+
+    def _mqquery(self, q, l):
+
+        try:
+            self.cursor.executemany(q, l)
+        except psycopg2.OperationalError:
+            Speaker.log_raise('Connection is broken...', BrokenConnection)
+        except Exception, ss:
+            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
+
+        return None
+
+    def _mgquery(self, q, l):
+
+        try:
+            self.cursor.executemany(q, l)
+            res= self.cursor.fetchall()
+
+        except psycopg2.OperationalError:
+            Speaker.log_raise('Connection is broken...', BrokenConnection)
+        except Exception, ss:
+            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
+
+        return self._extract(res)
 
     def _mogrify(self, q, d):
         return self.cursor.mogrify(q, d)

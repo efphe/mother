@@ -12,6 +12,7 @@ Where the main Mother Classes and methods are defined:
  * MotherManager
  * MotherBox
  * MotherFusion
+ * MotherMany
  * MotherSession
  * MotherPoolStatus
  * MotherPoolStratus
@@ -92,7 +93,7 @@ def init_mother(cfile, fnaming= None):
     db_engine= d.get('DB_ENGINE', DB_ENGINE_PGRES)
     if db_engine == DB_ENGINE_PGRES:
         DbMother._sqlInsert= DbMother._sqlPostgresInsert
-        DbMother._mo_arg_format= '%%(%s)s'
+        _DbMap._mo_arg_format= '%%(%s)s'
 
         use_oids= d.get('MOTHER_OIDS', True)
         if not use_oids:
@@ -103,7 +104,7 @@ def init_mother(cfile, fnaming= None):
 
     else:
         DbMother._sqlInsert= DbMother._sqlSqliteInsert
-        DbMother._mo_arg_format= ':%s'
+        _DbMap._mo_arg_format= ':%s'
 
     del DB_ENGINE_PGRES
 
@@ -200,6 +201,17 @@ class _DbMap(DbOne):
     _map_pkeys=      None
     _map_children=   None
     _map_rels=       None
+
+    # Mapping actions
+    @staticmethod
+    def _flag_actions(obj, flag):
+        if flag == MO_UP: return obj.update
+        if flag == MO_DEL: return obj.delete
+        if flag == MO_NOA: return _do_nothing
+        if flag == MO_SAVE: return obj.insert
+        if flag == MO_LOAD: return obj.load
+        if flag == MO_ULOAD: return obj.uload 
+        obj.log_int_raise("Invalid flag %s", ERR_COL(flag))
 
     @staticmethod
     def _load_map(map_file):
@@ -309,12 +321,48 @@ class _DbMap(DbOne):
 
         s+=" WHERE "
         s+=_A(
-            ["%s.%s = %s " % (r_tbl, v, DbMother._mo_arg_format % k)
+            ["%s.%s = %s " % (r_tbl, v, _DbMap._mo_arg_format % k)
                 for k, v in r_key.iteritems()])
 
         return s
 
-    def _sqlJoinParent(self, builder, j_builder, outer=False):
+    def _arg_format(self, k):
+        f= _DbMap._mo_arg_format
+        return f % k
+
+    def _unvaluedPKeys(self):
+        """ _unvaluedPKeys() --> set
+
+        Returns the set of pkeys not valu'ed.
+        NOTE: a pkeys is considere NOT VALUED if his value is 
+        DEFAULT or NULL.
+        """
+
+        s=self._store
+        return set([                \
+            k for k in self.pkeys   \
+            if not s.has_key(k)     \
+            or s[k] in self._mo_false_values])
+
+    def _invalidFields(self,fields):
+        """ _invalidFields(fields) --> set
+
+        field in fields are returned if they are not present
+        in self.fields.
+        """
+
+        if type(fields) is not set:
+            fields= set(fields)
+        return fields - self.fields
+
+    def _fieldsMissing(self):
+        """ _fieldsMissing() --> set
+
+        Returns the list of table fields not valu'ed yet.
+        """
+        return self.fields - set(self._store.keys())
+
+    def _sqlJoinParent(self, builder, j_builder, outer= False):
         """ _sqlJoinParent(self, builder, j_builder [, outer= False]) --> (string, string)
 
         Returns a filter and the table where filter has to be applied.
@@ -454,17 +502,6 @@ class DbMother(_DbMap):
             MO_ULOAD: 'MO_ULOAD'
             }
         
-    # Mapping actions
-    @staticmethod
-    def _flag_actions(obj, flag):
-        if flag == MO_UP: return obj.update
-        if flag == MO_DEL: return obj.delete
-        if flag == MO_NOA: return _do_nothing
-        if flag == MO_SAVE: return obj.insert
-        if flag == MO_LOAD: return obj.load
-        if flag == MO_ULOAD: return obj.uload 
-        obj.log_int_raise("Invalid flag %s", ERR_COL(flag))
-
     @staticmethod
     def _trigger_actions(obj, flag):
         if flag == MO_UP: return obj._update
@@ -579,42 +616,6 @@ class DbMother(_DbMap):
 #
     def _triggers_are_initialized(self):
         return hasattr(self, 'triggers_map')
-
-    def _arg_format(self, k):
-        f= DbMother._mo_arg_format
-        return f % k
-
-    def _unvaluedPKeys(self):
-        """ _unvaluedPKeys() --> set
-
-        Returns the set of pkeys not valu'ed.
-        NOTE: a pkeys is considere NOT VALUED if his value is 
-        DEFAULT or NULL.
-        """
-
-        s=self._store
-        return set([                \
-            k for k in self.pkeys   \
-            if not s.has_key(k)     \
-            or s[k] in self._mo_false_values])
-
-    def _invalidFields(self,fields):
-        """ _invalidFields(fields) --> set
-
-        field in fields are returned if they are not present
-        in self.fields.
-        """
-
-        if type(fields) is not set:
-            fields=set(fields)
-        return fields - self.fields
-
-    def _fieldsMissing(self):
-        """ _fieldsMissing() --> set
-
-        Returns the list of table fields not valu'ed yet.
-        """
-        return self.fields - set(self._store.keys())
 
     def __str__(self):
         """ __str__() --> string 
@@ -2012,7 +2013,7 @@ class MotherBox(DbOne):
             newd[newk] = v
             if v== SQL_DEFAULT:
                 res.append('%s= DEFAULT' % k)
-            if v== SQL_DEFAULT:
+            if v== SQL_NULL:
                 res.append('%s= NULL' % k)
             else:
                 res.append('%s= %s' % (k, self.momma._arg_format(newk)))
@@ -2244,8 +2245,8 @@ class MotherFusion(_DbMap):
         bb= self.builderB
         ta= ba.table_name
         tb= bb.table_name
-	self.log_insane('MotherFusion: direct join: %s father, %s child', 
-			INF_COL(ta), INF_COL(tb))
+        self.log_insane('MotherFusion: direct join: %s father, %s child', 
+                        INF_COL(ta), INF_COL(tb))
 
         what= self._selectWhat(self.fields)
         jfilter, joining_table= self._sqlJoinParent(ba, bb)
@@ -2297,3 +2298,129 @@ class MotherFusion(_DbMap):
             for a, r, b in zip(dla, dlr, dlb)]
 
 
+class MotherMany(_DbMap):
+
+    def __init__(self, builder, store= None, flag= MO_NOA, 
+                    session= None, fields= None):
+
+        self.builder= builder
+        self.session= session
+        if session:
+            session._export_iface(self)
+
+        self.store= store
+        self._act_fields= fields
+
+        f= self._flag_actions(self, flag)
+        f()
+
+    def addRows(self, rows):
+
+        try:
+            self.store.extend(rows)
+
+        except:
+            if not isinstance(rows, dict):
+                self.log_int_raise("Invalid rows type: %s", ERR_COL(rows))
+            self.store.append(rows)
+
+    def insert(self):
+
+        s= self.store
+        if not s:
+            self.log_info("MotherMany.insert(): empty store. Skipping")
+            return 
+
+        af= self._arg_format
+
+        f= s[0].keys()
+        fields= _J(f)
+        table= self.builder.table_name
+        values= _J([af(k) for k in f])
+
+        qry= 'INSERT INTO %(table)s (%(fields)s) VALUES (%(values)s)' % locals()
+        self.log_info("MotherMany: Inserting on %s %s row(s) (template= `%s`)...", 
+                        table, INF_COL(len(s)), INF_COL(qry))
+        self.mq_query(qry, s)
+
+
+    def delete(self):
+
+        s= self.store
+        if not s:
+            self.log_info("MotherMany.delete(): empty store. Skipping")
+            return 
+
+        af= self._arg_format
+
+        fields= s[0].keys()
+        table= self.builder.table_name
+        filter= _A([ "%s = %s" % (j, af(j)) for j in fields])
+
+        qry= 'DELETE FROM %(table)s WHERE %(filter)s' % locals()
+
+        self.log_info("MotherMany: Deleting on %s with %s filter(s) "
+                      "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
+
+        self.mq_query(qry, s)
+
+    def update(self):
+
+        s= self.store
+        if not s:
+            self.log_info("MotherMany.update(): empty store. Skipping")
+            return 
+
+        table= self.builder.table_name
+        fields= s[0].keys()
+        act= self._act_fields
+        if not act:
+            act= [f for f in fields if f not in self._table_pkeys(table)]
+        if not act or len(act) == len(fields):
+            self.log_int_raise('MotherMany.update(): cannot understand what '
+                                'has to be updated.')
+
+        af= self._arg_format
+
+        upup= _J(['%s= %s' % (f, af(f)) for f in act])
+        filter= _A(['%s= %s' % (f, af(f)) for f in fields if f not in act])
+
+        qry= 'UPDATE %(table)s SET %(upup)s WHERE %(filter)s' % locals()
+
+        self.log_info("MotherMany: Updating %s with %s filter(s) "
+                      "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
+
+        self.mq_query(qry, s)
+
+    def load(self):
+
+        s= self.store
+        if not s:
+            self.log_info("MotherMany.select(): empty store. Skipping")
+            return 
+
+        af= self._arg_format
+        fields= s[0].keys()
+        table= self.builder.table_name
+        act= self._act_fields
+        what= act and _J(act) or '*'
+        filter= _A([ "%s = %s" % (j, af(j)) for j in fields])
+
+        qry= 'SELECT %(what)s FROM %(table)s WHERE %(filter)s' % locals()
+
+        self.log_info("MotherMany: Loading on %s with %s filter(s) "
+                      "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
+
+        self._records= self.mg_query(qry, s)
+
+    def getRecords(self, flag_obj= False):
+        """ getRecords(self, flag_obj= False) -> list(dict) or list(Mothers)
+
+        The return value depends on flag_obj.
+        """
+        if flag_obj:
+            b= self.builder
+            session= self.session
+            return [b(d, MO_NOA, session) for d in self._records]
+        else:
+            return self._records
