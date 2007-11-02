@@ -2,7 +2,7 @@
 VERSION = 0.6.3
 
 	* new class MotherMany
-	* abdbda import (and export) multiple query methods
+	* abdbda imports (and exports) multiple query methods
 	* sqlite and postgres have now mq_query and mg_query
 	* new method on postgres, sqlite and abdbda: multiple_query()
 	* DbMother fields methods moved on _DbMap
