@@ -2303,7 +2303,13 @@ class MotherMany(_DbMap):
     def __init__(self, builder, store= None, flag= MO_NOA, 
                     session= None, fields= None):
 
-        self.builder= builder
+        if isinstance(builder, str):
+            self.builder= None
+            self.table_name= builder
+        else:
+            self.builder= builder
+            self.table_name= builder.table_name
+
         self.session= session
         if session:
             session._export_iface(self)
@@ -2335,7 +2341,7 @@ class MotherMany(_DbMap):
 
         f= s[0].keys()
         fields= _J(f)
-        table= self.builder.table_name
+        table= self.table_name
         values= _J([af(k) for k in f])
 
         qry= 'INSERT INTO %(table)s (%(fields)s) VALUES (%(values)s)' % locals()
@@ -2354,7 +2360,7 @@ class MotherMany(_DbMap):
         af= self._arg_format
 
         fields= s[0].keys()
-        table= self.builder.table_name
+        table= self.table_name
         filter= _A([ "%s = %s" % (j, af(j)) for j in fields])
 
         qry= 'DELETE FROM %(table)s WHERE %(filter)s' % locals()
@@ -2371,7 +2377,7 @@ class MotherMany(_DbMap):
             self.log_info("MotherMany.update(): empty store. Skipping")
             return 
 
-        table= self.builder.table_name
+        table= self.table_name
         fields= s[0].keys()
         act= self._act_fields
         if not act:
@@ -2401,7 +2407,7 @@ class MotherMany(_DbMap):
 
         af= self._arg_format
         fields= s[0].keys()
-        table= self.builder.table_name
+        table= self.table_name
         act= self._act_fields
         what= act and _J(act) or '*'
         filter= _A([ "%s = %s" % (j, af(j)) for j in fields])
@@ -2419,7 +2425,7 @@ class MotherMany(_DbMap):
         The return value depends on flag_obj.
         """
         if flag_obj:
-            b= self.builder
+            b= self.builder or getMotherBuilder(self.table_name)
             session= self.session
             return [b(d, MO_NOA, session) for d in self._records]
         else:

@@ -10,20 +10,21 @@ Index:
 ------
     * `Install Mother`_
     * `The Database example used on this guide`_
-    * `Creating a Mother Environment`_
-    * `Simple Database Actions`_
-    * `Handling Multiple Records`_
-    * `Handling Children`_
-    * `Handling Relations`_
-    * `Handling Complex Children`_
-    * `The MotherFusion Class`_
-    * `Performing Custom queries`_
-    * `Transactions`_
-    * `Sessions and Threaded Environments`_
-    * `Logging`_
-    * `Triggers`_
-    * `Custom Complex Filters`_
-    * `Using Mother without Class Definition`_
+    * `Creating a Mother Environment`_: configuring Mother for your Db
+    * `Simple Database Actions`_: handling a record on a table
+    * `Handling Multiple Records`_: handling multiple records on a table
+    * `Handling Children`_: handling a record children
+    * `Handling Relations`_: handling relations between tables
+    * `Handling Complex Children`_: advanced children handling
+    * `The MotherFusion Class`_: handling records on different tables
+    * `The MotherMany Class`_: the faster way to handling simple records
+    * `Performing Custom queries`_: execute your personal queries
+    * `Transactions`_: how to use transactions
+    * `Sessions and Threaded Environments`_: isolated working sessions
+    * `Logging`_: handling the Mother logs capabilities
+    * `Triggers`_: define triggers
+    * `Custom Complex Filters`_: avoid SQL injection authomatically
+    * `Using Mother without Class Definition`_: under the hood
 
 Install Mother
 --------------
@@ -786,6 +787,78 @@ LEFT join:
 Note that, whed using side, the order of the two Mother builders is important.
 
 
+The MotherMany Class
+--------------------
+
+From Mother version >= 0.6.3 a new class is available: MotherMany.
+The goal of MotherMany is to speed up massive db actions (insert, select,
+update and delete) and to provide an easy way to perform db actions without
+DbMother classes definition. In fact, MotherMany can be used without the 
+need to define DbMother classes.
+
+The optimization problem is easy to understand: if You need to insert 
+1.000.000 of records on a table, initializing one DbMother class for each 
+record is crazy.
+
+Altough custom queries are always available, MotherMany offers, as usual, SQL
+injection controls and a fast way to execute actions.
+
+The initialization of a MotherMany instance is easy: 
+::
+
+    >>> MotherMany(builder, store= None, flag= MO_NOA, 
+    ...            session= None, fields= None)
+
+The builder is a DbMother class or a table name. The store is a list of dict,
+each dict representing a record. The flag, as usual, specify an action. The
+argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
+The session is used when dialing with the connection Pool.
+
+To insert a set of records:
+::
+
+    >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+    >>> MotherMany(ClsStars, star_records, MO_SAVE)
+
+If MO_NOA is used instead of MO_SAVE, we can do the following:
+::
+
+    >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+    >>> momma= MotherMany('stars', star_records, MO_NOA)
+    >>> other_records= [{'star_name': 'c'}, {'star_name': 'd'}]
+    >>> other_record= {'star_name': 'e'}
+    >>> momma.addRows(other_records)
+    >>> momma.addRows(other_record)
+    >>> momma.insert()
+
+Deleting records is exactly the same.
+
+To select records, It's possible to use the argument fields, which is a list
+of strings: only these fields will be loaded from the database. If the
+argument fields is omitted, all the table fields will be selected:
+::
+
+    >>> momma= MotherMany(ClsStarts, star_records, MO_LOAD)
+    >>> records= momma.getRecords()
+    >>> mommas= momma.getRecords(flag_obj= True)
+
+If the builder is a table name, the call getRecords(flag_obj= True) returns a
+list of MotherFly instances.
+
+When updating records, the argument fields is used to specify which fields
+have to be updated. For example:
+
+    >>> srecords= [{'star_id': 1, 'star_name': 'a'}, 
+    ...            {'star_id': 2, 'star_name': 'b'}]
+    >>> MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
+
+will perform a set of queries like: "UPDATE stars SET star_name= 'a' WHERE star_id = 1".
+If the argument fields is omitted, it defaults to all the dictionnary keys
+that are not primary key for the table.
+So, in the previous example, if fields is omitted, the result is the same.
+
+
+
 Performing Custom queries
 -------------------------
 
@@ -1083,9 +1156,16 @@ it's possible to create on demand these classes:
 
     >>> from mother.mothers import getMotherBuilder
     >>> FastClsStars= getMotherBuilder('stars')
-    >>> FastClsStart({'star_name': 'sun'}, MO_SAVE, MySession)
+    >>> FastClsStars({'star_name': 'sun'}, MO_SAVE, MySession)
 
 This is a very fast way to perform basic actions without writing useless lines
 of code.
+
+Moreover, the class MotherMany, introduced with the version 0.6.3, is often 
+better and faster: 
+::
+
+    >>> MotherMany('stars', [{'star_name': 'sun'}], MO_SAVE, MySession)
+
 
 

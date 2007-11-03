@@ -300,20 +300,21 @@ ul.auto-toc {
 <ul class="simple">
 <li><a class="reference" href="#install-mother">Install Mother</a></li>
 <li><a class="reference" href="#the-database-example-used-on-this-guide">The Database example used on this guide</a></li>
-<li><a class="reference" href="#creating-a-mother-environment">Creating a Mother Environment</a></li>
-<li><a class="reference" href="#simple-database-actions">Simple Database Actions</a></li>
-<li><a class="reference" href="#handling-multiple-records">Handling Multiple Records</a></li>
-<li><a class="reference" href="#handling-children">Handling Children</a></li>
-<li><a class="reference" href="#handling-relations">Handling Relations</a></li>
-<li><a class="reference" href="#handling-complex-children">Handling Complex Children</a></li>
-<li><a class="reference" href="#the-motherfusion-class">The MotherFusion Class</a></li>
-<li><a class="reference" href="#performing-custom-queries">Performing Custom queries</a></li>
-<li><a class="reference" href="#transactions">Transactions</a></li>
-<li><a class="reference" href="#sessions-and-threaded-environments">Sessions and Threaded Environments</a></li>
-<li><a class="reference" href="#logging">Logging</a></li>
-<li><a class="reference" href="#triggers">Triggers</a></li>
-<li><a class="reference" href="#custom-complex-filters">Custom Complex Filters</a></li>
-<li><a class="reference" href="#using-mother-without-class-definition">Using Mother without Class Definition</a></li>
+<li><a class="reference" href="#creating-a-mother-environment">Creating a Mother Environment</a>: configuring Mother for your Db</li>
+<li><a class="reference" href="#simple-database-actions">Simple Database Actions</a>: handling a record on a table</li>
+<li><a class="reference" href="#handling-multiple-records">Handling Multiple Records</a>: handling records on a table</li>
+<li><a class="reference" href="#handling-children">Handling Children</a>: handling a record children</li>
+<li><a class="reference" href="#handling-relations">Handling Relations</a>: handling relations between tables</li>
+<li><a class="reference" href="#handling-complex-children">Handling Complex Children</a>: advanced children handling</li>
+<li><a class="reference" href="#the-motherfusion-class">The MotherFusion Class</a>: handling records on different tables</li>
+<li><a class="reference" href="#the-mothermany-class">The MotherMany Class</a>: faster way to handling simple records</li>
+<li><a class="reference" href="#performing-custom-queries">Performing Custom queries</a>: execute your personal queries</li>
+<li><a class="reference" href="#transactions">Transactions</a>: how to use transactions</li>
+<li><a class="reference" href="#sessions-and-threaded-environments">Sessions and Threaded Environments</a>: isolated working sessions</li>
+<li><a class="reference" href="#logging">Logging</a>: handling the Mother logs capabilities</li>
+<li><a class="reference" href="#triggers">Triggers</a>: define triggers</li>
+<li><a class="reference" href="#custom-complex-filters">Custom Complex Filters</a>: avoid SQL injection authomatically</li>
+<li><a class="reference" href="#using-mother-without-class-definition">Using Mother without Class Definition</a>: under the hood</li>
 </ul>
 </blockquote>
 </div>
@@ -960,6 +961,67 @@ LEFT join:</p>
 <p>Note that, whed using side, the order of the two Mother builders is important.</p>
 </div>
 <div class="section">
+<h1><a id="the-mothermany-class" name="the-mothermany-class">The MotherMany Class</a></h1>
+<p>From Mother version &gt;= 0.6.3 a new class is available: MotherMany.
+The goal of MotherMany is to speed up massive db actions (insert, select,
+update and delete) and to provide an easy way to perform db actions without
+DbMother classes definition. In fact, MotherMany can be used without the
+need to define DbMother classes.</p>
+<p>The optimization problem is easy to understand: if You need to insert
+1.000.000 of records on a table, initializing one DbMother class for each
+record is crazy.</p>
+<p>Altough custom queries are always available, MotherMany offers, as usual, SQL
+injection controls and a fast way to execute actions.</p>
+<p>The initialization of a MotherMany instance is easy:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; MotherMany(builder, store= None, flag= MO_NOA,
+...            session= None, fields= None)
+</pre>
+<p>The builder is a DbMother class or a table name. The store is a list of dict,
+each dict representing a record. The flag, as usual, specify an action. The
+argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
+The session is used when dialing with the connection Pool.</p>
+<p>To insert a set of records:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+&gt;&gt;&gt; MotherMany(ClsStars, star_records, MO_SAVE)
+</pre>
+<p>If MO_NOA is used instead of MO_SAVE, we can do the following:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+&gt;&gt;&gt; momma= MotherMany('stars', star_records, MO_NOA)
+&gt;&gt;&gt; other_records= [{'star_name': 'c'}, {'star_name': 'd'}]
+&gt;&gt;&gt; other_record= {'star_name': 'e'}
+&gt;&gt;&gt; momma.addRows(other_records)
+&gt;&gt;&gt; momma.addRows(other_record)
+&gt;&gt;&gt; momma.insert()
+</pre>
+<p>Deleting records is exactly the same.</p>
+<p>To select records, It's possible to use the argument fields, which is a list
+of strings: only these fields will be loaded from the database. If the
+argument fields is omitted, all the table fields will be selected:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; momma= MotherMany(ClsStarts, star_records, MO_LOAD)
+&gt;&gt;&gt; records= momma.getRecords()
+&gt;&gt;&gt; mommas= momma.getRecords(flag_obj= True)
+</pre>
+<p>If the builder is a table name, the call getRecords(flag_obj= True) returns a
+list of MotherFly instances.</p>
+<p>When updating records, the argument fields is used to specify which fields
+have to be updated. For example:</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; srecords= [{'star_id': 1, 'star_name': 'a'},
+...            {'star_id': 2, 'star_name': 'b'}]
+&gt;&gt;&gt; MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
+</pre>
+</blockquote>
+<p>will perform a set of queries like: &quot;UPDATE stars SET star_name= 'a' WHERE star_id = 1&quot;.
+If the argument fields is omitted, it defaults to all the dictionnary keys
+that are not primary key for the table.
+So, in the previous example, if fields is omitted, the result is the same.</p>
+</div>
+<div class="section">
 <h1><a id="performing-custom-queries" name="performing-custom-queries">Performing Custom queries</a></h1>
 <p>SQL is a rich language: we need to perform some custom queries.
 To do that, we need to use the Mother database adapter.
@@ -1210,10 +1272,15 @@ it's possible to create on demand these classes:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from mother.mothers import getMotherBuilder
 &gt;&gt;&gt; FastClsStars= getMotherBuilder('stars')
-&gt;&gt;&gt; FastClsStart({'star_name': 'sun'}, MO_SAVE, MySession)
+&gt;&gt;&gt; FastClsStars({'star_name': 'sun'}, MO_SAVE, MySession)
 </pre>
 <p>This is a very fast way to perform basic actions without writing useless lines
 of code.</p>
+<p>Moreover, the class MotherMany, introduced with the version 0.6.3, is often
+better and faster:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; MotherMany('stars', [{'star_name': 'sun'}], MO_SAVE, MySession)
+</pre>
 </div>
 </div>
 </body>
