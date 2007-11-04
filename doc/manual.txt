@@ -220,9 +220,18 @@ Simple Database Actions
 
 In this section we will handle simple and single records. We use the persitent 
 connection, so make sure that the mother configuration file enables it.
+Note that the faster way to execute simple db actions is `The MotherMany
+Class`_. Although this class is very efficent and easy, the DbMother classes 
+explained in this section are more powerful, flexible and extendible.
 
-The primary concept of Mother is: declare a short but extendible class for a table: 
-each instance of this class is a table record.
+So, when You need to handle children, relations, join and so on, the DbMother
+classes are the good choice. When, instead, You need to execute just simple
+statements, take a look at the MotherMany class. 
+
+Obviously it's always possible to use both.
+
+The primary concept of DbMother classes is: declare a short but extendible class 
+for a table: each instance of this class is a table record.
 To explain this concept let's start handling records on the table 'stars'. 
 
 Put the following class declaration inside the file sample.py:
@@ -268,7 +277,7 @@ Sun insertion could be made without the insert() call:
 
 MO_NOA means "No Action" and is the default value of this argument.
 
-Now we want to modigy the Sun record, setting the star_mass to 15:
+Now we want to modify the Sun record, setting the star_mass to 15:
 ::
 
     >>> Sun.setField('star_mass', 15)
@@ -322,7 +331,9 @@ Finally, we could want to retrieve a record.
     >>> # or Sun= ClsStars({'star_id': sun_id}, MO_LOAD)
 
 There is no need to use the primary key, but remember that this call will raise
-an exception if there isn't a unique record with the specified fields.
+an exception if there isn't a unique record with the specified fields (this fact 
+could be used to verify if a unique record with some values is present on the 
+database).
 
 If we want to give some sql specific values to some fields, as DEFAULT, NULL, 
 True or False, just use SQL_DEFAULT, SQL_NULL, SQL_FALSE, SQL_TRUE:
@@ -341,6 +352,8 @@ All the described methods have a good inline doc:
 ::
 
     >>> print Sun.getFields.__doc__
+
+Now, play a little bit with your classes, try to understand them.
 
 
 Handling Multiple Records
@@ -809,18 +822,19 @@ The initialization of a MotherMany instance is easy:
     >>> MotherMany(builder, store= None, flag= MO_NOA, 
     ...            session= None, fields= None)
 
-The builder is a DbMother class or a table name. The store is a list of dict,
+The builder is a DbMother class or a table name. The store is a list of dicts,
 each dict representing a record. The flag, as usual, specify an action. The
 argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
 The session is used when dialing with the connection Pool.
 
-To insert a set of records:
+To insert a set of records (using as builder a Mother class):
 ::
 
     >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
     >>> MotherMany(ClsStars, star_records, MO_SAVE)
 
-If MO_NOA is used instead of MO_SAVE, we can do the following:
+If MO_NOA is used instead of MO_SAVE, we can do the following (using as
+builder a table name):
 ::
 
     >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
@@ -831,7 +845,10 @@ If MO_NOA is used instead of MO_SAVE, we can do the following:
     >>> momma.addRows(other_record)
     >>> momma.insert()
 
-Deleting records is exactly the same.
+As You can see, addRows accepts a list of dicts or a dict.
+
+Deleting records is exactly the same (the manual method is 
+MotherMany.delete()).
 
 To select records, It's possible to use the argument fields, which is a list
 of strings: only these fields will be loaded from the database. If the
@@ -841,9 +858,11 @@ argument fields is omitted, all the table fields will be selected:
     >>> momma= MotherMany(ClsStarts, star_records, MO_LOAD)
     >>> records= momma.getRecords()
     >>> mommas= momma.getRecords(flag_obj= True)
+    >>> # momma= MotherMany('stars', star_records, MO_NOA)
+    >>> # momma.load()
 
 If the builder is a table name, the call getRecords(flag_obj= True) returns a
-list of MotherFly instances.
+list of MotherFly instances. 
 
 When updating records, the argument fields is used to specify which fields
 have to be updated. For example:
@@ -851,10 +870,12 @@ have to be updated. For example:
     >>> srecords= [{'star_id': 1, 'star_name': 'a'}, 
     ...            {'star_id': 2, 'star_name': 'b'}]
     >>> MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
+    >>> # MotherMany('stars', srecords, MO_NOA, fields= ['star_name'])
+    >>> # momma.update()
 
 will perform a set of queries like: "UPDATE stars SET star_name= 'a' WHERE star_id = 1".
 If the argument fields is omitted, it defaults to all the dictionnary keys
-that are not primary key for the table.
+that are not part of the primary key for the table.
 So, in the previous example, if fields is omitted, the result is the same.
 
 
