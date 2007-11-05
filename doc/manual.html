@@ -491,12 +491,12 @@ file like so:</p>
 <p>In this section we will handle simple and single records. We use the persitent
 connection, so make sure that the mother configuration file enables it.
 Note that the faster way to execute simple db actions is <a class="reference" href="#the-mothermany-class">The MotherMany
-Class</a>. Altough this class is very efficent and easy, the DbMother classes
+Class</a>. Although this class is very efficent and easy, the DbMother classes
 explained in this section are more powerful, flexible and extendible.</p>
 <p>So, when You need to handle children, relations, join and so on, the DbMother
 classes are the good choice. When, instead, You need to execute just simple
 statements, take a look at the MotherMany class.</p>
-<p>Note that it's always possible to use both.</p>
+<p>Obviously it's always possible to use both.</p>
 <p>The primary concept of DbMother classes is: declare a short but extendible class
 for a table: each instance of this class is a table record.
 To explain this concept let's start handling records on the table 'stars'.</p>
@@ -537,7 +537,7 @@ Sun insertion could be made without the insert() call:</p>
 &gt;&gt;&gt; Sun= ClsStars(sun_dict, MO_SAVE)
 </pre>
 <p>MO_NOA means &quot;No Action&quot; and is the default value of this argument.</p>
-<p>Now we want to modigy the Sun record, setting the star_mass to 15:</p>
+<p>Now we want to modify the Sun record, setting the star_mass to 15:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Sun.setField('star_mass', 15)
 &gt;&gt;&gt; # or Sun.setFields({'star_mass': 15}) to change more fields
@@ -582,7 +582,9 @@ class ClsStars(DbMother):
 &gt;&gt;&gt; # or Sun= ClsStars({'star_id': sun_id}, MO_LOAD)
 </pre>
 <p>There is no need to use the primary key, but remember that this call will raise
-an exception if there isn't a unique record with the specified fields.</p>
+an exception if there isn't a unique record with the specified fields (this fact
+could be used to verify if a unique record with some values is present on the
+database).</p>
 <p>If we want to give some sql specific values to some fields, as DEFAULT, NULL,
 True or False, just use SQL_DEFAULT, SQL_NULL, SQL_FALSE, SQL_TRUE:</p>
 <pre class="literal-block">
@@ -598,6 +600,7 @@ database if necessary.</p>
 <pre class="literal-block">
 &gt;&gt;&gt; print Sun.getFields.__doc__
 </pre>
+<p>Now, play a little bit with your classes, try to understand them.</p>
 </div>
 <div class="section">
 <h1><a id="handling-multiple-records" name="handling-multiple-records">Handling Multiple Records</a></h1>
@@ -663,6 +666,10 @@ do:</p>
 <h1><a id="handling-children" name="handling-children">Handling Children</a></h1>
 <p>The table planets is a child of the table stars: a planet could be in a
 particular star system. Now we learn how to handle children.</p>
+<p>There are two ways to handle children: We can use the MotherMany way, or the
+classic way. The first is more, more fast, but more poor. To begin We will
+learn the second. The MotherMany way is explained in the section &quot;Handling
+Many Children&quot;.</p>
 <p>First of all we need to create a Mother class for the table planets: after
 that we have to enable the children Manager for the ClsStars class, specifiyng
 a list of children that we want to handle. Working on sample.py:</p>
@@ -682,7 +689,8 @@ class ClsStars(DbMother, MotherManager):
 </pre>
 <p>Note that we have subclassed the ClsStars class with MotherManager and called
 the initChildManager() method to specify that we want to handle planets
-children.</p>
+children. There is no need to call initChildManager() on the __init__ method.
+It's possible to call it manually, for example when We need it.</p>
 <p>Now, let's create the Sun star and insert the planet Earth:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from sample import *
