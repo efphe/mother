@@ -436,6 +436,11 @@ Handling Children
 The table planets is a child of the table stars: a planet could be in a
 particular star system. Now we learn how to handle children.
 
+There are two ways to handle children: We can use the MotherMany way, or the
+classic way. The first is more, more fast, but more poor. To begin We will 
+learn the second. The MotherMany way is explained in the section "Handling
+Many Children". 
+
 First of all we need to create a Mother class for the table planets: after
 that we have to enable the children Manager for the ClsStars class, specifiyng
 a list of children that we want to handle. Working on sample.py:
@@ -456,7 +461,8 @@ a list of children that we want to handle. Working on sample.py:
 
 Note that we have subclassed the ClsStars class with MotherManager and called
 the initChildManager() method to specify that we want to handle planets
-children.
+children. There is no need to call initChildManager() on the __init__ method.
+It's possible to call it manually, for example when We need it.
 
 Now, let's create the Sun star and insert the planet Earth:
 ::

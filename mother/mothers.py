@@ -1314,6 +1314,14 @@ class MotherManager:
                                 c_dict,
                                 MO_DEL,
                               )
+    def handleManyChildren(self, cbuilder, flag, c_dicts, fields= None):
+
+        child_table= cbuilder.table_name
+        d= self.getChildDeps(child_table)
+        d= self._getDepDict(d)
+        for c in c_dicts:
+            c.update(d)
+        return MotherMany(cbuilder, c_dicts, flag, self.session, fields= fields)
 
     def deleteChildren(self, cbuilder, filter= None):
         """ deleteChildren(cbuilder [,filter=None]) --> None
@@ -1617,6 +1625,46 @@ class MotherManager:
 
         if flag_obj: return r_obj
         else: return r_obj.getFields()
+
+    def initManyManager(self, children):
+
+        def handle_children(builder, flag):
+            def fly_handle_children(dlist, fields= None):
+                return self.handleManyChildren(builder, flag, dlist, fields)
+            return fly_handle_children
+
+        camel= DbMother.MotherNaming
+
+        map_names= {
+                MO_LOAD: 'loadMany', 
+                MO_SAVE: 'insertMany', 
+                MO_UP: 'updateMany', 
+                MO_DEL: 'deleteMany'
+                }
+
+        for c in children:
+            ctbl= c.table_name
+            for flag, name in map_names.iteritems():
+
+                attr_name= camel(ctbl, name)
+                if not hasattr(self, attr_name): 
+
+                    attr= handle_children(c, flag)
+                    if flag in [MO_UP, MO_LOAD]:
+                        attr.__doc__=\
+                                " %s(dlist [, fields= None) --> MotherMany instance\n\n"        \
+                                "handle many children. dlist is a list of dicts, "              \
+                                "fields is a list of strings.\n"                                \
+                                "Don't specify the foreign key: it's assigned automatically.\n" \
+                                    % attr_name
+                    else:
+                        attr.__doc__=\
+                                " %s(dlist) --> MotherMany instance\n\n"                        \
+                                "handle many children. dlist is a list of dicts.\n"             \
+                                "Don't specify the foreign key: it's assigned automatically.\n" \
+                                    % attr_name
+
+                    setattr(self, attr_name, attr)
 
     def initChildManager(self, children):
         """initChildManager(self,children) --> None
@@ -2192,7 +2240,7 @@ class MotherFusion(_DbMap):
 
     def joinBuilders(self):
 
-	self.log_insane('MotherFusion: join relation')
+        self.log_insane('MotherFusion: join relation')
         # useful vars
         ba= self.builderA
         bb= self.builderB
