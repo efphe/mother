@@ -5,25 +5,57 @@ Mother Manual
 
 Manual for Mother versions >= 0.6.0
 
+Introduction
+------------
+
+This manual is very far to be complete and with a fine language. My english is
+poor: I hope that my errors will be a reason to read it with a little bit of
+irony.
+
+If You are using Mother, if You like this python module and You have some ideas to 
+improve this manual, please, give your contribute: it will be really appreciated.
+
+At the same time, feel free to read the code, to mail your opinions, your
+ideas and your patches.
+
 
 Index:
 ------
+
+*Configuring Mother:*
+
     * `Install Mother`_
     * `The Database example used on this guide`_
     * `Creating a Mother Environment`_: configuring Mother for your Db
+
+*The basic principles:*
+
     * `Simple Database Actions`_: handling a record on a table
     * `Handling Multiple Records`_: handling multiple records on a table
+    * `Handling Many Records`_: faster way to handle multiple records on a table
+
+*The true Mother features:*
+
     * `Handling Children`_: handling a record children
+    * `Handling Many Children`_: faster way to handle a record children
     * `Handling Relations`_: handling relations between tables
     * `Handling Complex Children`_: advanced children handling
     * `The MotherFusion Class`_: handling records on different tables
-    * `The MotherMany Class`_: the faster way to handling simple records
+
+*The database interface:*
+
     * `Performing Custom queries`_: execute your personal queries
+
+*Transactions, Connection Pool and Threaded Environments:*
+
     * `Transactions`_: how to use transactions
     * `Sessions and Threaded Environments`_: isolated working sessions
-    * `Logging`_: handling the Mother logs capabilities
+
+*Appendix:*
+
+    * `Logging`_: handling logs 
     * `Triggers`_: define triggers
-    * `Custom Complex Filters`_: avoid SQL injection authomatically
+    * `Custom Complex Filters`_: avoid SQL injection 
     * `Using Mother without Class Definition`_: under the hood
 
 Install Mother
@@ -220,13 +252,10 @@ Simple Database Actions
 
 In this section we will handle simple and single records. We use the persitent 
 connection, so make sure that the mother configuration file enables it.
-Note that the faster way to execute simple db actions is `The MotherMany
-Class`_. Although this class is very efficent and easy, the DbMother classes 
-explained in this section are more powerful, flexible and extendible.
-
-So, when You need to handle children, relations, join and so on, the DbMother
-classes are the good choice. When, instead, You need to execute just simple
-statements, take a look at the MotherMany class. 
+Note that the faster way to execute simple db actions is explained in the
+sectioin `Handling Many Records`_. Although this way is very efficent and easy, 
+the DbMother classes explained in this section are more powerful, flexible and 
+extendible.
 
 Obviously it's always possible to use both.
 
@@ -240,19 +269,27 @@ Put the following class declaration inside the file sample.py:
     from mother.mothers import *
 
     class ClsStars(DbMother):
+
         table_name= 'stars'
+
         def __init__(self, store= {}, flag= MO_NOA, session= None):
             DbMother.__init__(self, store, flag, session)
 
+        def my_function(self):
+            print "This is my function, this is my realm"
+
 The argument `session` is used when dealing with the connection pool, useful for 
-threaded environments, as web applications. For now, forgive it.
+threaded environments, as web applications. For now, forgive it. Let's take a
+look at the `store` and the `flag` arguments.
 
 Suppose we want to insert the Sun star on the table stars. The Sun name is 'sun',
 the Sun age is 10 and the Sun mass is 20:
 ::
 
+    >>> # Mother Initialization
     >>> from sample import *
     >>> init_mother('/my/conf/file')
+    >>> # Working with Mother
     >>> sun_dict= {'star_name': 'sun', 'star_mass': 20, 'star_age': 10}
     >>> Sun= ClsStars(sun_dict)
     >>> Sun.insert()
@@ -427,7 +464,98 @@ do:
     >>> MotherBox(ClsStars, filter= filter, fields= fup, flag= MO_UP)
 
 
+Handling Many Records
+---------------------
 
+From Mother version >= 0.6.3 a new class is available: MotherMany.
+The goal of MotherMany is to speed up massive db actions (insert, select,
+update and delete) and to provide an easy way to perform db actions without
+DbMother classes definition. 
+
+Often We don't need complex structures to execute sql statements.
+A Mother class is a structured class: We can extending it, We can use the auto
+created methods and so on. But sometimes, We don't need this machinery.
+
+When, for example, We have an isolated table, without children and without
+relations, the definition and the usage of a Mother class should be avoided.
+
+The same applies when We have to perform a great number of statements: when We
+need a fast approach.
+
+The optimization problem is easy to understand: if You need to insert 
+1.000.000 of records on a table, initializing one DbMother class for each 
+record is crazy.
+
+Altough custom queries are always available, MotherMany offers, as usual, SQL
+injection controls and a fast way to execute actions.
+
+The initialization of a MotherMany instance is easy: 
+::
+
+    >>> MotherMany(builder, store= None, flag= MO_NOA, 
+    ...            session= None, fields= None)
+
+The builder is a DbMother class or a table name. The store is a list of dicts,
+each dict representing a record. The flag, as usual, specifies an action. The
+argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
+The session is used when dealing with the connection Pool.
+
+To insert a set of records (using as builder a Mother class):
+::
+
+    >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+    >>> MotherMany(ClsStars, star_records, MO_SAVE)
+
+If MO_NOA is used instead of MO_SAVE, we can do the following (using as
+builder a table name):
+::
+
+    >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+    >>> momma= MotherMany('stars', star_records, MO_NOA)
+    >>> other_records= [{'star_name': 'c'}, {'star_name': 'd'}]
+    >>> other_record= {'star_name': 'e'}
+    >>> momma.addRows(other_records)
+    >>> momma.addRows(other_record)
+    >>> momma.insert()
+
+As You can see, addRows() accepts a list of dicts or a dict.
+
+Deleting records is exactly the same (the manual method is MotherMany.delete()).
+
+To select records, It's possible to use the argument fields, which is a list
+of strings: only these fields will be loaded from the database. If the
+argument fields is omitted, all the table fields will be selected:
+::
+
+    >>> momma= MotherMany(ClsStarts, star_records, MO_LOAD)
+    >>> records= momma.getRecords()
+    >>> # momma= MotherMany('stars', star_records, MO_NOA)
+    >>> # momma.load()
+
+When updating records, the argument fields is used to specify which fields
+have to be updated. For example:
+
+    >>> srecords= [{'star_id': 1, 'star_name': 'a'}, 
+    ...            {'star_id': 2, 'star_name': 'b'}]
+    >>> MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
+    >>> # MotherMany('stars', srecords, MO_NOA, fields= ['star_name'])
+    >>> # momma.update()
+
+will perform a set of queries like: "UPDATE stars SET star_name= 'a' WHERE star_id = 1".
+If the argument fields is omitted, it defaults to all the dictionnary keys
+that are not part of the primary key for the table.
+So, in the previous example, if fields is omitted, the result is the same.
+
+Finally, it's possible to call the getRecords() method to fetch the worked
+records. This method accepts an optional argument: flag_obj.
+If flag_obj is False (the default), a list of dicts is returned. If flag_obj
+is True, a list of Mother instances will be returned. In this case, if
+MotherMany were initialized with, as builder, a Mother class, this class will
+be used to initilize the instances. If the builder is a table name, the call 
+getRecords(flag_obj= True) returns a list of MotherFly instances. 
+
+    >>> dicts= momma.getRecords()
+    >>> mommas= momma.getRecords(flag_obj= True)
 
 
 Handling Children
@@ -438,8 +566,8 @@ particular star system. Now we learn how to handle children.
 
 There are two ways to handle children: We can use the MotherMany way, or the
 classic way. The first is more, more fast, but more poor. To begin We will 
-learn the second. The MotherMany way is explained in the section "Handling
-Many Children". 
+learn the second. The MotherMany way is explained in the section 
+`Handling Many Children`_.
 
 First of all we need to create a Mother class for the table planets: after
 that we have to enable the children Manager for the ClsStars class, specifiyng
@@ -531,6 +659,65 @@ Deleting children is similar:
     >>> Sun.deleteMultiplePlanets({'planet_mass': 2})
 
 
+Handling Many Children
+----------------------
+
+This section explains the second way to handle children. The difference
+between this way and the classic way is almost the same between a DbMother
+class and the MotherMany class.
+
+The methods explained in this section are very, very fast, but more poor than
+the methods created by initChildManager(), explained in the previous chapter.
+
+Anyway, these methods should be used often for two reasons:
+
+- they are very fast
+- they are enough
+
+As for initChildManager(), We can use the method initManyManager() to create
+our methods automatically:
+::
+
+    from mother.mothers import *
+
+    class ClsPlanets(DbMother):
+        table_name= 'planets'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            DbMother.__init__(self, store, flag, session)
+
+    class ClsStars(DbMother, MotherManager):
+        table_name= 'stars'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            self.initManyManager([ClsPlanets])
+            DbMother.__init__(self, store, flag, session)
+
+It's not mandatory to call initManyManager() during the initialization: it could be
+called everytime We need it. Anyway, calling it creates the following methods:
+
+- insertManyPlanets(dlist)
+- deleteManyPlanets(dlist)
+- loadManyPlanets(dlist [, fields= None])
+- updateManyPlanets(dlist [, fields= None])
+
+These methods are very similar to the MotherMany usage. The unique difference
+is the authomatic export of the foreign key between parent and child.
+For example:
+::
+
+    >>> sun= ClsStars({'star_id': 1})
+    >>> box= sun.insertManyPlanets([{'planet_name': 'earth'}, 
+    ...                             {'planet_name': 'mars'}])
+
+will produce the following queries:
+::
+
+    INSERT INTO planets (planet_name, star_id) VALUES ('earth', 1);
+    INSERT INTO planets (planet_name, star_id) VALUES ('mars', 1);
+
+The call returns a MotherMany instance.
+
+Note that, as for the MotherMany class, for the SELECT and UPDATE actions We
+can provide a list of fields: this repeats exactly the MotherMany behaviour.
 
 
 Handling Relations
@@ -796,93 +983,16 @@ We can also specify manually which field to load on the relation table:
 
     >>> momma= MotherFusion(ClsLifeforms, ClsPlanets, params= ['age'])
 
-From version 0.6.3 or later, the initialization of Mother accepts a new
+From version 0.6.3 or later, the initialization of MotherFusion accepts a new
 argument, named 'side'. With this argument is possible to do a RIGHT or
 LEFT join:
+::
 
     >>> momma= MotherFusion(ClsLifeforms, ClsPlanets, side="RIGHT")
     >>> momma= MotherFusion(ClsLifeforms, ClsPlanets, side="LEFT")
 
 Note that, whed using side, the order of the two Mother builders is important.
 
-
-The MotherMany Class
---------------------
-
-From Mother version >= 0.6.3 a new class is available: MotherMany.
-The goal of MotherMany is to speed up massive db actions (insert, select,
-update and delete) and to provide an easy way to perform db actions without
-DbMother classes definition. In fact, MotherMany can be used without the 
-need to define DbMother classes.
-
-The optimization problem is easy to understand: if You need to insert 
-1.000.000 of records on a table, initializing one DbMother class for each 
-record is crazy.
-
-Altough custom queries are always available, MotherMany offers, as usual, SQL
-injection controls and a fast way to execute actions.
-
-The initialization of a MotherMany instance is easy: 
-::
-
-    >>> MotherMany(builder, store= None, flag= MO_NOA, 
-    ...            session= None, fields= None)
-
-The builder is a DbMother class or a table name. The store is a list of dicts,
-each dict representing a record. The flag, as usual, specify an action. The
-argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
-The session is used when dialing with the connection Pool.
-
-To insert a set of records (using as builder a Mother class):
-::
-
-    >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
-    >>> MotherMany(ClsStars, star_records, MO_SAVE)
-
-If MO_NOA is used instead of MO_SAVE, we can do the following (using as
-builder a table name):
-::
-
-    >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
-    >>> momma= MotherMany('stars', star_records, MO_NOA)
-    >>> other_records= [{'star_name': 'c'}, {'star_name': 'd'}]
-    >>> other_record= {'star_name': 'e'}
-    >>> momma.addRows(other_records)
-    >>> momma.addRows(other_record)
-    >>> momma.insert()
-
-As You can see, addRows accepts a list of dicts or a dict.
-
-Deleting records is exactly the same (the manual method is 
-MotherMany.delete()).
-
-To select records, It's possible to use the argument fields, which is a list
-of strings: only these fields will be loaded from the database. If the
-argument fields is omitted, all the table fields will be selected:
-::
-
-    >>> momma= MotherMany(ClsStarts, star_records, MO_LOAD)
-    >>> records= momma.getRecords()
-    >>> mommas= momma.getRecords(flag_obj= True)
-    >>> # momma= MotherMany('stars', star_records, MO_NOA)
-    >>> # momma.load()
-
-If the builder is a table name, the call getRecords(flag_obj= True) returns a
-list of MotherFly instances. 
-
-When updating records, the argument fields is used to specify which fields
-have to be updated. For example:
-
-    >>> srecords= [{'star_id': 1, 'star_name': 'a'}, 
-    ...            {'star_id': 2, 'star_name': 'b'}]
-    >>> MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
-    >>> # MotherMany('stars', srecords, MO_NOA, fields= ['star_name'])
-    >>> # momma.update()
-
-will perform a set of queries like: "UPDATE stars SET star_name= 'a' WHERE star_id = 1".
-If the argument fields is omitted, it defaults to all the dictionnary keys
-that are not part of the primary key for the table.
-So, in the previous example, if fields is omitted, the result is the same.
 
 
 
@@ -919,7 +1029,7 @@ to import abdbda:
 Transactions
 ------------
 
-Transactions are handled by Mother, which allow nested transactions. In this section
+Transactions are handled by Mother, which allows nested transactions. In this section
 we deal once more with the persistent connection.
 
 As for the methods to perform action queries, beginTrans(), commit() and rollback()
@@ -1007,8 +1117,8 @@ The db actions are now inside your session: note that this applies also to the
 db actions produced by Earth, because Earth is born inside a session.
 
 Sessions are always in a transaction state. To commit the queries we can call
-commit() or endSession(). The endSession() call closes also the transactions, 
-which is putted back to the pool:
+commit() or endSession(). The endSession() call closes the transactions, and 
+puts the connections used just now back to the pool:
 ::
 
     >>> session.endSession()
@@ -1078,10 +1188,18 @@ Logging
 -------
 
 Logging, likw the pool, is configurable on the Mother configuration file.
+It's possbile to log to standard output, to file (with file rotation
+capabilites), to mail and to syslog (this requires to enable syslog tcp
+daemon, because windows does not support Unix socket).
+
+Once the logging features are tuned on the Mother configuration file, it's
+possbible to begin to produces some string activity:
 ::
 
+    >>> init_mother('/my/conf/file')
     >>> from mother.Speaker import RED, GREEN, YELLOW
     >>> import datetime
+    >>> Sun= ClsStars()
     >>> Sun.log_info('It's %s', GREEN(datetime.datetime.today))
     >>> Sun.log_warning('aia aia %s %s', RED(1), YELLOW('foo'))
     >>> from mother.speaker import *
@@ -1090,13 +1208,26 @@ Logging, likw the pool, is configurable on the Mother configuration file.
     >>> Speaker.log_insane('Insane Insane %s', RED('noise'))
     >>> Sun.log_noise('Soft Soft %s', RED('noise'))
 
+Remember that the string are formatted in a C way: You don't have to use the
+python way. Remember also to use always the `%s` symbol, also if You are
+printing integer or floats:
+::
+
+    >>> # the python way
+    >>> "%s %d" % ('a', 1)
+    >>> # the mother way
+    >>> "%s %s", 'a', 1
+
 Setting the configuration level, some of the previous logged string will be dropped.
 To use a custom logging level, use log_log():
 ::
 
     >>> Speaker.log_log(23, 'hi %s %s %s', 1, 2 ,'a')
 
-If smtp logging is enabled, the following function will be available: log_mail().
+To turn off the logging feature, set the log level to 0.
+
+If smtp logging is enabled, the function log_mail() will be available: using
+it, You can send some logs via mail.
 
 
 
@@ -1104,7 +1235,9 @@ If smtp logging is enabled, the following function will be available: log_mail()
 Triggers
 --------
 
-Let's use triggers:
+We can define some triggers to be fired during a DbMother instance action.
+To explain how to use triggers, an example is maybe the faster way:
+
 ::
 
     >>> from mother.mothers import *
@@ -1124,6 +1257,9 @@ Let's use triggers:
     >>>
     >>> sun= TriggeredStar({'star_name': 'sun'}, MO_SAVE)
 
+Remember, when using triggers, to add them before to call the
+DbMother.__init__() methods, otherwise they will be ingored when an instance
+will be initialized with a flag different from MO_NOA.
 
 
 Custom Complex Filters
@@ -1168,6 +1304,11 @@ Moreover, we can add different type of filter in the same class:
     >>> filter.add_filter({'age': 1})
     >>> filter.add_filter('dkafsak %(az)s', store= {'az': 5})
     >>> MotherBox(ClsPlanets, filter= filter, flag= MO_LOAD)
+
+If You want to force a filter on a specific table, use the following argument:
+::
+
+    >>> filter= MoFilter({'my': 'filter'}, table= 'my_table)
 
 
 

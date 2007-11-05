@@ -295,25 +295,62 @@ ul.auto-toc {
 <p>(DocUtils Powered)</p>
 <p>Manual for Mother versions &gt;= 0.6.0</p>
 <div class="section">
+<h1><a id="introduction" name="introduction">Introduction</a></h1>
+<p>This manual is very far to be complete and with a fine language. My english is
+poor: I hope that my errors will be a reason to read it with a little bit of
+irony.</p>
+<p>If You are using Mother, if You like this python module and You have some ideas to
+improve this manual, please, give your contribute: it will be really appreciated.</p>
+<p>At the same time, feel free to read the code, to mail your opinions, your
+ideas and your patches.</p>
+</div>
+<div class="section">
 <h1><a id="index" name="index">Index:</a></h1>
+<p><em>Configuring Mother:</em></p>
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#install-mother">Install Mother</a></li>
 <li><a class="reference" href="#the-database-example-used-on-this-guide">The Database example used on this guide</a></li>
 <li><a class="reference" href="#creating-a-mother-environment">Creating a Mother Environment</a>: configuring Mother for your Db</li>
+</ul>
+</blockquote>
+<p><em>The basic principles:</em></p>
+<blockquote>
+<ul class="simple">
 <li><a class="reference" href="#simple-database-actions">Simple Database Actions</a>: handling a record on a table</li>
 <li><a class="reference" href="#handling-multiple-records">Handling Multiple Records</a>: handling multiple records on a table</li>
+<li><a class="reference" href="#handling-many-records">Handling Many Records</a>: faster way to handle multiple records on a table</li>
+</ul>
+</blockquote>
+<p><em>The true Mother features:</em></p>
+<blockquote>
+<ul class="simple">
 <li><a class="reference" href="#handling-children">Handling Children</a>: handling a record children</li>
+<li><a class="reference" href="#handling-many-children">Handling Many Children</a>: faster way to handle a record children</li>
 <li><a class="reference" href="#handling-relations">Handling Relations</a>: handling relations between tables</li>
 <li><a class="reference" href="#handling-complex-children">Handling Complex Children</a>: advanced children handling</li>
 <li><a class="reference" href="#the-motherfusion-class">The MotherFusion Class</a>: handling records on different tables</li>
-<li><a class="reference" href="#the-mothermany-class">The MotherMany Class</a>: the faster way to handling simple records</li>
+</ul>
+</blockquote>
+<p><em>The database interface:</em></p>
+<blockquote>
+<ul class="simple">
 <li><a class="reference" href="#performing-custom-queries">Performing Custom queries</a>: execute your personal queries</li>
+</ul>
+</blockquote>
+<p><em>Transactions, Connection Pool and Threaded Environments:</em></p>
+<blockquote>
+<ul class="simple">
 <li><a class="reference" href="#transactions">Transactions</a>: how to use transactions</li>
 <li><a class="reference" href="#sessions-and-threaded-environments">Sessions and Threaded Environments</a>: isolated working sessions</li>
-<li><a class="reference" href="#logging">Logging</a>: handling the Mother logs capabilities</li>
+</ul>
+</blockquote>
+<p><em>Appendix:</em></p>
+<blockquote>
+<ul class="simple">
+<li><a class="reference" href="#logging">Logging</a>: handling logs</li>
 <li><a class="reference" href="#triggers">Triggers</a>: define triggers</li>
-<li><a class="reference" href="#custom-complex-filters">Custom Complex Filters</a>: avoid SQL injection authomatically</li>
+<li><a class="reference" href="#custom-complex-filters">Custom Complex Filters</a>: avoid SQL injection</li>
 <li><a class="reference" href="#using-mother-without-class-definition">Using Mother without Class Definition</a>: under the hood</li>
 </ul>
 </blockquote>
@@ -490,12 +527,10 @@ file like so:</p>
 <h1><a id="simple-database-actions" name="simple-database-actions">Simple Database Actions</a></h1>
 <p>In this section we will handle simple and single records. We use the persitent
 connection, so make sure that the mother configuration file enables it.
-Note that the faster way to execute simple db actions is <a class="reference" href="#the-mothermany-class">The MotherMany
-Class</a>. Although this class is very efficent and easy, the DbMother classes
-explained in this section are more powerful, flexible and extendible.</p>
-<p>So, when You need to handle children, relations, join and so on, the DbMother
-classes are the good choice. When, instead, You need to execute just simple
-statements, take a look at the MotherMany class.</p>
+Note that the faster way to execute simple db actions is explained in the
+sectioin <a class="reference" href="#handling-many-records">Handling Many Records</a>. Although this way is very efficent and easy,
+the DbMother classes explained in this section are more powerful, flexible and
+extendible.</p>
 <p>Obviously it's always possible to use both.</p>
 <p>The primary concept of DbMother classes is: declare a short but extendible class
 for a table: each instance of this class is a table record.
@@ -505,17 +540,25 @@ To explain this concept let's start handling records on the table 'stars'.</p>
 from mother.mothers import *
 
 class ClsStars(DbMother):
+
     table_name= 'stars'
+
     def __init__(self, store= {}, flag= MO_NOA, session= None):
         DbMother.__init__(self, store, flag, session)
+
+    def my_function(self):
+        print &quot;This is my function, this is my realm&quot;
 </pre>
 <p>The argument <cite>session</cite> is used when dealing with the connection pool, useful for
-threaded environments, as web applications. For now, forgive it.</p>
+threaded environments, as web applications. For now, forgive it. Let's take a
+look at the <cite>store</cite> and the <cite>flag</cite> arguments.</p>
 <p>Suppose we want to insert the Sun star on the table stars. The Sun name is 'sun',
 the Sun age is 10 and the Sun mass is 20:</p>
 <pre class="literal-block">
+&gt;&gt;&gt; # Mother Initialization
 &gt;&gt;&gt; from sample import *
 &gt;&gt;&gt; init_mother('/my/conf/file')
+&gt;&gt;&gt; # Working with Mother
 &gt;&gt;&gt; sun_dict= {'star_name': 'sun', 'star_mass': 20, 'star_age': 10}
 &gt;&gt;&gt; Sun= ClsStars(sun_dict)
 &gt;&gt;&gt; Sun.insert()
@@ -663,13 +706,96 @@ do:</p>
 </pre>
 </div>
 <div class="section">
+<h1><a id="handling-many-records" name="handling-many-records">Handling Many Records</a></h1>
+<p>From Mother version &gt;= 0.6.3 a new class is available: MotherMany.
+The goal of MotherMany is to speed up massive db actions (insert, select,
+update and delete) and to provide an easy way to perform db actions without
+DbMother classes definition.</p>
+<p>Often We don't need complex structures to execute sql statements.
+A Mother class is a structured class: We can extending it, We can use the auto
+created methods and so on. But sometimes, We don't need this machinery.</p>
+<p>When, for example, We have an isolated table, without children and without
+relations, the definition and the usage of a Mother class should be avoided.</p>
+<p>The same applies when We have to perform a great number of statements: when We
+need a fast approach.</p>
+<p>The optimization problem is easy to understand: if You need to insert
+1.000.000 of records on a table, initializing one DbMother class for each
+record is crazy.</p>
+<p>Altough custom queries are always available, MotherMany offers, as usual, SQL
+injection controls and a fast way to execute actions.</p>
+<p>The initialization of a MotherMany instance is easy:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; MotherMany(builder, store= None, flag= MO_NOA,
+...            session= None, fields= None)
+</pre>
+<p>The builder is a DbMother class or a table name. The store is a list of dicts,
+each dict representing a record. The flag, as usual, specifies an action. The
+argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
+The session is used when dealing with the connection Pool.</p>
+<p>To insert a set of records (using as builder a Mother class):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+&gt;&gt;&gt; MotherMany(ClsStars, star_records, MO_SAVE)
+</pre>
+<p>If MO_NOA is used instead of MO_SAVE, we can do the following (using as
+builder a table name):</p>
+<pre class="literal-block">
+&gt;&gt;&gt; star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
+&gt;&gt;&gt; momma= MotherMany('stars', star_records, MO_NOA)
+&gt;&gt;&gt; other_records= [{'star_name': 'c'}, {'star_name': 'd'}]
+&gt;&gt;&gt; other_record= {'star_name': 'e'}
+&gt;&gt;&gt; momma.addRows(other_records)
+&gt;&gt;&gt; momma.addRows(other_record)
+&gt;&gt;&gt; momma.insert()
+</pre>
+<p>As You can see, addRows() accepts a list of dicts or a dict.</p>
+<p>Deleting records is exactly the same (the manual method is MotherMany.delete()).</p>
+<p>To select records, It's possible to use the argument fields, which is a list
+of strings: only these fields will be loaded from the database. If the
+argument fields is omitted, all the table fields will be selected:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; momma= MotherMany(ClsStarts, star_records, MO_LOAD)
+&gt;&gt;&gt; records= momma.getRecords()
+&gt;&gt;&gt; # momma= MotherMany('stars', star_records, MO_NOA)
+&gt;&gt;&gt; # momma.load()
+</pre>
+<p>When updating records, the argument fields is used to specify which fields
+have to be updated. For example:</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; srecords= [{'star_id': 1, 'star_name': 'a'},
+...            {'star_id': 2, 'star_name': 'b'}]
+&gt;&gt;&gt; MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
+&gt;&gt;&gt; # MotherMany('stars', srecords, MO_NOA, fields= ['star_name'])
+&gt;&gt;&gt; # momma.update()
+</pre>
+</blockquote>
+<p>will perform a set of queries like: &quot;UPDATE stars SET star_name= 'a' WHERE star_id = 1&quot;.
+If the argument fields is omitted, it defaults to all the dictionnary keys
+that are not part of the primary key for the table.
+So, in the previous example, if fields is omitted, the result is the same.</p>
+<p>Finally, it's possible to call the getRecords() method to fetch the worked
+records. This method accepts an optional argument: flag_obj.
+If flag_obj is False (the default), a list of dicts is returned. If flag_obj
+is True, a list of Mother instances will be returned. In this case, if
+MotherMany were initialized with, as builder, a Mother class, this class will
+be used to initilize the instances. If the builder is a table name, the call
+getRecords(flag_obj= True) returns a list of MotherFly instances.</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; dicts= momma.getRecords()
+&gt;&gt;&gt; mommas= momma.getRecords(flag_obj= True)
+</pre>
+</blockquote>
+</div>
+<div class="section">
 <h1><a id="handling-children" name="handling-children">Handling Children</a></h1>
 <p>The table planets is a child of the table stars: a planet could be in a
 particular star system. Now we learn how to handle children.</p>
 <p>There are two ways to handle children: We can use the MotherMany way, or the
 classic way. The first is more, more fast, but more poor. To begin We will
-learn the second. The MotherMany way is explained in the section &quot;Handling
-Many Children&quot;.</p>
+learn the second. The MotherMany way is explained in the section
+<a class="reference" href="#handling-many-children">Handling Many Children</a>.</p>
 <p>First of all we need to create a Mother class for the table planets: after
 that we have to enable the children Manager for the ClsStars class, specifiyng
 a list of children that we want to handle. Working on sample.py:</p>
@@ -749,6 +875,59 @@ setting planet_mass= 42.</p>
 &gt;&gt;&gt; Sun.deleteMultiplePlanets(&quot;planet_mass &gt; 12 &quot;)
 &gt;&gt;&gt; Sun.deleteMultiplePlanets({'planet_mass': 2})
 </pre>
+</div>
+<div class="section">
+<h1><a id="handling-many-children" name="handling-many-children">Handling Many Children</a></h1>
+<p>This section explains the second way to handle children. The difference
+between this way and the classic way is almost the same between a DbMother
+class and the MotherMany class.</p>
+<p>The methods explained in this section are very, very fast, but more poor than
+the methods created by initChildManager(), explained in the previous chapter.</p>
+<p>Anyway, these methods should be used often for two reasons:</p>
+<ul class="simple">
+<li>they are very fast</li>
+<li>they are enough</li>
+</ul>
+<p>As for initChildManager(), We can use the method initManyManager() to create
+our methods automatically:</p>
+<pre class="literal-block">
+from mother.mothers import *
+
+class ClsPlanets(DbMother):
+    table_name= 'planets'
+    def __init__(self, store= {}, flag= MO_NOA, session= None):
+        DbMother.__init__(self, store, flag, session)
+
+class ClsStars(DbMother, MotherManager):
+    table_name= 'stars'
+    def __init__(self, store= {}, flag= MO_NOA, session= None):
+        self.initManyManager([ClsPlanets])
+        DbMother.__init__(self, store, flag, session)
+</pre>
+<p>It's not mandatory to call initManyManager() during the initialization: it could be
+called everytime We need it. Anyway, calling it creates the following methods:</p>
+<ul class="simple">
+<li>insertManyPlanets(dlist)</li>
+<li>deleteManyPlanets(dlist)</li>
+<li>loadManyPlanets(dlist [, fields= None])</li>
+<li>updateManyPlanets(dlist [, fields= None])</li>
+</ul>
+<p>These methods are very similar to the MotherMany usage. The unique difference
+is the authomatic export of the foreign key between parent and child.
+For example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; sun= ClsStars({'star_id': 1})
+&gt;&gt;&gt; box= sun.insertManyPlanets([{'planet_name': 'earth'},
+...                             {'planet_name': 'mars'}])
+</pre>
+<p>will produce the following queries:</p>
+<pre class="literal-block">
+INSERT INTO planets (planet_name, star_id) VALUES ('earth', 1);
+INSERT INTO planets (planet_name, star_id) VALUES ('mars', 1);
+</pre>
+<p>The call returns a MotherMany instance.</p>
+<p>Note that, as for the MotherMany class, for the SELECT and UPDATE actions We
+can provide a list of fields: this repeats exactly the MotherMany behaviour.</p>
 </div>
 <div class="section">
 <h1><a id="handling-relations" name="handling-relations">Handling Relations</a></h1>
@@ -964,84 +1143,14 @@ relation table, excluding the foreign keys:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, params= ['age'])
 </pre>
-<p>From version 0.6.3 or later, the initialization of Mother accepts a new
+<p>From version 0.6.3 or later, the initialization of MotherFusion accepts a new
 argument, named 'side'. With this argument is possible to do a RIGHT or
 LEFT join:</p>
-<blockquote>
-<pre class="doctest-block">
+<pre class="literal-block">
 &gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, side=&quot;RIGHT&quot;)
 &gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, side=&quot;LEFT&quot;)
 </pre>
-</blockquote>
 <p>Note that, whed using side, the order of the two Mother builders is important.</p>
-</div>
-<div class="section">
-<h1><a id="the-mothermany-class" name="the-mothermany-class">The MotherMany Class</a></h1>
-<p>From Mother version &gt;= 0.6.3 a new class is available: MotherMany.
-The goal of MotherMany is to speed up massive db actions (insert, select,
-update and delete) and to provide an easy way to perform db actions without
-DbMother classes definition. In fact, MotherMany can be used without the
-need to define DbMother classes.</p>
-<p>The optimization problem is easy to understand: if You need to insert
-1.000.000 of records on a table, initializing one DbMother class for each
-record is crazy.</p>
-<p>Altough custom queries are always available, MotherMany offers, as usual, SQL
-injection controls and a fast way to execute actions.</p>
-<p>The initialization of a MotherMany instance is easy:</p>
-<pre class="literal-block">
-&gt;&gt;&gt; MotherMany(builder, store= None, flag= MO_NOA,
-...            session= None, fields= None)
-</pre>
-<p>The builder is a DbMother class or a table name. The store is a list of dicts,
-each dict representing a record. The flag, as usual, specify an action. The
-argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
-The session is used when dialing with the connection Pool.</p>
-<p>To insert a set of records (using as builder a Mother class):</p>
-<pre class="literal-block">
-&gt;&gt;&gt; star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
-&gt;&gt;&gt; MotherMany(ClsStars, star_records, MO_SAVE)
-</pre>
-<p>If MO_NOA is used instead of MO_SAVE, we can do the following (using as
-builder a table name):</p>
-<pre class="literal-block">
-&gt;&gt;&gt; star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
-&gt;&gt;&gt; momma= MotherMany('stars', star_records, MO_NOA)
-&gt;&gt;&gt; other_records= [{'star_name': 'c'}, {'star_name': 'd'}]
-&gt;&gt;&gt; other_record= {'star_name': 'e'}
-&gt;&gt;&gt; momma.addRows(other_records)
-&gt;&gt;&gt; momma.addRows(other_record)
-&gt;&gt;&gt; momma.insert()
-</pre>
-<p>As You can see, addRows accepts a list of dicts or a dict.</p>
-<p>Deleting records is exactly the same (the manual method is
-MotherMany.delete()).</p>
-<p>To select records, It's possible to use the argument fields, which is a list
-of strings: only these fields will be loaded from the database. If the
-argument fields is omitted, all the table fields will be selected:</p>
-<pre class="literal-block">
-&gt;&gt;&gt; momma= MotherMany(ClsStarts, star_records, MO_LOAD)
-&gt;&gt;&gt; records= momma.getRecords()
-&gt;&gt;&gt; mommas= momma.getRecords(flag_obj= True)
-&gt;&gt;&gt; # momma= MotherMany('stars', star_records, MO_NOA)
-&gt;&gt;&gt; # momma.load()
-</pre>
-<p>If the builder is a table name, the call getRecords(flag_obj= True) returns a
-list of MotherFly instances.</p>
-<p>When updating records, the argument fields is used to specify which fields
-have to be updated. For example:</p>
-<blockquote>
-<pre class="doctest-block">
-&gt;&gt;&gt; srecords= [{'star_id': 1, 'star_name': 'a'},
-...            {'star_id': 2, 'star_name': 'b'}]
-&gt;&gt;&gt; MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
-&gt;&gt;&gt; # MotherMany('stars', srecords, MO_NOA, fields= ['star_name'])
-&gt;&gt;&gt; # momma.update()
-</pre>
-</blockquote>
-<p>will perform a set of queries like: &quot;UPDATE stars SET star_name= 'a' WHERE star_id = 1&quot;.
-If the argument fields is omitted, it defaults to all the dictionnary keys
-that are not part of the primary key for the table.
-So, in the previous example, if fields is omitted, the result is the same.</p>
 </div>
 <div class="section">
 <h1><a id="performing-custom-queries" name="performing-custom-queries">Performing Custom queries</a></h1>
@@ -1071,7 +1180,7 @@ to import abdbda:</p>
 </div>
 <div class="section">
 <h1><a id="transactions" name="transactions">Transactions</a></h1>
-<p>Transactions are handled by Mother, which allow nested transactions. In this section
+<p>Transactions are handled by Mother, which allows nested transactions. In this section
 we deal once more with the persistent connection.</p>
 <p>As for the methods to perform action queries, beginTrans(), commit() and rollback()
 are DbOne methods, but they are exported to each Mother instance. Note that calling
@@ -1146,8 +1255,8 @@ session:</p>
 <p>The db actions are now inside your session: note that this applies also to the
 db actions produced by Earth, because Earth is born inside a session.</p>
 <p>Sessions are always in a transaction state. To commit the queries we can call
-commit() or endSession(). The endSession() call closes also the transactions,
-which is putted back to the pool:</p>
+commit() or endSession(). The endSession() call closes the transactions, and
+puts the connections used just now back to the pool:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; session.endSession()
 </pre>
@@ -1208,10 +1317,17 @@ the Mother instance methods:</p>
 </div>
 <div class="section">
 <h1><a id="logging" name="logging">Logging</a></h1>
-<p>Logging, likw the pool, is configurable on the Mother configuration file.</p>
+<p>Logging, likw the pool, is configurable on the Mother configuration file.
+It's possbile to log to standard output, to file (with file rotation
+capabilites), to mail and to syslog (this requires to enable syslog tcp
+daemon, because windows does not support Unix socket).</p>
+<p>Once the logging features are tuned on the Mother configuration file, it's
+possbible to begin to produces some string activity:</p>
 <pre class="literal-block">
+&gt;&gt;&gt; init_mother('/my/conf/file')
 &gt;&gt;&gt; from mother.Speaker import RED, GREEN, YELLOW
 &gt;&gt;&gt; import datetime
+&gt;&gt;&gt; Sun= ClsStars()
 &gt;&gt;&gt; Sun.log_info('It's %s', GREEN(datetime.datetime.today))
 &gt;&gt;&gt; Sun.log_warning('aia aia %s %s', RED(1), YELLOW('foo'))
 &gt;&gt;&gt; from mother.speaker import *
@@ -1220,16 +1336,28 @@ the Mother instance methods:</p>
 &gt;&gt;&gt; Speaker.log_insane('Insane Insane %s', RED('noise'))
 &gt;&gt;&gt; Sun.log_noise('Soft Soft %s', RED('noise'))
 </pre>
+<p>Remember that the string are formatted in a C way: You don't have to use the
+python way. Remember also to use always the <cite>%s</cite> symbol, also if You are
+printing integer or floats:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; # the python way
+&gt;&gt;&gt; &quot;%s %d&quot; % ('a', 1)
+&gt;&gt;&gt; # the mother way
+&gt;&gt;&gt; &quot;%s %s&quot;, 'a', 1
+</pre>
 <p>Setting the configuration level, some of the previous logged string will be dropped.
 To use a custom logging level, use log_log():</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Speaker.log_log(23, 'hi %s %s %s', 1, 2 ,'a')
 </pre>
-<p>If smtp logging is enabled, the following function will be available: log_mail().</p>
+<p>To turn off the logging feature, set the log level to 0.</p>
+<p>If smtp logging is enabled, the function log_mail() will be available: using
+it, You can send some logs via mail.</p>
 </div>
 <div class="section">
 <h1><a id="triggers" name="triggers">Triggers</a></h1>
-<p>Let's use triggers:</p>
+<p>We can define some triggers to be fired during a DbMother instance action.
+To explain how to use triggers, an example is maybe the faster way:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from mother.mothers import *
 &gt;&gt;&gt; from mother.speaker import *
@@ -1248,6 +1376,9 @@ To use a custom logging level, use log_log():</p>
 &gt;&gt;&gt;
 &gt;&gt;&gt; sun= TriggeredStar({'star_name': 'sun'}, MO_SAVE)
 </pre>
+<p>Remember, when using triggers, to add them before to call the
+DbMother.__init__() methods, otherwise they will be ingored when an instance
+will be initialized with a flag different from MO_NOA.</p>
 </div>
 <div class="section">
 <h1><a id="custom-complex-filters" name="custom-complex-filters">Custom Complex Filters</a></h1>
@@ -1283,6 +1414,10 @@ injection.</p>
 &gt;&gt;&gt; filter.add_filter({'age': 1})
 &gt;&gt;&gt; filter.add_filter('dkafsak %(az)s', store= {'az': 5})
 &gt;&gt;&gt; MotherBox(ClsPlanets, filter= filter, flag= MO_LOAD)
+</pre>
+<p>If You want to force a filter on a specific table, use the following argument:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; filter= MoFilter({'my': 'filter'}, table= 'my_table)
 </pre>
 </div>
 <div class="section">

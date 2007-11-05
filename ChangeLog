@@ -1,6 +1,7 @@
 
 VERSION = 0.6.3
 
+	* manual corrections and new index layout
 	* new MotherManager family functions: actionMany...
 	* new MotherManger method: insertManyChildren
 	* new class MotherMany
