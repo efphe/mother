@@ -672,7 +672,7 @@ the methods created by initChildManager(), explained in the previous chapter.
 Anyway, these methods should be used often for two reasons:
 
 - they are very fast
-- they are enough
+- they are enough for many situations
 
 As for initChildManager(), We can use the method initManyManager() to create
 our methods automatically:
