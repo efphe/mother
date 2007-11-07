@@ -65,6 +65,13 @@ class MotherSqlite:
         except Exception, ss:
             Speaker.log_raise('%s', ERR_COL(ss), QueryError)
 
+    def _executemany(self, q, l):
+
+        try:
+            self.cursor.executemany(q, l)
+        except Exception, ss:
+            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
+
     def _gquery(self, q, d):
 
         self._execute(q, d)
@@ -75,19 +82,12 @@ class MotherSqlite:
         self._execute(q, d)
 
     def _mqquery(self, q, l):
-        try:
-            self.cursor.executemany(q, l)
-        except Exception, ss:
-            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
 
-        return None
+        self._executemany(q, l)
 
     def _mgquery(self, q, l):
-        try:
-            self.cursor.executemany(q, l)
-        except Exception, ss:
-            Speaker.log_raise('%s', ERR_COL(ss), QueryError)
 
+        self._executemany(q, l)
         return self._extract()
 
     def get_tables(self):
