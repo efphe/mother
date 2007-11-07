@@ -2282,7 +2282,7 @@ class MotherFusion(_DbMap):
         what= self._selectWhat(self.fields)
         distinct= self.distinct and 'DISTINCT' or ''
         side= self.side
-        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s $(side)s' % locals()
+        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s %(side)s' % locals()
 
         self._store= self.mr_query(qry, ftr)
 
@@ -2368,15 +2368,21 @@ class MotherMany(_DbMap):
         f= self._flag_actions(self, flag)
         f()
 
+    def __len__(self):
+
+        return len(self._records)
+
     def addRows(self, rows):
 
         try:
-            self.store.extend(rows)
+            self._store.extend(rows)
 
         except:
             if not isinstance(rows, dict):
                 self.log_int_raise("Invalid rows type: %s", ERR_COL(rows))
             self.store.append(rows)
+
+        self._records= self.store
 
     def insert(self):
 
@@ -2396,6 +2402,8 @@ class MotherMany(_DbMap):
         self.log_info("MotherMany: Inserting on %s %s row(s) (template= `%s`)...", 
                         table, INF_COL(len(s)), INF_COL(qry))
         self.mq_query(qry, s)
+
+        self._records= self.store
 
 
     def delete(self):
@@ -2417,6 +2425,7 @@ class MotherMany(_DbMap):
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
 
         self.mq_query(qry, s)
+        self._records= self.store
 
     def update(self):
 
@@ -2445,6 +2454,7 @@ class MotherMany(_DbMap):
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
 
         self.mq_query(qry, s)
+        self._records= self.store
 
     def load(self):
 
