@@ -1,6 +1,8 @@
 
 VERSION = 0.6.3
 
+	* rewrited some methods on db interfaces
+	* dropped the DictCursor psycopg2 feature
 	* manual corrections and new index layout
 	* new MotherManager family functions: actionMany...
 	* new MotherManger method: insertManyChildren

@@ -44,11 +44,11 @@ class MotherSqlite:
 
     def _extract(self):
         c= self.cursor
+        rec_descr= c.getdescription()
 
         res= []
         for rec in c:
             drec= {}
-            rec_descr= c.getdescription()
             for n, field in enumerate(rec):
                 drec[rec_descr[n][0]]= field
             res.append(drec)
