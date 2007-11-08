@@ -184,12 +184,18 @@ class DbOne(Speaker):
             '_mgquery'
             ]
 
-    # Iface methods
-    # _connect()  
-    # _rollback()
-    # _commit()
-    # _get_query(qry, filter)
-    # _quiet_query(qry, filter)
+    _exported_methods= [
+            'lastrowid',
+            'oc_query',
+            'ov_query',
+            'mr_query',
+            'or_query',
+            'mq_query',
+            'mg_query',
+            'beginTrans',
+            'commit',
+            'rollback',
+            ]
 
     @staticmethod
     def _import_iface():
@@ -198,6 +204,23 @@ class DbOne(Speaker):
             setattr(DbOne, attr, getattr(iface, attr))
         if hasattr(iface, '_mogrify'):
             DbOne.mogrify= staticmethod(iface._mogrify)
+
+    @staticmethod
+    def export_iface(where):
+
+        if not DbOne._db_initialized:
+            err= ERR_COL('!!!No Session Available!!!')
+            self.log_int_raise("%s You are using the Db Pool, you "
+                               "have disabled the persistent connection, "
+                               "but no session was used to initialize this "
+                               "Mother class (table= %s)", err, ERR_COL(tbl))
+
+        for attr in DbOne._exported_methods:
+            setattr(where, attr, getattr(DbOne, attr))
+
+        mog= getattr(DbOne, 'mogrify', None)
+        if mog:
+            setattr(where, 'mogrify', mog)
 
     @staticmethod
     def beginTrans():
@@ -397,7 +420,7 @@ class DbFly(Speaker):
             '_close'
             ]
 
-    exported_methods= [
+    _exported_methods= [
             'lastrowid',
             'oc_query',
             'ov_query',
@@ -428,9 +451,9 @@ class DbFly(Speaker):
         if hasattr(self._iface_instance, '_mogrify'):
             self.mogrify= self._iface_instance._mogrify
 
-    def _export_iface(self, where):
+    def export_iface(self, where):
 
-        for attr in self.exported_methods:
+        for attr in self._exported_methods:
             setattr(where, attr, getattr(self, attr))
 
         mog= getattr(self, 'mogrify', None)

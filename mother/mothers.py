@@ -20,6 +20,7 @@ Where the main Mother Classes and methods are defined:
             
 from commons import ERR_COL, INF_COL, OKI_COL
 from abdbda import DbOne, MoFilter
+from speaker import Speaker
 
 #
 ##
@@ -78,7 +79,6 @@ def init_mother(cfile, fnaming= None):
     """
 
     if not hasattr(DbMother, '_mo_initialized'):
-        from speaker import Speaker
         Speaker.log_warning("Mother already initialized.")
         return
 
@@ -121,7 +121,7 @@ def init_mother(cfile, fnaming= None):
 
     # Design Mother
     if fnaming:
-        from speaker import Speaker, RED
+        from speaker import RED
         Speaker.log_insane("Testing fnaming function...")
         try:
             res_str= fnaming('foo')
@@ -195,7 +195,7 @@ def MotherPoolStratus():
     Connections Employed    ~ %s 
     """ % MotherPoolStatus()
 
-class _DbMap(DbOne):
+class _DbMap(Speaker):
     _map_file=       None
     _map_fields=     None
     _map_pkeys=      None
@@ -215,7 +215,6 @@ class _DbMap(DbOne):
 
     @staticmethod
     def _load_map(map_file):
-        from speaker import Speaker
         from os import path
         if not path.isfile(map_file):
             Speaker.log_int_raise("Mother Map %s does not exist.", ERR_COL(map_file)) 
@@ -268,7 +267,6 @@ class _DbMap(DbOne):
         except:
             pass
 
-        from speaker import Speaker
         Speaker.log_insane(\
             "Warning: direct relation for tables %s "
             "is not defined: searching subset...",
@@ -528,19 +526,12 @@ class DbMother(_DbMap):
         tbl= self.table_name
 
         # Session() ?
-        if session:
-            session._export_iface(self)
-
-        elif not DbOne._db_initialized:
-            err= ERR_COL('!!!No Session Available!!!')
-            self.log_int_raise("%s You are using the Db Pool, you "
-                               "have disabled the persistent connection, "
-                               "but no session was used to initialize this "
-                               "Mother class (table= %s)", err, ERR_COL(tbl))
+        iface= session or DbOne
+        iface.export_iface(self)
         self.session= session
 
-        if hasattr(self._iface_instance, '_mogrify'):
-            self.mogrify= self._iface_instance._mogrify
+        #if hasattr(self._iface_instance, '_mogrify'):
+            #self.mogrify= self._iface_instance._mogrify
 
         # self.fields is a list with TABLE fields.
         # self.pkeys is a list with primary keys for the TABLE.
@@ -1926,7 +1917,7 @@ class MotherBox(DbOne):
                     distinct= False, notriggers= False):
 
         if session:
-            session._export_iface(self)
+            session.export_iface(self)
 
         self.session= session
         self.builder= builder
@@ -2148,7 +2139,7 @@ class MotherFusion(_DbMap):
 
         builderA, builderB, fields= self.swap(builderA, builderB, fields)
 
-        if session: session._export_iface(self)
+        if session: session.export_iface(self)
         self.session= session
 
         if filter:
@@ -2360,7 +2351,7 @@ class MotherMany(_DbMap):
 
         self.session= session
         if session:
-            session._export_iface(self)
+            session.export_iface(self)
 
         self.store= store
         self._act_fields= fields
