@@ -210,7 +210,7 @@ class DbOne(Speaker):
 
         if not DbOne._db_initialized:
             err= ERR_COL('!!!No Session Available!!!')
-            self.log_int_raise("%s You are using the Db Pool, you "
+            Speaker.log_int_raise("%s You are using the Db Pool, you "
                                "have disabled the persistent connection, "
                                "but no session was used to initialize this "
                                "Mother class (table= %s)", err, ERR_COL(tbl))
