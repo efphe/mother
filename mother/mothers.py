@@ -1916,10 +1916,10 @@ class MotherBox(DbOne):
                     fields= None, order= None, session= None, 
                     distinct= False, notriggers= False):
 
-        if session:
-            session.export_iface(self)
-
+        iface= session or DbOne
+        iface.export_iface(self)
         self.session= session
+
         self.builder= builder
         self.momma= builder(session= session)
         self.notriggers= notriggers
@@ -2139,7 +2139,8 @@ class MotherFusion(_DbMap):
 
         builderA, builderB, fields= self.swap(builderA, builderB, fields)
 
-        if session: session.export_iface(self)
+        iface= session or DbOne
+        iface.export_iface(self)
         self.session= session
 
         if filter:
@@ -2349,9 +2350,9 @@ class MotherMany(_DbMap):
             self.builder= builder
             self.table_name= builder.table_name
 
+        iface= session or DbOne
+        iface.export_iface(self)
         self.session= session
-        if session:
-            session.export_iface(self)
 
         if isinstance(store, dict):
             store= [store]
