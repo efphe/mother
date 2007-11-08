@@ -2353,6 +2353,9 @@ class MotherMany(_DbMap):
         if session:
             session.export_iface(self)
 
+        if isinstance(store, dict):
+            store= [store]
+
         self.store= store
         self._act_fields= fields
 
