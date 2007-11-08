@@ -1,6 +1,9 @@
 
 VERSION = 0.6.3
 
+	* _DbMap inherits speaker methods directly (see previous change)
+	* DbFly and DbOne are now handled in the same way
+	* otpimization: DbMother classes are more light
 	* sqlite bug: crash on empty results for get type queries
 	* sqlite.py postgres.py: ifaces aligned
 	* rewrited some methods on db interfaces
