@@ -716,7 +716,7 @@ def usage():
       -e (--exec-script=script)     Execute the SQL script `script'.
 
       -c (--cfile=file)             Use the Mother configuration file `file'.
-      -s (--dbstructure)            Create the Mother database map
+      -s (--dbstructure)            Create the Mother database map.
       -P (--create-pfile=file)      Create a new configuration Mother file with default 
                                     values. Useful to create a new Mother environment 
                                     for Postgresql. 

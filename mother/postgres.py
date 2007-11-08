@@ -54,7 +54,7 @@ class MotherPostgres:
     def _close(self):
         self.connection.close()
 
-    def _extract(self, res):
+    def _extract(self):
 
         c= self.cursor
         cres= c.fetchall()
@@ -64,7 +64,7 @@ class MotherPostgres:
         for rec in cres:
             drec= {}
             for n, field in enumerate(rec):
-                drec[rec_descr[n][0]]= field
+                drec[desc[n][0]]= field
             res.append(drec)
 
         return res

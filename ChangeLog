@@ -1,10 +1,11 @@
 
 VERSION = 0.6.3
 
+	* sqlite bug: crash on empty results for get type queries
 	* sqlite.py postgres.py: ifaces aligned
 	* rewrited some methods on db interfaces
 	* dropped the DictCursor psycopg2 feature
-	* manual corrections and new index layout
+	* manual: corrections and new index layout
 	* new MotherManager family functions: actionMany...
 	* new MotherManger method: insertManyChildren
 	* new class MotherMany
