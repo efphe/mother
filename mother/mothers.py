@@ -2366,7 +2366,7 @@ class MotherMany(_DbMap):
     def addRows(self, rows):
 
         try:
-            self._store.extend(rows)
+            self.store.extend(rows)
 
         except:
             if not isinstance(rows, dict):
