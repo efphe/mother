@@ -587,7 +587,7 @@ class DbFly(Speaker):
     def ov_query(self, s, filter= None):
         """ One Value Query: returns a unique value."""
         
-        res= DbOne.or_query(s, filter)
+        res= self.or_query(s, filter)
 
         res= res.values()
         if len(res)<> 1:
