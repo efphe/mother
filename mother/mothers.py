@@ -89,7 +89,7 @@ def init_mother(cfile, fnaming= None):
     names_dict.update(abdbda.__dict__)
     execfile(cfile, names_dict, d)
 
-    from abdbda import DB_ENGINE_PGRES
+    DB_ENGINE_PGRES= abdbda.DB_ENGINE_PGRES
     db_engine= d.get('DB_ENGINE', DB_ENGINE_PGRES)
     if db_engine == DB_ENGINE_PGRES:
         DbMother._sqlInsert= DbMother._sqlPostgresInsert
@@ -99,6 +99,7 @@ def init_mother(cfile, fnaming= None):
         if not use_oids:
             DbMother._mo_pg_oids= False
             abdbda.DbFly.exported_methods.remove('lastrowid')
+            abdbda.DbOne.exported_methods.remove('lastrowid')
         else:
             DbMother._mo_pg_oids= True
 
@@ -121,12 +122,12 @@ def init_mother(cfile, fnaming= None):
 
     # Design Mother
     if fnaming:
-        from speaker import RED
         Speaker.log_insane("Testing fnaming function...")
         try:
             res_str= fnaming('foo')
             assert isinstance(res_str, str)
         except:
+            from speaker import RED
             Speaker.log_warning(
                     "Testing %s. Default fnaming function "
                     "will be used.", RED('Failed!'))
@@ -1634,28 +1635,28 @@ class MotherManager:
                 }
 
         for c in children:
-            ctbl= c.table_name
-            for flag, name in map_names.iteritems():
+          ctbl= c.table_name
+          for flag, name in map_names.iteritems():
 
-                attr_name= camel(ctbl, name)
-                if not hasattr(self, attr_name): 
+            attr_name= camel(ctbl, name)
+            if not hasattr(self, attr_name): 
 
-                    attr= handle_children(c, flag)
-                    if flag in [MO_UP, MO_LOAD]:
-                        attr.__doc__=\
-                                " %s(dlist [, fields= None) --> MotherMany instance\n\n"        \
-                                "handle many children. dlist is a list of dicts, "              \
-                                "fields is a list of strings.\n"                                \
-                                "Don't specify the foreign key: it's assigned automatically.\n" \
-                                    % attr_name
-                    else:
-                        attr.__doc__=\
-                                " %s(dlist) --> MotherMany instance\n\n"                        \
-                                "handle many children. dlist is a list of dicts.\n"             \
-                                "Don't specify the foreign key: it's assigned automatically.\n" \
-                                    % attr_name
+              attr= handle_children(c, flag)
+              if flag in [MO_UP, MO_LOAD]:
+                attr.__doc__=\
+                  " %s(dlist [, fields= None) --> MotherMany instance\n\n"        \
+                  "handle many children. dlist is a list of dicts, "              \
+                  "fields is a list of strings.\n"                                \
+                  "Don't specify the foreign key: it's assigned automatically.\n" \
+                      % attr_name
+              else:
+                attr.__doc__=\
+                  " %s(dlist) --> MotherMany instance\n\n"                        \
+                  "handle many children. dlist is a list of dicts.\n"             \
+                  "Don't specify the foreign key: it's assigned automatically.\n" \
+                      % attr_name
 
-                    setattr(self, attr_name, attr)
+              setattr(self, attr_name, attr)
 
     def initChildManager(self, children):
         """initChildManager(self,children) --> None

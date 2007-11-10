@@ -884,6 +884,9 @@ def init_abdbda(conf, forced= {}):
         Speaker.log_warning('AbDbDa already initialized.')
         return
 
+    # Take trace of possible errors: 
+    # When Speaker will be initialized, it 
+    # will be possible to log them
     err= None
     if not isinstance(conf, dict):
         import speaker

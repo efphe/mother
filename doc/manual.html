@@ -729,8 +729,9 @@ injection controls and a fast way to execute actions.</p>
 ...            session= None, fields= None)
 </pre>
 <p>The builder is a DbMother class or a table name. The store is a list of dicts,
-each dict representing a record. The flag, as usual, specifies an action. The
-argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
+each dict representing a record: also a simple dict is accepted. The flag, as
+usual, specifies an action. The argument fields is useful when using
+flag= MO_LOAD or flag= MO_UP.
 The session is used when dealing with the connection Pool.</p>
 <p>To insert a set of records (using as builder a Mother class):</p>
 <pre class="literal-block">
@@ -748,7 +749,8 @@ builder a table name):</p>
 &gt;&gt;&gt; momma.addRows(other_record)
 &gt;&gt;&gt; momma.insert()
 </pre>
-<p>As You can see, addRows() accepts a list of dicts or a dict.</p>
+<p>As You can see, addRows() accepts a list of dicts or a dict, as for the
+argument 'store' used initializing a MotherMany instance.</p>
 <p>Deleting records is exactly the same (the manual method is MotherMany.delete()).</p>
 <p>To select records, It's possible to use the argument fields, which is a list
 of strings: only these fields will be loaded from the database. If the
@@ -787,6 +789,11 @@ getRecords(flag_obj= True) returns a list of MotherFly instances.</p>
 &gt;&gt;&gt; mommas= momma.getRecords(flag_obj= True)
 </pre>
 </blockquote>
+<p>Note that for each action, MO_LOAD excepted, the dicts returned by the
+previous calls are exactly the dictionnaries used to initialize the MotherMany
+class and added with addRows().
+For the MO_LOAD action, instead, the results are the records fetched from the
+database.</p>
 </div>
 <div class="section">
 <h1><a id="handling-children" name="handling-children">Handling Children</a></h1>
@@ -886,7 +893,7 @@ the methods created by initChildManager(), explained in the previous chapter.</p
 <p>Anyway, these methods should be used often for two reasons:</p>
 <ul class="simple">
 <li>they are very fast</li>
-<li>they are enough</li>
+<li>they are enough for many situations</li>
 </ul>
 <p>As for initChildManager(), We can use the method initManyManager() to create
 our methods automatically:</p>
@@ -1155,27 +1162,125 @@ LEFT join:</p>
 <div class="section">
 <h1><a id="performing-custom-queries" name="performing-custom-queries">Performing Custom queries</a></h1>
 <p>SQL is a rich language: we need to perform some custom queries.
-To do that, we need to use the Mother database adapter.
-Once more we assumes that the persistent connection is used (sessions are explained
-after).</p>
+Custom queris could be executed calling a set of functions. These functions
+are exported almost everywhere. For example, each Mother instance will contain
+these methods.</p>
+<p>These functions have origin on the persistent connection (DbOne) and on each
+session from the connection pool. Each session and the persistent connection
+implement them.</p>
+<p>The following methods are available:</p>
+<blockquote>
+<ul class="simple">
+<li>oc_query(str, dict)</li>
+<li>ov_query(str, dict)</li>
+<li>or_query(str, dict)</li>
+<li>mr_query(str, dict)</li>
+<li>mg_query(str, list)</li>
+<li>mq_query(str, list)</li>
+<li>beginTrans()</li>
+<li>commmit()</li>
+<li>rollback()</li>
+</ul>
+</blockquote>
+<p>These methods, if used correctly, are SQL injection safe.</p>
+<p>Before to explain what these methods do, let's see some example to understand
+the usage:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from mother.mothers import *
 &gt;&gt;&gt; init_mother('/my/conf/file')
 &gt;&gt;&gt; from mother.abdbda import DbOne
-&gt;&gt;&gt; # one commit query, no return
-&gt;&gt;&gt; DbOne.oc_query('delete from stars')
-&gt;&gt;&gt; # one value query: a value is returned
-&gt;&gt;&gt; DbOne.ov_query('select star_name where star_id = 1)
-&gt;&gt;&gt; # one record query: a unique dict is returned
-&gt;&gt;&gt; one_record= DbOne.or_query('select * from starts where star_id = 1')
-&gt;&gt;&gt; # multiple records query: a list of dict is returned
-&gt;&gt;&gt; record_list= DbOne.mr_query('select * from stars')
+&gt;&gt;&gt; # All the following queris are in the same transaction:
+&gt;&gt;&gt; DbOne.beginTrans()
+&gt;&gt;&gt; sun= ClsStars(sun_dict, MO_SAVE)
+&gt;&gt;&gt; earth= sun.insertPlanets(earth_dict)
+&gt;&gt;&gt; earth.set_field('planet_name', 'Earth')
+&gt;&gt;&gt; earth.update()
+&gt;&gt;&gt; sun.oc_query('DELETE * FROM stars')
+&gt;&gt;&gt; DbOne.oc_query('DELETE * FROM planets')
+&gt;&gt;&gt; sun.commit()
 </pre>
-<p>Note that the same functions are exported to each Mother instace, so there is no need
-to import abdbda:</p>
+<p>As it's possible to see, when using the persistent connection, the instance or
+the class from where we call these methods doesn't matter: each db statement
+is executed inside the unique persistent connection, shared by all instances.</p>
+<p>When using session, the behaviour is similar (note that sessions are always in
+a transaction state):</p>
 <pre class="literal-block">
-&gt;&gt;&gt; sun= ClsStars()
-&gt;&gt;&gt; one_record= sun.or_query('select * from lifeforms where star_id = 1')
+&gt;&gt;&gt; from mother.mothers import *
+&gt;&gt;&gt; init_mother('/my/conf/file')
+&gt;&gt;&gt; session= MotherSession('session_example')
+&gt;&gt;&gt; # All the following queris are in the same session-transaction:
+&gt;&gt;&gt; sun= ClsStars(sun_dict, MO_SAVE, session= session)
+&gt;&gt;&gt; sun.oc_query('DELETE * FROM stars')
+&gt;&gt;&gt; earth= sun.insertPlanets(earth_dict)
+&gt;&gt;&gt; earth.set_field('planet_name', 'Earth')
+&gt;&gt;&gt; earth.update()
+&gt;&gt;&gt; session.oc_query('DELETE * FROM planets')
+&gt;&gt;&gt; session.endSession()
+</pre>
+<p>The methods to handle transactions are self explanatory.
+The methods <em>oc_query</em>, <em>ov_query</em>, <em>or_query</em>, <em>mr_query</em> have the same
+syntax:</p>
+<pre class="literal-block">
+function(str, dict)
+</pre>
+<p>where str is something like:</p>
+<pre class="literal-block">
+When using Postgres:
+&quot;INSERT INTO stars (star_name) VALUES (%(star_name)s)&quot;
+When using SQLite:
+&quot;INSERT INTO stars (star_name) VALUES (:star_name)&quot;
+</pre>
+<p>and dict is a dictionnary that contains the promised values:</p>
+<pre class="literal-block">
+sun_dict= {'star_name': 'sun'}
+</pre>
+<p>These methods do:</p>
+<pre class="literal-block">
+- oc_query -&gt; One Commit Query
+   This method does not return any value, so it has to be used to
+   perform db actions with no return: for example DELETE FROM...
+
+- ov_query -&gt; One Value Query
+   This method have to return a uniqe value. For example the query
+
+     SELECT COUNT(1) from stars
+
+   will return an integer.
+
+   If a different number of results will be returned, an exception
+   will be raised.
+
+- or_query -&gt; One Record Query
+   This method has to return a unique row: the return values is a dict,
+   containing the values for each field. For example:
+
+     SELECT star_name FROM stars WHERE stars.id = 1
+
+   If a different number of rows will be returned, an exception will be
+   raised.
+
+- mr_query -&gt; Multiple Record Query
+   This methods returns a list of dicts, each dict for each fetched row.
+   For example:
+
+     SELECT * from planets
+</pre>
+<p>The other methods, <em>mg_query</em> and <em>mq_query</em>, are used to execute massive
+queries and behaves like the executemany() db drivers functions.
+Instead of a dict as the second argument, they take a list of dicts.
+These methods do:</p>
+<pre class="literal-block">
+- mq_query -&gt; Multiple Quiet Query
+   &gt;&gt;&gt; li= [{'star_name': 'sun'}, {'star_name': 'alpha'}]
+   &gt;&gt;&gt; mq_query('DELETE FROM stars WHERE star_name = %(star_name)s', li)
+
+   This methods returns none.
+
+- mg_query -&gt; Multiple Get Query
+   &gt;&gt;&gt; li= [{'star_name': 'sun'}, {'star_name': 'alpha'}]
+   &gt;&gt;&gt; mq_query('SELECT * FROM stars WHERE star_name = %(star_name)s', li)
+
+   This method returns a list of dicts
 </pre>
 </div>
 <div class="section">

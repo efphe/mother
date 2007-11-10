@@ -19,7 +19,7 @@
 # an absolute path.
 #
 # Remember to launch mothermapper to create the
-# Map file before to use Mother for this 
+# Map file before to using Mother for this 
 # environment.
 ##
 #
@@ -64,11 +64,8 @@ MOTHER_MAP= '/my/mother/map'
 # If you disable the persistent connection, you *have* to
 # work always inside sessions.
 #
-# The goal is to prevent queries confusion and transactions
-# bugs.
-#
-# Note that the following variable is considered True if 
-# DB_POOL is False.
+# Note that the following variable is automatically setted 
+# to True when the DB_POOL is disabled.
 ##
 #
 
@@ -215,8 +212,8 @@ MOTHER_MAP= '/my/mother/map'
 
 #
 ## Logging with colors?
-# Note: on win32 systems, colors are disabled 
-# also if the following variable is True.
+# Note: on win32 systems, colors are always 
+# disabled. 
 ##
 #
 
@@ -298,7 +295,7 @@ MOTHER_MAP= '/my/mother/map'
 ## 
 # Enable SMTP logging?
 # If you enable SMTP logging, use Speaker.log_mail()
-# to send log via mail.
+# to send log strings via mail.
 ##
 #
 
@@ -319,4 +316,20 @@ MOTHER_MAP= '/my/mother/map'
   ### Database Settings ###
   ##                     ##
   #                       #
+
+
+  #               #
+  ##             ##
+  ### DB ENGINE ###
+  ##             ##
+  #               #
+
+#
+##
+# Mother supports postgres and sqlite db:
+#
+#   - DB_ENGINE_PGRES
+#   - DB_ENGINE_SQLITE
+##
+#
 

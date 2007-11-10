@@ -44,9 +44,12 @@ class MotherSqlite:
 
     def _extract(self):
         c= self.cursor
+        # cannot understand why, if no result is fetched,
+        # description is not available....
         try:
             desc= c.getdescription()
         except apsw.ExecutionCompleteError:
+            # forcing to return no results
             return []
 
         res= []

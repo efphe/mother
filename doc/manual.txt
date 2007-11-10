@@ -496,8 +496,9 @@ The initialization of a MotherMany instance is easy:
     ...            session= None, fields= None)
 
 The builder is a DbMother class or a table name. The store is a list of dicts,
-each dict representing a record. The flag, as usual, specifies an action. The
-argument fields is useful when using flag= MO_LOAD or flag= MO_UP.
+each dict representing a record: also a simple dict is accepted. The flag, as 
+usual, specifies an action. The argument fields is useful when using 
+flag= MO_LOAD or flag= MO_UP. 
 The session is used when dealing with the connection Pool.
 
 To insert a set of records (using as builder a Mother class):
@@ -518,7 +519,8 @@ builder a table name):
     >>> momma.addRows(other_record)
     >>> momma.insert()
 
-As You can see, addRows() accepts a list of dicts or a dict.
+As You can see, addRows() accepts a list of dicts or a dict, as for the
+argument 'store' used initializing a MotherMany instance.
 
 Deleting records is exactly the same (the manual method is MotherMany.delete()).
 
@@ -556,6 +558,12 @@ getRecords(flag_obj= True) returns a list of MotherFly instances.
 
     >>> dicts= momma.getRecords()
     >>> mommas= momma.getRecords(flag_obj= True)
+
+Note that for each action, MO_LOAD excepted, the dicts returned by the
+previous calls are exactly the dictionnaries used to initialize the MotherMany
+class and added with addRows().
+For the MO_LOAD action, instead, the results are the records fetched from the
+database.
 
 
 Handling Children
@@ -1000,30 +1008,134 @@ Performing Custom queries
 -------------------------
 
 SQL is a rich language: we need to perform some custom queries.
-To do that, we need to use the Mother database adapter. 
-Once more we assumes that the persistent connection is used (sessions are explained
-after).
+Custom queris could be executed calling a set of functions. These functions
+are exported almost everywhere. For example, each Mother instance will contain
+these methods. 
+
+These functions have origin on the persistent connection (DbOne) and on each 
+session from the connection pool. Each session and the persistent connection
+implement them.
+
+The following methods are available:
+
+ - oc_query(str, dict)
+ - ov_query(str, dict)
+ - or_query(str, dict)
+ - mr_query(str, dict)
+ - mg_query(str, list)
+ - mq_query(str, list)
+ - beginTrans()
+ - commmit()
+ - rollback()
+
+These methods, if used correctly, are SQL injection safe.
+
+Before to explain what these methods do, let's see some example to understand
+the usage:
 ::
 
     >>> from mother.mothers import *
     >>> init_mother('/my/conf/file')
     >>> from mother.abdbda import DbOne
-    >>> # one commit query, no return
-    >>> DbOne.oc_query('delete from stars')
-    >>> # one value query: a value is returned
-    >>> DbOne.ov_query('select star_name where star_id = 1)
-    >>> # one record query: a unique dict is returned
-    >>> one_record= DbOne.or_query('select * from starts where star_id = 1')
-    >>> # multiple records query: a list of dict is returned
-    >>> record_list= DbOne.mr_query('select * from stars')
+    >>> # All the following queris are in the same transaction:
+    >>> DbOne.beginTrans()
+    >>> sun= ClsStars(sun_dict, MO_SAVE)
+    >>> earth= sun.insertPlanets(earth_dict)
+    >>> earth.set_field('planet_name', 'Earth')
+    >>> earth.update()
+    >>> sun.oc_query('DELETE * FROM stars')
+    >>> DbOne.oc_query('DELETE * FROM planets')
+    >>> sun.commit()
 
-Note that the same functions are exported to each Mother instace, so there is no need
-to import abdbda:
+As it's possible to see, when using the persistent connection, the instance or
+the class from where we call these methods doesn't matter: each db statement
+is executed inside the unique persistent connection, shared by all instances.
+
+When using session, the behaviour is similar (note that sessions are always in
+a transaction state):
 ::
 
-    >>> sun= ClsStars()
-    >>> one_record= sun.or_query('select * from lifeforms where star_id = 1')
+    >>> from mother.mothers import *
+    >>> init_mother('/my/conf/file')
+    >>> session= MotherSession('session_example')
+    >>> # All the following queris are in the same session-transaction:
+    >>> sun= ClsStars(sun_dict, MO_SAVE, session= session)
+    >>> sun.oc_query('DELETE * FROM stars')
+    >>> earth= sun.insertPlanets(earth_dict)
+    >>> earth.set_field('planet_name', 'Earth')
+    >>> earth.update()
+    >>> session.oc_query('DELETE * FROM planets')
+    >>> session.endSession()
 
+The methods to handle transactions are self explanatory.
+The methods *oc_query*, *ov_query*, *or_query*, *mr_query* have the same
+syntax:
+::
+
+   function(str, dict)
+
+where str is something like: 
+::
+
+    When using Postgres:
+    "INSERT INTO stars (star_name) VALUES (%(star_name)s)"
+    When using SQLite:
+    "INSERT INTO stars (star_name) VALUES (:star_name)"
+
+and dict is a dictionnary that contains the promised values:
+::
+
+    sun_dict= {'star_name': 'sun'}
+
+These methods do:
+::
+
+ - oc_query -> One Commit Query
+    This method does not return any value, so it has to be used to
+    perform db actions with no return: for example DELETE FROM...
+
+ - ov_query -> One Value Query
+    This method have to return a uniqe value. For example the query
+    
+      SELECT COUNT(1) from stars
+
+    will return an integer.
+
+    If a different number of results will be returned, an exception
+    will be raised.
+
+ - or_query -> One Record Query
+    This method has to return a unique row: the return values is a dict,
+    containing the values for each field. For example:
+      
+      SELECT star_name, star_age FROM stars WHERE stars.id = 1
+
+    If a different number of rows will be returned, an exception will be
+    raised.
+
+ - mr_query -> Multiple Record Query
+    This methods returns a list of dicts, each dict for each fetched row.
+    For example:
+
+      SELECT * from planets
+
+The other methods, *mg_query* and *mq_query*, are used to execute massive
+queries and behaves like the executemany() db drivers functions.
+Instead of a dict as the second argument, they take a list of dicts.
+These methods do:
+::
+
+ - mq_query -> Multiple Quiet Query
+    >>> li= [{'star_name': 'sun'}, {'star_name': 'alpha'}]
+    >>> mq_query('DELETE FROM stars WHERE star_name = %(star_name)s', li)
+
+    Returns none.
+
+ - mg_query -> Multiple Get Query
+    >>> li= [{'star_name': 'sun'}, {'star_name': 'alpha'}]
+    >>> mq_query('SELECT * FROM stars WHERE star_name = %(star_name)s', li)
+
+    Returns a list of dicts
 
 
 Transactions
@@ -1122,6 +1234,9 @@ puts the connections used just now back to the pool:
 ::
 
     >>> session.endSession()
+
+while the commit() call commits all pending queries to the database, but
+session is not closed and it's possible to continue to use it.
 
 To rollback the queries inside a session we use rollback():
 ::
