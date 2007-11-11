@@ -20,6 +20,18 @@ See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
 customize this style sheet.
 */
 
+body {
+  padding: 5px;
+  margin: 10px;
+  border: 2px;
+  width: 80%
+  background-image: none;
+  background-color: #f4e7c5; /* pale dirty yellow */
+  /*font-family: helvetica, arial, sans-serif;
+  font-size: 14px;*/
+  color: black;
+}
+
 /* used to remove borders from tables and images */
 .borderless, table.borderless td, table.borderless th {
   border: 0 }
@@ -224,7 +236,8 @@ pre.address {
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
-  background-color: #eeeeee }
+  border: solid thin #aaaaaa;
+  background-color: #bdc1c1 }
 
 span.classifier {
   font-family: sans-serif ;
@@ -292,8 +305,6 @@ ul.auto-toc {
 <body>
 <div class="document" id="mother-manual">
 <h1 class="title">Mother Manual</h1>
-<p>(DocUtils Powered)</p>
-<p>Manual for Mother versions &gt;= 0.6.0</p>
 <div class="section">
 <h1><a id="introduction" name="introduction">Introduction</a></h1>
 <p>This manual is very far to be complete and with a fine language. My english is
@@ -306,7 +317,7 @@ ideas and your patches.</p>
 </div>
 <div class="section">
 <h1><a id="index" name="index">Index:</a></h1>
-<p><em>Configuring Mother:</em></p>
+<p><strong>Configuring Mother:</strong></p>
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#install-mother">Install Mother</a></li>
@@ -314,7 +325,7 @@ ideas and your patches.</p>
 <li><a class="reference" href="#creating-a-mother-environment">Creating a Mother Environment</a>: configuring Mother for your Db</li>
 </ul>
 </blockquote>
-<p><em>The basic principles:</em></p>
+<p><strong>The basic principles:</strong></p>
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#simple-database-actions">Simple Database Actions</a>: handling a record on a table</li>
@@ -322,7 +333,7 @@ ideas and your patches.</p>
 <li><a class="reference" href="#handling-many-records">Handling Many Records</a>: faster way to handle multiple records on a table</li>
 </ul>
 </blockquote>
-<p><em>The true Mother features:</em></p>
+<p><strong>The true Mother features:</strong></p>
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#handling-children">Handling Children</a>: handling a record children</li>
@@ -332,26 +343,28 @@ ideas and your patches.</p>
 <li><a class="reference" href="#the-motherfusion-class">The MotherFusion Class</a>: handling records on different tables</li>
 </ul>
 </blockquote>
-<p><em>The database interface:</em></p>
+<p><strong>The database interface:</strong></p>
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#performing-custom-queries">Performing Custom queries</a>: execute your personal queries</li>
 </ul>
 </blockquote>
-<p><em>Transactions, Connection Pool and Threaded Environments:</em></p>
+<p><strong>Transactions, Connection Pool and Threaded Environments:</strong></p>
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#transactions">Transactions</a>: how to use transactions</li>
 <li><a class="reference" href="#sessions-and-threaded-environments">Sessions and Threaded Environments</a>: isolated working sessions</li>
 </ul>
 </blockquote>
-<p><em>Appendix:</em></p>
+<p><strong>Appendix:</strong></p>
 <blockquote>
 <ul class="simple">
 <li><a class="reference" href="#logging">Logging</a>: handling logs</li>
 <li><a class="reference" href="#triggers">Triggers</a>: define triggers</li>
 <li><a class="reference" href="#custom-complex-filters">Custom Complex Filters</a>: avoid SQL injection</li>
 <li><a class="reference" href="#using-mother-without-class-definition">Using Mother without Class Definition</a>: under the hood</li>
+<li><a class="reference" href="#copyright-and-license">Copyright and License</a></li>
+<li><a class="reference" href="#changelog-history">Changelog history</a></li>
 </ul>
 </blockquote>
 </div>
@@ -408,19 +421,17 @@ moons. Lifeforms is a table that store information about the different forms
 of life present in our universe. Civilizations is a relation between Lifeforms
 and Planets: we will use it to store information like, &quot;humans live on earth&quot;.</p>
 <p>Here's the sql script (shipped with the tarball):</p>
+<div class="important">
+<p class="first admonition-title">Important</p>
+<p>For Postgresql users.
+For Posgtgres version &gt;= 8.1 and &lt; 8.2.3: you need to create
+tables &quot;WITH OIDS&quot;. Remove &quot;WITH OIDS&quot; otherwise.</p>
+<p class="last">Note that Mother is scalable and changing postgres version is
+safe. If you upgrade your postgres to 8.2.3, for example, you
+don't have to create tables WITH OIDS and your work environment
+will be working at all.</p>
+</div>
 <pre class="literal-block">
---
--- --
--- For Posgtgres version &gt;= 8.1 and &lt; 8.2.3: you need to create
--- tables WITH OIDS. Remove `WITH OIDS' otherwise.
---
--- Note that Mother is scalable and changing postgres version is
--- safe. If you upgrade your postgres to 8.2.3, for example, you
--- don't have to create tables WITH OIDS and your work environment
--- will be working at all.
--- --
---
-
 create table stars (
     star_id         serial,
     star_name       text,
@@ -466,6 +477,8 @@ create table civilizations (
     foreign key(planet_id) references planets(planet_id)
 ) WITH OIDS;
 </pre>
+<p>Note that the fields names are completely arbitrary: in particular, there is
+no need to create keys and foreign keys with the same name.</p>
 </div>
 <div class="section">
 <h1><a id="creating-a-mother-environment" name="creating-a-mother-environment">Creating a Mother Environment</a></h1>
@@ -488,38 +501,42 @@ files: DBMother is able to automatically obtain the database structure.</p>
 <p>To create a configuration file with default values (using Postgres as the backend),
 just do:</p>
 <pre class="literal-block">
-$ mothermapper -P /usr/myhome/first/dbmother.conf
+$ mothermapper -P /my/path/dbmother.conf
 </pre>
 <p>otherwise use -S for SQLite:</p>
 <pre class="literal-block">
-$ mothermapper -S /usr/myhome/first/dbmother.conf
+$ mothermapper -S /my/path/dbmother.conf
 </pre>
 <p>At this point you need to edit the newly created map file and set the parameters
-for your particular environment.  Don't worry: the map file is heavy commented
-and most options contain suitable default values.  One value you should pay
+for your particular environment.  Don't worry: the conf file is heavy commented
+and most options contain suitable default values.</p>
+<div class="important">
+<p class="first admonition-title">Important</p>
+<p class="last">One value you should pay
 attention to is &quot;MOTHER_MAP&quot;.  Here you should place a reasonable directory and
-file name value like &quot;/usr/myhome/first/dbmother.map&quot;.</p>
+file name value like &quot;/my/path/dbmother.map&quot;.</p>
+</div>
 <p>When you are done with your edits, test your configuration like so:</p>
 <pre class="literal-block">
-$ mothermapper -c /usr/myhome/first/dbmother.conf -t
+$ mothermapper -c /my/path/dbmother.conf -t
 </pre>
 <p>Now the database needs tables. Altough this is not mandatory, We can use
 &quot;mothermapper&quot; to run a sql script (the sql script example is shipped with
-the tarball, we assume that it was saved on /usr/myhome/first/db1.sql):</p>
+the tarball, we assume that it was saved on /my/path/db1.sql):</p>
 <pre class="literal-block">
-$ mothermapper -c /usr/myhome/first/dbmother.conf -e /usr/myhome/first/db1.sql
+$ mothermapper -c /my/path/dbmother.conf -e /my/path/db1.sql
 </pre>
 <p>Finally we need to create the DBMother map file. The map is created automatically
 by &quot;mothermapper&quot;  (assuming you remembered to set the &quot;MOTHER_MAP&quot; value in the
 DBMother config file) try the following:</p>
 <pre class="literal-block">
-$ mothermapper -c /usr/myhome/first/dbmother.conf -s
+$ mothermapper -c /my/path/dbmother.conf -s
 </pre>
 <p>Done.  If all went well you can do a final test by importing your configuration
 file like so:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from mother.mothers import init_mother
-&gt;&gt;&gt; init_mother('/usr/myhome/first/dbmother.conf')
+&gt;&gt;&gt; init_mother('/my/path/dbmother.conf')
 </pre>
 <p>Success!!</p>
 </div>
@@ -708,8 +725,8 @@ do:</p>
 <div class="section">
 <h1><a id="handling-many-records" name="handling-many-records">Handling Many Records</a></h1>
 <p>From Mother version &gt;= 0.6.3 a new class is available: MotherMany.
-The goal of MotherMany is to speed up massive db actions (insert, select,
-update and delete) and to provide an easy way to perform db actions without
+The goal of MotherMany is to speed up massive db actions
+and to provide an easy way to perform db actions without
 DbMother classes definition.</p>
 <p>Often We don't need complex structures to execute sql statements.
 A Mother class is a structured class: We can extending it, We can use the auto
@@ -763,15 +780,13 @@ argument fields is omitted, all the table fields will be selected:</p>
 </pre>
 <p>When updating records, the argument fields is used to specify which fields
 have to be updated. For example:</p>
-<blockquote>
-<pre class="doctest-block">
+<pre class="literal-block">
 &gt;&gt;&gt; srecords= [{'star_id': 1, 'star_name': 'a'},
 ...            {'star_id': 2, 'star_name': 'b'}]
 &gt;&gt;&gt; MotherMany('stars', srecords, MO_UP, fields= ['star_name'])
 &gt;&gt;&gt; # MotherMany('stars', srecords, MO_NOA, fields= ['star_name'])
 &gt;&gt;&gt; # momma.update()
 </pre>
-</blockquote>
 <p>will perform a set of queries like: &quot;UPDATE stars SET star_name= 'a' WHERE star_id = 1&quot;.
 If the argument fields is omitted, it defaults to all the dictionnary keys
 that are not part of the primary key for the table.
@@ -783,12 +798,10 @@ is True, a list of Mother instances will be returned. In this case, if
 MotherMany were initialized with, as builder, a Mother class, this class will
 be used to initilize the instances. If the builder is a table name, the call
 getRecords(flag_obj= True) returns a list of MotherFly instances.</p>
-<blockquote>
-<pre class="doctest-block">
+<pre class="literal-block">
 &gt;&gt;&gt; dicts= momma.getRecords()
 &gt;&gt;&gt; mommas= momma.getRecords(flag_obj= True)
 </pre>
-</blockquote>
 <p>Note that for each action, MO_LOAD excepted, the dicts returned by the
 previous calls are exactly the dictionnaries used to initialize the MotherMany
 class and added with addRows().
@@ -1254,7 +1267,7 @@ sun_dict= {'star_name': 'sun'}
    This method has to return a unique row: the return values is a dict,
    containing the values for each field. For example:
 
-     SELECT star_name FROM stars WHERE stars.id = 1
+     SELECT star_name, star_age FROM stars WHERE stars.id = 1
 
    If a different number of rows will be returned, an exception will be
    raised.
@@ -1274,13 +1287,13 @@ These methods do:</p>
    &gt;&gt;&gt; li= [{'star_name': 'sun'}, {'star_name': 'alpha'}]
    &gt;&gt;&gt; mq_query('DELETE FROM stars WHERE star_name = %(star_name)s', li)
 
-   This methods returns none.
+   Returns none.
 
 - mg_query -&gt; Multiple Get Query
    &gt;&gt;&gt; li= [{'star_name': 'sun'}, {'star_name': 'alpha'}]
    &gt;&gt;&gt; mq_query('SELECT * FROM stars WHERE star_name = %(star_name)s', li)
 
-   This method returns a list of dicts
+   Returns a list of dicts
 </pre>
 </div>
 <div class="section">
@@ -1365,6 +1378,8 @@ puts the connections used just now back to the pool:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; session.endSession()
 </pre>
+<p>while the commit() call commits all pending queries to the database, but
+session is not closed and it's possible to continue to use it.</p>
 <p>To rollback the queries inside a session we use rollback():</p>
 <pre class="literal-block">
 &gt;&gt;&gt; session= MotherSession('hello_world')
@@ -1544,6 +1559,384 @@ better and faster:</p>
 &gt;&gt;&gt; MotherMany('stars', [{'star_name': 'sun'}], MO_SAVE, MySession)
 </pre>
 </div>
+<div class="section">
+<h1><a id="copyright-and-license" name="copyright-and-license">Copyright and License</a></h1>
+<p>Copyright (c) 2006-2007 Federico Tomassini aka efphe (effetom at gmail dot com)
+All rights reserved.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:</p>
+<blockquote>
+<ul class="simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Neither the name of the University of California, Berkeley nor the
+names of its contributors may be used to endorse or promote products
+derived from this software without specific prior written permission.</li>
+</ul>
+</blockquote>
+<p>THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+</div>
+<div class="section">
+<h1><a id="changelog-history" name="changelog-history">Changelog History</a></h1>
+<p>VERSION = 0.6.3</p>
+<blockquote>
+<ul class="simple">
+<li>Manual: introduces the new sections: copyright and changelog</li>
+<li>Manual: new stylesheets</li>
+<li>Manual: improved section for the Custom Queries</li>
+<li>DbFly.ov_query() debugged</li>
+<li>_DbMap inherits speaker methods directly (see previous change)</li>
+<li>DbFly and DbOne are now handled in the same way</li>
+<li>otpimization: DbMother classes are more light</li>
+<li>sqlite bug: crash on empty results for get type queries</li>
+<li>sqlite.py postgres.py: ifaces aligned</li>
+<li>rewrited some methods on db interfaces</li>
+<li>dropped the DictCursor psycopg2 feature</li>
+<li>manual: corrections and new index layout</li>
+<li>new MotherManager family functions: actionMany...</li>
+<li>new MotherManager method: insertManyChildren</li>
+<li>new class MotherMany</li>
+<li>abdbda imports (and exports) multiple query methods</li>
+<li>sqlite and postgres have now mq_query and mg_query</li>
+<li>new method on postgres, sqlite and abdbda: multiple_query()</li>
+<li>DbMother fields methods moved on _DbMap</li>
+<li>MotherFusion: new __init__ arg <cite>side</cite></li>
+</ul>
+</blockquote>
+<p>VERSION = 0.6.2-r1</p>
+<blockquote>
+<ul class="simple">
+<li>relParams debugged: session was not exported</li>
+<li>MotherFusion: fields handler improved</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.6.2</p>
+<blockquote>
+<ul class="simple">
+<li>cleaned doc: Lifes -&gt; Lifeforms</li>
+<li>DbOne was calling twice _connect()</li>
+<li>Removed HeavyBug on Sqlite-Map creation</li>
+<li>mothermapper -f: removed __import__, used execfile()</li>
+<li>MotherFusion: it's now possible to specify jfilter</li>
+<li>debugged arg_format usage</li>
+<li>MotherFusion: debugged ({}, {}..) for selectWaht()</li>
+<li>An interactive example for SQLite is provided</li>
+<li>Examples for SQLite ans Postgres are provided</li>
+<li>MotherFusion: __len__ method</li>
+<li>MotherFusion: introduces distinct</li>
+<li>MotherFusion: introduced order</li>
+<li>MohterFusion is explained on the Manual</li>
+<li><cite>mothermapper -f help</cite> prints a human readable help</li>
+<li>MotherFusion is able to exclude redundant params</li>
+<li>MotherFusion can load relation params</li>
+<li>new class MotherFusion</li>
+<li>code cleaned</li>
+<li>new _DbMap._sqlFreeJoin method</li>
+<li>_sqlJoin&amp;C moved from MotherManager to _DbMap class</li>
+<li>mothermapper --help: deleted -C option</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.6.1</p>
+<blockquote>
+<ul class="simple">
+<li>defconf.py -&gt; _defconf.py</li>
+<li>def_pgres.py -&gt; _def_pgres.py</li>
+<li>def_sqlite.py -&gt; _def_sqlite.py</li>
+<li>mothermapper: removed C option, added -P and -S</li>
+<li>added new modules: def_pgres and def_sqlite</li>
+<li>debugging MohterManager methods</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.6.0</p>
+<blockquote>
+<ul class="simple">
+<li>Sqlite Support</li>
+<li>rewrited initalization methods</li>
+<li>dbda removed: added abdbda</li>
+<li>added specific db interface: postgres.py sqlite.py</li>
+<li>mothermapper uses always a persistent connection</li>
+<li>mothermapper meta queries reside now on the db core</li>
+<li>MO_ULOAD action is now obsolete</li>
+<li>no primary key is needed to load one record</li>
+<li>no primary key is needed to modify db record</li>
+<li>added the flag 'paranoid' to the Mother classes</li>
+<li>added class filter MoFilter</li>
+<li>Mother uses now MoFilter instances as internal filters</li>
+<li>writed a new documentation guide</li>
+<li>_sqlBuildFilter() removed from DbMother</li>
+<li>mogrify() is used only for postgres</li>
+<li>logs are more clear</li>
+<li>controlling fields on getField()</li>
+<li>tester.py: a test unit</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.6</p>
+<blockquote>
+<ul class="simple">
+<li>dbg: Psygres reconnection</li>
+<li>logging is more accurate</li>
+<li>Mother uses only the pkeys to build filters (MO_ULOAD exception)</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.5</p>
+<blockquote>
+<ul class="simple">
+<li>exceptions are handled more simply</li>
+<li>mother is now able to restore a broken connection.
+This is the case of a postgres restart, for example.
+Note that psycopg2 is broken and this feature is not
+working, depending on the psycopg2 version.</li>
+<li>getChild() is now reimplemented</li>
+<li>Avoid wildcard on select queries</li>
+<li>DbMother.load() returns now the getFields() dict</li>
+<li>fnaming function debugging</li>
+<li>init_mother() tests the function fnaming when provided</li>
+<li>MotherPoolStratus()</li>
+<li>getField: obsolete parameter <cite>value</cite>. New paramater <cite>autoload</cite>.</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.4</p>
+<blockquote>
+<ul class="simple">
+<li>new concept of <cite>calm</cite> for the pool</li>
+<li>inserted controls testing sessions initializaztion</li>
+<li>logs about pool are now cleaner</li>
+<li>default configuration file changed</li>
+<li>it's now possible, when using pool, to disable the base connection</li>
+<li>implemented Pool Types: LIMITED, ELASTIC, GROWING</li>
+<li>dropped sessions are now directly closed (reference leaks)</li>
+<li>fixed the &quot;Session VS Persistent&quot; gap for internal transactions</li>
+<li>DbMother class: three wrappers to handle transactions internally</li>
+<li>new method: DbMother.getField()</li>
+<li>mothermapper and symbols: no more massive DELETE (sync pattern)</li>
+<li>mothermapper: no more transatctions: now MotherSession</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.3-r1</p>
+<blockquote>
+<ul class="simple">
+<li>Fixed bug about colors on win32: mothermapper/set_log_color()</li>
+<li>Fixed a not compliant query (fields IS NULL (VS) field= NULL)</li>
+<li>Fixed a bug on MotherBox._retrieve_mothers()</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.3</p>
+<blockquote>
+<ul class="simple">
+<li>Some output changed</li>
+<li>Colors are always disabled on win32 systems.</li>
+<li>A stupid bug fixed on _moMap</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.2-r1</p>
+<blockquote>
+<ul class="simple">
+<li>Bug fixed: broken map on win32 platforms (cPickle)</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.2</p>
+<blockquote>
+<ul class="simple">
+<li>It's now possible to commit() queries inside sessions.</li>
+<li>new method MotherPoolStatus()</li>
+<li>PsygresPool.back_home -&gt; PsygresPool.backHome</li>
+<li>PsygresPool is not Speaker child</li>
+<li>PsygresPoll attrs are now private _attrs</li>
+<li>PsygresPool.session_number -&gt; PsygresPoll.status</li>
+<li>PsygresPool remembers the orphaned sessions</li>
+<li>PsygresPool has now a detailed method: status()</li>
+<li>introduced a new argument on relParams(): flag_obj</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.1</p>
+<blockquote>
+<ul class="simple">
+<li>offensive logs removed</li>
+<li>the map dicts are now copied when Mother reads them</li>
+<li>log_rotate debugged</li>
+<li>The Mother Map is saved as pickled dict</li>
+<li>Various optimizations on code</li>
+<li>MotherMapped family functions dropped</li>
+<li>The DB map is loaded by init_mother(), once</li>
+<li>init_dbda() bug fixed (DB_PORT when using Unix sockets)</li>
+<li>assignRelation debugged</li>
+<li>symbols on MotherMap removed (optimization)</li>
+<li>initRelationManager builds the relParams() wrapper</li>
+<li>new method on Mothermanager: relParams()</li>
+<li>debugged getChildren (when jbuilder is specified)</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.5.0</p>
+<blockquote>
+<ul class="simple">
+<li>mothermapper debugged</li>
+<li>_insertNoOid() debugged when pkey is absent</li>
+<li>inline docs more complete</li>
+<li>lambdas removed</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.9</p>
+<blockquote>
+<ul class="simple">
+<li>from mother.speaker import * not needed on the conf file</li>
+<li>added a tester script</li>
+<li>a lot of global vars removed</li>
+<li>joining accepts new argument: jfilter!</li>
+<li>all database actions converted to new OIDs conf</li>
+<li>DbMother._sqlPkeysFromOid added</li>
+<li>DbMother._sqlWhereOid dropped</li>
+<li>MotherBox is not using OIDs anymore</li>
+<li>init_mother test MOTHER_OIDS and does what has to be done</li>
+<li>Mother conf file accepts keyword MOTHER_OIDS</li>
+<li>Mother is preparing to drop completely OIDs</li>
+<li>The MotherBox accepts now the new arg notriggers (defaults True)</li>
+<li>oid is removed almost everywhere: it remains in _insert()</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.8-r2</p>
+<blockquote>
+<ul class="simple">
+<li>a few bugs</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.8-r1</p>
+<blockquote>
+<ul class="simple">
+<li>DbMother.update() bug fixed.</li>
+<li>On install, check if psycopg2 is installed. If not, print a warning.</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.8</p>
+<blockquote>
+<ul class="simple">
+<li>DbMother.update takes now an argument</li>
+<li>MotherCaster accepts required_fields</li>
+<li>filters fixed</li>
+<li>inline docs are now fine</li>
+<li>updateChildren had a bug due to the last updates</li>
+<li>New Plugin Mothercaster</li>
+<li>New submodule mother.plugins</li>
+<li>Mother RAM Optimizations: _trigger_actions and _flag_actions are
+now staticmethod</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.7</p>
+<blockquote>
+<ul class="simple">
+<li>SQL optimizations: oid loading is now not needed everywhere
+Note that queries will be executed with less controls, but more faster.</li>
+<li>SQL optimizations: MotherBox don't need to SELECT from DB to fire triggers</li>
+<li>SQL optimizations: sql string methods are now faster and cleaner</li>
+<li>Pretty Print: debug messages more friendly</li>
+<li>Some debug on dbda.py</li>
+<li>SQL_DEFAULT is always applied</li>
+<li>Memory Optimizations: Multiple Variables inside functions</li>
+<li>Color Wrappers OKI_COL, ERR_COL, INF_COL</li>
+<li>MotherBox from scratch: unneeded methods removed and optimizations</li>
+<li>DbMother controls fields</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.6</p>
+<blockquote>
+<ul class="simple">
+<li>mothermapper has the new option '-v'</li>
+<li>conf files and maps are loaded with execfile: import avoided</li>
+<li>INSTALL</li>
+<li>mothermapper accepts new options: Q, S, C. Obsolete options: r</li>
+<li>multiple global variables removed from speaker</li>
+<li>setup.py has been created: Mother become a standard python module!!</li>
+<li>the map file could be created everywhere: init_mother(), init_dbda()
+and init_speaker depend now on the location of this file.</li>
+<li>dbstruct.py and rels.py are merged in a unique file: the map file</li>
+<li>dbmapper.py is moved on mothermapper and it's installed as system script</li>
+<li>new documentation: mother_threads.txt</li>
+<li>metaqry.py merged in dbmapper.py</li>
+<li>Mothers classes store sessions</li>
+<li>conf.py is now almost commented: default values defined</li>
+<li>Sessions naming</li>
+<li>New API MotherSession()</li>
+<li>Initialization methods don't use globals() (more safe)</li>
+<li>New Class PsygresPool to use a pool of persistent connections</li>
+<li>New Class PsygresFly to use isolated DB Sessions</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.5</p>
+<blockquote>
+<ul class="simple">
+<li>new svn layout</li>
+<li>Added support for log file rotation</li>
+<li>mothers should be Win32 compatible</li>
+<li>speaker supports now: log_to_file, log_to_syslog, log_to_stdout, log_to_smtp</li>
+<li>box.py removed: MotherBox is merged on mothers.py</li>
+<li>dbda.py and speaker.py from scratch using Classes and staticmethods</li>
+<li>supersingleton pattern removed</li>
+<li>init_methods() introduced</li>
+<li>shared.py removed</li>
+<li>headers files removed (speaker_h.py, mothers_h.py)</li>
+<li>speaker uses now the logging module instead of syslog: API is changed!!!</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.4-r1</p>
+<blockquote>
+<ul class="simple">
+<li>mothers.py cleaned from old unused variables</li>
+<li>mother_init works at the same time with ZpsycoPGDA and psycopg2</li>
+<li>MotherBox debugged: store -&gt; _store</li>
+<li>MotherFly accepts now the argument oid</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.4</p>
+<blockquote>
+<ul class="simple">
+<li>MotherBox debugged: select oid -&gt; select tbl.oid</li>
+<li>dbmapper uses now DEFAULT_LOGGER</li>
+<li>pop inserted on MotherBox.getFields</li>
+<li>MotherBox.getFields and MotherBox.filterBox optimized</li>
+<li>Database adapter is implemented with SuperSingleton design pattern</li>
+<li>Introduced test.py: example and test module</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.3</p>
+<blockquote>
+<ul class="simple">
+<li>triggers debugged. The bug was heavy, so the new release.</li>
+</ul>
+</blockquote>
+<p>VERSION = 0.4.2</p>
+<blockquote>
+<ul class="simple">
+<li>debugged mothers.py:805</li>
+<li>MotherBox._sqlBuildFilterBox: controls when WHERE is present in the filter.</li>
+<li>MotherManager.deleteChildren: no more using getChildren</li>
+<li>debug on MotherBox</li>
+<li>Speaker.log_int_raise was printing 2 times the error string</li>
+<li>_sqlJoinParent debugged</li>
+</ul>
+</blockquote>
+<p>VERSION &lt; 0.4.2</p>
+<blockquote>
+<ul class="simple">
+<li>First official release</li>
+</ul>
+</blockquote>
+</div>
+</div>
+<div class="footer">
+<hr class="footer" />
+Generated by <a class="reference" href="http://docutils.sourceforge.net/">Docutils</a> from <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> source.
+
 </div>
 </body>
 </html>

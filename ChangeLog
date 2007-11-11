@@ -1,6 +1,11 @@
+Changelog History
+-----------------
 
 VERSION = 0.6.3
 
+	* Manual: introduces the new sections: copyright and changelog
+	* Manual: new stylesheets
+	* Manual: improved section for the Custom Queries
 	* DbFly.ov_query() debugged
 	* _DbMap inherits speaker methods directly (see previous change)
 	* DbFly and DbOne are now handled in the same way
@@ -11,7 +16,7 @@ VERSION = 0.6.3
 	* dropped the DictCursor psycopg2 feature
 	* manual: corrections and new index layout
 	* new MotherManager family functions: actionMany...
-	* new MotherManger method: insertManyChildren
+	* new MotherManager method: insertManyChildren
 	* new class MotherMany
 	* abdbda imports (and exports) multiple query methods
 	* sqlite and postgres have now mq_query and mg_query
@@ -56,7 +61,7 @@ VERSION = 0.6.1
 	* defconf.py -> _defconf.py
 	* def_pgres.py -> _def_pgres.py
 	* def_sqlite.py -> _def_sqlite.py
-	* mothermapper: removed *C option, added -P and -S
+	* mothermapper: removed C option, added -P and -S
 	* added new modules: def_pgres and def_sqlite
 	* debugging MohterManager methods
 
@@ -94,9 +99,9 @@ VERSION = 0.5.5
 
 	* exceptions are handled more simply
 	* mother is now able to restore a broken connection.
-	   This is the case of a postgres restart, for example.
-	   Note that psycopg2 is broken and this feature is not 
-	   working, depending on the psycopg2 version.
+	  This is the case of a postgres restart, for example.
+	  Note that psycopg2 is broken and this feature is not 
+	  working, depending on the psycopg2 version.
 	* getChild() is now reimplemented
 	* Avoid wildcard on select queries
 	* DbMother.load() returns now the getFields() dict
@@ -217,13 +222,13 @@ VERSION = 0.4.8
 	* New Plugin Mothercaster 
 	* New submodule mother.plugins
 	* Mother RAM Optimizations: _trigger_actions and _flag_actions are
-		now staticmethod
+	  now staticmethod
 
 
 VERSION = 0.4.7
 
 	* SQL optimizations: oid loading is now not needed everywhere
-		Note that queries will be executed with less controls, but more faster.
+	  Note that queries will be executed with less controls, but more faster.
 	* SQL optimizations: MotherBox don't need to SELECT from DB to fire triggers
 	* SQL optimizations: sql string methods are now faster and cleaner
 	* Pretty Print: debug messages more friendly
@@ -237,14 +242,14 @@ VERSION = 0.4.7
 
 VERSION = 0.4.6
 
-	* mothermapper has the new option `-v'
+	* mothermapper has the new option '-v'
 	* conf files and maps are loaded with execfile: import avoided
 	* INSTALL 
 	* mothermapper accepts new options: Q, S, C. Obsolete options: r
 	* multiple global variables removed from speaker
 	* setup.py has been created: Mother become a standard python module!!
 	* the map file could be created everywhere: init_mother(), init_dbda() 
-		and init_speaker depend now on the location of this file.
+	  and init_speaker depend now on the location of this file.
 	* dbstruct.py and rels.py are merged in a unique file: the map file
 	* dbmapper.py is moved on mothermapper and it's installed as system script
 	* new documentation: mother_threads.txt
@@ -308,4 +313,4 @@ VERSION = 0.4.2
 
 VERSION < 0.4.2
 
-	* First official release (Cit. 42.. galaxy....).
+	* First official release 

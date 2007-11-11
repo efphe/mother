@@ -1,9 +1,6 @@
 
 Mother Manual
 =============
-(DocUtils Powered)
-
-Manual for Mother versions >= 0.6.0
 
 Introduction
 ------------
@@ -22,19 +19,19 @@ ideas and your patches.
 Index:
 ------
 
-*Configuring Mother:*
+**Configuring Mother:**
 
     * `Install Mother`_
     * `The Database example used on this guide`_
     * `Creating a Mother Environment`_: configuring Mother for your Db
 
-*The basic principles:*
+**The basic principles:**
 
     * `Simple Database Actions`_: handling a record on a table
     * `Handling Multiple Records`_: handling multiple records on a table
     * `Handling Many Records`_: faster way to handle multiple records on a table
 
-*The true Mother features:*
+**The true Mother features:**
 
     * `Handling Children`_: handling a record children
     * `Handling Many Children`_: faster way to handle a record children
@@ -42,21 +39,23 @@ Index:
     * `Handling Complex Children`_: advanced children handling
     * `The MotherFusion Class`_: handling records on different tables
 
-*The database interface:*
+**The database interface:**
 
     * `Performing Custom queries`_: execute your personal queries
 
-*Transactions, Connection Pool and Threaded Environments:*
+**Transactions, Connection Pool and Threaded Environments:**
 
     * `Transactions`_: how to use transactions
     * `Sessions and Threaded Environments`_: isolated working sessions
 
-*Appendix:*
+**Appendix:**
 
     * `Logging`_: handling logs 
     * `Triggers`_: define triggers
     * `Custom Complex Filters`_: avoid SQL injection 
     * `Using Mother without Class Definition`_: under the hood
+    * `Copyright and License`_
+    * `Changelog history`_
 
 Install Mother
 --------------
@@ -119,19 +118,19 @@ of life present in our universe. Civilizations is a relation between Lifeforms
 and Planets: we will use it to store information like, "humans live on earth".
 
 Here's the sql script (shipped with the tarball):
-::
 
-    --
-    -- -- 
-    -- For Posgtgres version >= 8.1 and < 8.2.3: you need to create
-    -- tables WITH OIDS. Remove `WITH OIDS' otherwise. 
-    --
-    -- Note that Mother is scalable and changing postgres version is 
-    -- safe. If you upgrade your postgres to 8.2.3, for example, you 
-    -- don't have to create tables WITH OIDS and your work environment 
-    -- will be working at all.
-    -- --
-    --
+.. Important:: 
+    For Postgresql users.
+    For Posgtgres version >= 8.1 and < 8.2.3: you need to create
+    tables "WITH OIDS". Remove "WITH OIDS" otherwise. 
+    
+    Note that Mother is scalable and changing postgres version is 
+    safe. If you upgrade your postgres to 8.2.3, for example, you 
+    don't have to create tables WITH OIDS and your work environment 
+    will be working at all.
+    
+
+::
 
     create table stars (
         star_id         serial,
@@ -178,6 +177,8 @@ Here's the sql script (shipped with the tarball):
         foreign key(planet_id) references planets(planet_id)
     ) WITH OIDS;
 
+Note that the fields names are completely arbitrary: in particular, there is
+no need to create keys and foreign keys with the same name.
 
 
 Creating a Mother Environment
@@ -203,44 +204,47 @@ To create a configuration file with default values (using Postgres as the backen
 just do:
 ::
 
-    $ mothermapper -P /usr/myhome/first/dbmother.conf
+    $ mothermapper -P /my/path/dbmother.conf
 
 otherwise use -S for SQLite:
 ::
 
-    $ mothermapper -S /usr/myhome/first/dbmother.conf
+    $ mothermapper -S /my/path/dbmother.conf
 
 At this point you need to edit the newly created map file and set the parameters 
-for your particular environment.  Don't worry: the map file is heavy commented 
-and most options contain suitable default values.  One value you should pay 
-attention to is "MOTHER_MAP".  Here you should place a reasonable directory and 
-file name value like "/usr/myhome/first/dbmother.map".
+for your particular environment.  Don't worry: the conf file is heavy commented 
+and most options contain suitable default values.  
+
+.. Important:: One value you should pay 
+               attention to is "MOTHER_MAP".  Here you should place a reasonable directory and 
+               file name value like "/my/path/dbmother.map".
+
 
 When you are done with your edits, test your configuration like so:
 ::
 
-    $ mothermapper -c /usr/myhome/first/dbmother.conf -t
+    $ mothermapper -c /my/path/dbmother.conf -t
 
 Now the database needs tables. Altough this is not mandatory, We can use 
 "mothermapper" to run a sql script (the sql script example is shipped with
-the tarball, we assume that it was saved on /usr/myhome/first/db1.sql):
+the tarball, we assume that it was saved on /my/path/db1.sql):
 ::
 
-    $ mothermapper -c /usr/myhome/first/dbmother.conf -e /usr/myhome/first/db1.sql
+    $ mothermapper -c /my/path/dbmother.conf -e /my/path/db1.sql
 
 Finally we need to create the DBMother map file. The map is created automatically 
 by "mothermapper"  (assuming you remembered to set the "MOTHER_MAP" value in the 
 DBMother config file) try the following:
 ::
 
-    $ mothermapper -c /usr/myhome/first/dbmother.conf -s
+    $ mothermapper -c /my/path/dbmother.conf -s
 
 Done.  If all went well you can do a final test by importing your configuration 
 file like so:
 ::
 
     >>> from mother.mothers import init_mother
-    >>> init_mother('/usr/myhome/first/dbmother.conf')
+    >>> init_mother('/my/path/dbmother.conf')
 
 Success!!
 
@@ -391,7 +395,25 @@ All the described methods have a good inline doc:
     >>> print Sun.getFields.__doc__
 
 Now, play a little bit with your classes, try to understand them.
+Note that it's possible, important and encouraged to extend them, for example
+redefining the __init__() method and/or adding some function:
+::
 
+    class ClsStars(DbMotther):
+        table_name= 'stars'
+
+        def __init__(self, myarg, otherarg, store= {}, 
+                     flag= MO_NOA, session= session):
+
+            work_with_args(myarg, otherarg)
+            DbMother.__init__(self, store, flag, session)
+
+        def my_function(self, *args):
+            print args
+
+It's possible to modify and extend the Mother classes also coding some plugin.
+For now, take a look at the submodule mother.plugins: a new section explaining 
+how to code new plugins will be published as soon as possible.
 
 Handling Multiple Records
 -------------------------
@@ -468,8 +490,8 @@ Handling Many Records
 ---------------------
 
 From Mother version >= 0.6.3 a new class is available: MotherMany.
-The goal of MotherMany is to speed up massive db actions (insert, select,
-update and delete) and to provide an easy way to perform db actions without
+The goal of MotherMany is to speed up massive db actions 
+and to provide an easy way to perform db actions without
 DbMother classes definition. 
 
 Often We don't need complex structures to execute sql statements.
@@ -536,6 +558,7 @@ argument fields is omitted, all the table fields will be selected:
 
 When updating records, the argument fields is used to specify which fields
 have to be updated. For example:
+::
 
     >>> srecords= [{'star_id': 1, 'star_name': 'a'}, 
     ...            {'star_id': 2, 'star_name': 'b'}]
@@ -555,6 +578,7 @@ is True, a list of Mother instances will be returned. In this case, if
 MotherMany were initialized with, as builder, a Mother class, this class will
 be used to initilize the instances. If the builder is a table name, the call 
 getRecords(flag_obj= True) returns a list of MotherFly instances. 
+::
 
     >>> dicts= momma.getRecords()
     >>> mommas= momma.getRecords(flag_obj= True)
@@ -1450,5 +1474,33 @@ better and faster:
 
     >>> MotherMany('stars', [{'star_name': 'sun'}], MO_SAVE, MySession)
 
+Copyright and License
+---------------------
+
+Copyright (c) 2006-2007 Federico Tomassini aka efphe (effetom at gmail dot com)
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the University of California, Berkeley nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
