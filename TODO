@@ -19,3 +19,6 @@
 * drop relation: is it necessary to load related records?
 
 * MotherFusion: getRecords() splitted for tables
+
+* MotherFusion: is it possible to perform multiple joins?
+   example: MotherFusion(ClsStars, ClsMoons)
