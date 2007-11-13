@@ -213,7 +213,7 @@ class DbOne(Speaker):
             Speaker.log_int_raise("%s You are using the Db Pool, you "
                                "have disabled the persistent connection, "
                                "but no session was used to initialize this "
-                               "Mother class (table= %s)", err, ERR_COL(tbl))
+                               "Mother class", err)
 
         for attr in DbOne._exported_methods:
             setattr(where, attr, getattr(DbOne, attr))
