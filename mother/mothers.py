@@ -1620,6 +1620,9 @@ class MotherManager:
 
     def initManyManager(self, children):
 
+        self.log_info("The initManyManager() methods are not tested deeply: if You "\
+                      "encounter bugs, don't panic: please, signal them.")
+
         def handle_children(builder, flag):
             def fly_handle_children(dlist, fields= None):
                 return self.handleManyChildren(builder, flag, dlist, fields)
@@ -2286,15 +2289,16 @@ class MotherFusion(_DbMap):
         bb= self.builderB
         ta= ba.table_name
         tb= bb.table_name
-        self.log_insane('MotherFusion: direct join: %s father, %s child', 
-                        INF_COL(ta), INF_COL(tb))
+        self.log_insane('MotherFusion: direct join: %s father, '
+                        '%s child', INF_COL(ta), INF_COL(tb))
 
         what= self._selectWhat(self.fields)
         jfilter, joining_table= self._sqlJoinParent(ba, bb)
 
         distinct= self.distinct and 'DISTINCT' or ''
         side= self.side
-        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s %(side)s %(jfilter)s' % locals()
+        qry= 'SELECT %(distinct)s %(what)s FROM %(ta)s ' \
+                '%(side)s %(jfilter)s' % locals()
         self._store= self.mr_query(qry, self.filter)
 
     def getRecords(self, flag_obj= False):
@@ -2344,6 +2348,8 @@ class MotherMany(_DbMap):
     def __init__(self, builder, store= None, flag= MO_NOA, 
                     session= None, fields= None):
 
+        self.log_info("The MotherMany class is not tested deeply: if You "\
+                      "encounter bugs, don't panic: please, signal them.")
         if isinstance(builder, str):
             self.builder= None
             self.table_name= builder

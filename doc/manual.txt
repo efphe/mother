@@ -31,11 +31,11 @@ Index:
     * `Handling Multiple Records`_: handling multiple records on a table
     * `Handling Many Records`_: faster way to handle multiple records on a table
 
-**The true Mother features:**
+**The introspective Mother features:**
 
-    * `Handling Children`_: handling a record children
-    * `Handling Many Children`_: faster way to handle a record children
-    * `Handling Relations`_: handling relations between tables
+    * `Handling Children`_
+    * `Handling Many Children`_: faster way to handle children
+    * `Handling Relations`_
     * `Handling Complex Children`_: advanced children handling
     * `The MotherFusion Class`_: handling records on different tables
 
@@ -96,7 +96,7 @@ The Database example used on this guide
 
 Example code has been included with DBMother.  We use the following schema 
 for the sample code and our tutorial. Please pay close attention to the 
-following description because we will use throughout our tutorial.
+following description because we will use throughout the manual.
 
 Here's a graphic representation of the database:
 ::
@@ -129,6 +129,9 @@ Here's the sql script (shipped with the tarball):
     don't have to create tables WITH OIDS and your work environment 
     will be working at all.
     
+.. Important:: 
+    fields names are completely arbitrary: in particular, there is
+    no need to create keys and foreign keys with the same name.
 
 ::
 
@@ -177,15 +180,13 @@ Here's the sql script (shipped with the tarball):
         foreign key(planet_id) references planets(planet_id)
     ) WITH OIDS;
 
-Note that the fields names are completely arbitrary: in particular, there is
-no need to create keys and foreign keys with the same name.
 
 
 Creating a Mother Environment
 -----------------------------
 
 To handle a database with DBMother we need to create a DBMother environment,
-using the mothermapper tool.
+using the **mothermapper** tool.
 If you are ever in doubt what parameters you could use with mothermapper, try:
 ::
 
@@ -216,7 +217,7 @@ for your particular environment.  Don't worry: the conf file is heavy commented
 and most options contain suitable default values.  
 
 .. Important:: One value you should pay 
-               attention to is "MOTHER_MAP".  Here you should place a reasonable directory and 
+               attention to is "**MOTHER_MAP**".  Here you should place a reasonable directory and 
                file name value like "/my/path/dbmother.map".
 
 
@@ -282,11 +283,11 @@ Put the following class declaration inside the file sample.py:
         def my_function(self):
             print "This is my function, this is my realm"
 
-The argument `session` is used when dealing with the connection pool, useful for 
+The argument **session** is used when dealing with the connection pool, useful for 
 threaded environments, as web applications. For now, forgive it. Let's take a
-look at the `store` and the `flag` arguments.
+look at the **store** and the **flag** arguments.
 
-Suppose we want to insert the Sun star on the table stars. The Sun name is 'sun',
+Suppose we want to **insert** the Sun star on the table stars. The Sun name is 'sun',
 the Sun age is 10 and the Sun mass is 20:
 ::
 
@@ -316,9 +317,9 @@ Sun insertion could be made without the insert() call:
 
     >>> Sun= ClsStars(sun_dict, MO_SAVE)
 
-MO_NOA means "No Action" and is the default value of this argument.
+The flag **MO_NOA** means "No Action" and is the default value of this argument.
 
-Now we want to modify the Sun record, setting the star_mass to 15:
+Now we want to **update** the Sun record, setting the star_mass to 15:
 ::
 
     >>> Sun.setField('star_mass', 15)
@@ -326,15 +327,14 @@ Now we want to modify the Sun record, setting the star_mass to 15:
     >>> Sun.update()
 
 If we want to update a record without having his mother instance we have to use
-his primary key:
+his primary key (otherwise we risk a dangerous update):
 ::
 
     >>> Sun= ClsStars({'star_id': sun_id, 'star_mass': 15}, MO_UP)
 
-Note that setField() and setFields() are not allowed to change the primary key
-of the table.
+Note that Mother understands automatically what has to be updated.
 
-Now, we want to remove the sun record:
+Now, we want to **delete** the sun record:
 ::
 
     >>> Sun.delete()
@@ -356,14 +356,16 @@ to be "paranoid":
 ::
 
     class ClsStars(DbMother):
+
         table_name= 'stars'
         paranoid = True
+
         def __init__(....):
             ...
 
 Now Mother will refuse to perform db actions without a primary key.
 
-Finally, we could want to retrieve a record.
+Finally, we could want to **select** a record.
 ::
 
     >>> Sun= ClsStars({'star_id': sun_id})
@@ -377,7 +379,8 @@ could be used to verify if a unique record with some values is present on the
 database).
 
 If we want to give some sql specific values to some fields, as DEFAULT, NULL, 
-True or False, just use SQL_DEFAULT, SQL_NULL, SQL_FALSE, SQL_TRUE:
+True or False, just use **SQL_DEFAULT**, **SQL_NULL**, **SQL_FALSE**,
+**SQL_TRUE**:
 ::
 
     >>> from mother.mothers import SQL_NULL
@@ -420,7 +423,7 @@ Handling Multiple Records
 
 In the previous section we learned how to handle one record at time. Now we 
 begin to deal with a set of records. To do that a specific class is used:
-MotherBox.
+**MotherBox**.
 
 If an instance of a Mother class represents a record on a table, an instance 
 of a MotherBox class is a set of record of one table. Differently by DbMother,
@@ -489,7 +492,7 @@ do:
 Handling Many Records
 ---------------------
 
-From Mother version >= 0.6.3 a new class is available: MotherMany.
+From Mother version >= 0.6.3 a new class is available: **MotherMany**.
 The goal of MotherMany is to speed up massive db actions 
 and to provide an easy way to perform db actions without
 DbMother classes definition. 
@@ -523,7 +526,7 @@ usual, specifies an action. The argument fields is useful when using
 flag= MO_LOAD or flag= MO_UP. 
 The session is used when dealing with the connection Pool.
 
-To insert a set of records (using as builder a Mother class):
+To insert a set of records (now using as builder a Mother class):
 ::
 
     >>> star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
@@ -619,8 +622,8 @@ a list of children that we want to handle. Working on sample.py:
             self.initChildManager([ClsPlanets])
             DbMother.__init__(self, store, flag, session)
 
-Note that we have subclassed the ClsStars class with MotherManager and called
-the initChildManager() method to specify that we want to handle planets
+Note that we have subclassed the ClsStars class with **MotherManager** and called
+the **initChildManager()** method to specify that we want to handle planets
 children. There is no need to call initChildManager() on the __init__ method.
 It's possible to call it manually, for example when We need it.
 
@@ -666,13 +669,13 @@ Note that this call will raise an exception if there isn't a unique record on
 the table planets with planet_name = 'earth' and star_id =
 Sun.getField('star_id').
 
-We can use this fact to test planet existence:
+We can use this fact to test if a unique planet exists:
 ::
 
     >>> try:
     ...   planet= Sun.getPlanets({'planet_name': 'earth'})
     ... except:
-    ...   print "No planet on the solar system with name earth"
+    ...   print "No unique planet on the solar system with name earth"
     >>>
 
 Now it's time to update:
@@ -706,7 +709,7 @@ Anyway, these methods should be used often for two reasons:
 - they are very fast
 - they are enough for many situations
 
-As for initChildManager(), We can use the method initManyManager() to create
+As for initChildManager(), We can use the method **initManyManager()** to create
 our methods automatically:
 ::
 
@@ -763,7 +766,7 @@ a certein planet.
 
 To handle children we need to enable the Children Manager calling
 initChildManager(). To enable the relation manager we have to call
-initRelationManager().
+**initRelationManager()**.
 
 Let's edit sample.py, inserting a class for the Lifeforms table:
 ::

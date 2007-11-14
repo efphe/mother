@@ -333,12 +333,12 @@ ideas and your patches.</p>
 <li><a class="reference" href="#handling-many-records">Handling Many Records</a>: faster way to handle multiple records on a table</li>
 </ul>
 </blockquote>
-<p><strong>The true Mother features:</strong></p>
+<p><strong>The introspective Mother features:</strong></p>
 <blockquote>
 <ul class="simple">
-<li><a class="reference" href="#handling-children">Handling Children</a>: handling a record children</li>
-<li><a class="reference" href="#handling-many-children">Handling Many Children</a>: faster way to handle a record children</li>
-<li><a class="reference" href="#handling-relations">Handling Relations</a>: handling relations between tables</li>
+<li><a class="reference" href="#handling-children">Handling Children</a></li>
+<li><a class="reference" href="#handling-many-children">Handling Many Children</a>: faster way to handle children</li>
+<li><a class="reference" href="#handling-relations">Handling Relations</a></li>
 <li><a class="reference" href="#handling-complex-children">Handling Complex Children</a>: advanced children handling</li>
 <li><a class="reference" href="#the-motherfusion-class">The MotherFusion Class</a>: handling records on different tables</li>
 </ul>
@@ -403,7 +403,7 @@ systems).</p>
 <h1><a id="the-database-example-used-on-this-guide" name="the-database-example-used-on-this-guide">The Database example used on this guide</a></h1>
 <p>Example code has been included with DBMother.  We use the following schema
 for the sample code and our tutorial. Please pay close attention to the
-following description because we will use throughout our tutorial.</p>
+following description because we will use throughout the manual.</p>
 <p>Here's a graphic representation of the database:</p>
 <pre class="literal-block">
    Stars
@@ -430,6 +430,11 @@ tables &quot;WITH OIDS&quot;. Remove &quot;WITH OIDS&quot; otherwise.</p>
 safe. If you upgrade your postgres to 8.2.3, for example, you
 don't have to create tables WITH OIDS and your work environment
 will be working at all.</p>
+</div>
+<div class="important">
+<p class="first admonition-title">Important</p>
+<p class="last">fields names are completely arbitrary: in particular, there is
+no need to create keys and foreign keys with the same name.</p>
 </div>
 <pre class="literal-block">
 create table stars (
@@ -477,13 +482,11 @@ create table civilizations (
     foreign key(planet_id) references planets(planet_id)
 ) WITH OIDS;
 </pre>
-<p>Note that the fields names are completely arbitrary: in particular, there is
-no need to create keys and foreign keys with the same name.</p>
 </div>
 <div class="section">
 <h1><a id="creating-a-mother-environment" name="creating-a-mother-environment">Creating a Mother Environment</a></h1>
 <p>To handle a database with DBMother we need to create a DBMother environment,
-using the mothermapper tool.
+using the <strong>mothermapper</strong> tool.
 If you are ever in doubt what parameters you could use with mothermapper, try:</p>
 <pre class="literal-block">
 $ mothermapper -h
@@ -513,7 +516,7 @@ and most options contain suitable default values.</p>
 <div class="important">
 <p class="first admonition-title">Important</p>
 <p class="last">One value you should pay
-attention to is &quot;MOTHER_MAP&quot;.  Here you should place a reasonable directory and
+attention to is &quot;<strong>MOTHER_MAP</strong>&quot;.  Here you should place a reasonable directory and
 file name value like &quot;/my/path/dbmother.map&quot;.</p>
 </div>
 <p>When you are done with your edits, test your configuration like so:</p>
@@ -566,10 +569,10 @@ class ClsStars(DbMother):
     def my_function(self):
         print &quot;This is my function, this is my realm&quot;
 </pre>
-<p>The argument <cite>session</cite> is used when dealing with the connection pool, useful for
+<p>The argument <strong>session</strong> is used when dealing with the connection pool, useful for
 threaded environments, as web applications. For now, forgive it. Let's take a
-look at the <cite>store</cite> and the <cite>flag</cite> arguments.</p>
-<p>Suppose we want to insert the Sun star on the table stars. The Sun name is 'sun',
+look at the <strong>store</strong> and the <strong>flag</strong> arguments.</p>
+<p>Suppose we want to <strong>insert</strong> the Sun star on the table stars. The Sun name is 'sun',
 the Sun age is 10 and the Sun mass is 20:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; # Mother Initialization
@@ -596,21 +599,20 @@ Sun insertion could be made without the insert() call:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Sun= ClsStars(sun_dict, MO_SAVE)
 </pre>
-<p>MO_NOA means &quot;No Action&quot; and is the default value of this argument.</p>
-<p>Now we want to modify the Sun record, setting the star_mass to 15:</p>
+<p>The flag <strong>MO_NOA</strong> means &quot;No Action&quot; and is the default value of this argument.</p>
+<p>Now we want to <strong>update</strong> the Sun record, setting the star_mass to 15:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Sun.setField('star_mass', 15)
 &gt;&gt;&gt; # or Sun.setFields({'star_mass': 15}) to change more fields
 &gt;&gt;&gt; Sun.update()
 </pre>
 <p>If we want to update a record without having his mother instance we have to use
-his primary key:</p>
+his primary key (otherwise we risk a dangerous update):</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Sun= ClsStars({'star_id': sun_id, 'star_mass': 15}, MO_UP)
 </pre>
-<p>Note that setField() and setFields() are not allowed to change the primary key
-of the table.</p>
-<p>Now, we want to remove the sun record:</p>
+<p>Note that Mother understands automatically what has to be updated.</p>
+<p>Now, we want to <strong>delete</strong> the sun record:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Sun.delete()
 </pre>
@@ -628,13 +630,15 @@ If you want to avoid this type of dangerous call, define your mother class
 to be &quot;paranoid&quot;:</p>
 <pre class="literal-block">
 class ClsStars(DbMother):
+
     table_name= 'stars'
     paranoid = True
+
     def __init__(....):
         ...
 </pre>
 <p>Now Mother will refuse to perform db actions without a primary key.</p>
-<p>Finally, we could want to retrieve a record.</p>
+<p>Finally, we could want to <strong>select</strong> a record.</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Sun= ClsStars({'star_id': sun_id})
 &gt;&gt;&gt; Sun.load()
@@ -646,7 +650,8 @@ an exception if there isn't a unique record with the specified fields (this fact
 could be used to verify if a unique record with some values is present on the
 database).</p>
 <p>If we want to give some sql specific values to some fields, as DEFAULT, NULL,
-True or False, just use SQL_DEFAULT, SQL_NULL, SQL_FALSE, SQL_TRUE:</p>
+True or False, just use <strong>SQL_DEFAULT</strong>, <strong>SQL_NULL</strong>, <strong>SQL_FALSE</strong>,
+<strong>SQL_TRUE</strong>:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from mother.mothers import SQL_NULL
 &gt;&gt;&gt; Sun= ClsStars({'star_mass': SQL_NULL, 'star_name': 'sun'}, MO_SAVE)
@@ -660,13 +665,31 @@ database if necessary.</p>
 <pre class="literal-block">
 &gt;&gt;&gt; print Sun.getFields.__doc__
 </pre>
-<p>Now, play a little bit with your classes, try to understand them.</p>
+<p>Now, play a little bit with your classes, try to understand them.
+Note that it's possible, important and encouraged to extend them, for example
+redefining the __init__() method and/or adding some function:</p>
+<pre class="literal-block">
+class ClsStars(DbMotther):
+    table_name= 'stars'
+
+    def __init__(self, myarg, otherarg, store= {},
+                 flag= MO_NOA, session= session):
+
+        work_with_args(myarg, otherarg)
+        DbMother.__init__(self, store, flag, session)
+
+    def my_function(self, *args):
+        print args
+</pre>
+<p>It's possible to modify and extend the Mother classes also coding some plugin.
+For now, take a look at the submodule mother.plugins: a new section explaining
+how to code new plugins will be published as soon as possible.</p>
 </div>
 <div class="section">
 <h1><a id="handling-multiple-records" name="handling-multiple-records">Handling Multiple Records</a></h1>
 <p>In the previous section we learned how to handle one record at time. Now we
 begin to deal with a set of records. To do that a specific class is used:
-MotherBox.</p>
+<strong>MotherBox</strong>.</p>
 <p>If an instance of a Mother class represents a record on a table, an instance
 of a MotherBox class is a set of record of one table. Differently by DbMother,
 we don't need to create a class for each table.</p>
@@ -724,7 +747,7 @@ do:</p>
 </div>
 <div class="section">
 <h1><a id="handling-many-records" name="handling-many-records">Handling Many Records</a></h1>
-<p>From Mother version &gt;= 0.6.3 a new class is available: MotherMany.
+<p>From Mother version &gt;= 0.6.3 a new class is available: <strong>MotherMany</strong>.
 The goal of MotherMany is to speed up massive db actions
 and to provide an easy way to perform db actions without
 DbMother classes definition.</p>
@@ -750,7 +773,7 @@ each dict representing a record: also a simple dict is accepted. The flag, as
 usual, specifies an action. The argument fields is useful when using
 flag= MO_LOAD or flag= MO_UP.
 The session is used when dealing with the connection Pool.</p>
-<p>To insert a set of records (using as builder a Mother class):</p>
+<p>To insert a set of records (now using as builder a Mother class):</p>
 <pre class="literal-block">
 &gt;&gt;&gt; star_recors= [{'star_name': 'a'}, {'star_name': 'b'}]
 &gt;&gt;&gt; MotherMany(ClsStars, star_records, MO_SAVE)
@@ -833,8 +856,8 @@ class ClsStars(DbMother, MotherManager):
         self.initChildManager([ClsPlanets])
         DbMother.__init__(self, store, flag, session)
 </pre>
-<p>Note that we have subclassed the ClsStars class with MotherManager and called
-the initChildManager() method to specify that we want to handle planets
+<p>Note that we have subclassed the ClsStars class with <strong>MotherManager</strong> and called
+the <strong>initChildManager()</strong> method to specify that we want to handle planets
 children. There is no need to call initChildManager() on the __init__ method.
 It's possible to call it manually, for example when We need it.</p>
 <p>Now, let's create the Sun star and insert the planet Earth:</p>
@@ -875,12 +898,12 @@ field:</p>
 <p>Note that this call will raise an exception if there isn't a unique record on
 the table planets with planet_name = 'earth' and star_id =
 Sun.getField('star_id').</p>
-<p>We can use this fact to test planet existence:</p>
+<p>We can use this fact to test if a unique planet exists:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; try:
 ...   planet= Sun.getPlanets({'planet_name': 'earth'})
 ... except:
-...   print &quot;No planet on the solar system with name earth&quot;
+...   print &quot;No unique planet on the solar system with name earth&quot;
 &gt;&gt;&gt;
 </pre>
 <p>Now it's time to update:</p>
@@ -908,7 +931,7 @@ the methods created by initChildManager(), explained in the previous chapter.</p
 <li>they are very fast</li>
 <li>they are enough for many situations</li>
 </ul>
-<p>As for initChildManager(), We can use the method initManyManager() to create
+<p>As for initChildManager(), We can use the method <strong>initManyManager()</strong> to create
 our methods automatically:</p>
 <pre class="literal-block">
 from mother.mothers import *
@@ -957,7 +980,7 @@ Now we focus our attention on the table Lifeforms, Planets and Civilizations.</p
 a certein planet.</p>
 <p>To handle children we need to enable the Children Manager calling
 initChildManager(). To enable the relation manager we have to call
-initRelationManager().</p>
+<strong>initRelationManager()</strong>.</p>
 <p>Let's edit sample.py, inserting a class for the Lifeforms table:</p>
 <pre class="literal-block">
 from mother.mothers import *
