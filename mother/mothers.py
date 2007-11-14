@@ -2402,7 +2402,7 @@ class MotherMany(_DbMap):
 
         qry= 'INSERT INTO %(table)s (%(fields)s) VALUES (%(values)s)' % locals()
         self.log_info("MotherMany: Inserting on %s %s row(s) (template= `%s`)...", 
-                        table, INF_COL(len(s)), INF_COL(qry))
+                        INF_COL(table), INF_COL(len(s)), INF_COL(qry))
         self.mq_query(qry, s)
 
         self._records= self.store
