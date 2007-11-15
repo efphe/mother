@@ -1,6 +1,11 @@
 Changelog History
 -----------------
 
+VERSION = 0.6.4
+
+	* mothermapper uses MotherMany for -f option
+
+
 VERSION = 0.6.3
 
 	* Manual: introduces the new sections: copyright and changelog

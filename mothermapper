@@ -300,7 +300,7 @@ class MotherWorld:
             from mother import _defconf
         except:
             loginfo("Error: unable to create configuration file: "\
-                    "Mother module not found.\n")
+                    "Mother module not found. Is Mother installed?\n")
             return
 
         mod= sys.modules['mother._defconf']
@@ -323,7 +323,7 @@ class MotherWorld:
             fil= open(nfil)
         except:
             loginfo("Error: unable to create configuration file: "\
-                    "Mother module not found.\n")
+                    "Mother module not found. Is Mother installed?\n")
             return
         buf+= fil.read()
         fil.close()
@@ -390,10 +390,12 @@ class MotherWorld:
         outlog("Inserting %s, deleting %s ... " % 
                 (OKI_COL(add_n), ERR_COL(del_n)))
 
-        for o in to_del:
-            getMotherObj(t, o, MO_DEL, session= ses)
-        for n in to_add:
-            getMotherObj(t, n, MO_SAVE, session= ses)
+        MotherMany(t, to_del, MO_DEL, session= ses)
+        #for o in to_del:
+            #getMotherObj(t, o, MO_DEL, session= ses)
+        MotherMany(t, to_add, MO_SAVE, session= ses)
+        #for n in to_add:
+            #getMotherObj(t, n, MO_SAVE, session= ses)
 
         outlog("%s.\n" % OKI_COL("Done"))
         return add_n, del_n
@@ -415,23 +417,6 @@ class MotherWorld:
 
         tbi= space['RECORDS_TO_BE_INSERTED']
             
-        #cfil= p.abspath(f)
-        #bfil= p.basename(f)
-
-        #index= cfil.index(bfil)
-        #if index:
-            #bdir= cfil[:index]
-            #sys.path= [bdir]+ sys.path
-
-        #try:
-            #mod=__import__(bfil)
-        #except:
-            #loginfo("\n\tError: unable to import %s. "\
-                    #"Symbol file won't be processed.\n" % ERR_COL(bfil))
-            #return
-
-        #tbi= mod.RECORDS_TO_BE_INSERTED
-
         added= 0
         deleted= 0
 
