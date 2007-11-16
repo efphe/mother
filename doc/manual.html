@@ -328,7 +328,8 @@ ideas and your patches.</p>
 <p><strong>The basic principles:</strong></p>
 <blockquote>
 <ul class="simple">
-<li><a class="reference" href="#simple-database-actions">Simple Database Actions</a>: handling a record on a table</li>
+<li><a class="reference" href="#simple-database-actions-i">Simple Database Actions I</a>: handling a record on a table, first way</li>
+<li><a class="reference" href="#simple-database-actions-ii">Simple Database Actions II</a>: handling a record on a table, second way</li>
 <li><a class="reference" href="#handling-multiple-records">Handling Multiple Records</a>: handling multiple records on a table</li>
 <li><a class="reference" href="#handling-many-records">Handling Many Records</a>: faster way to handle multiple records on a table</li>
 </ul>
@@ -544,7 +545,7 @@ file like so:</p>
 <p>Success!!</p>
 </div>
 <div class="section">
-<h1><a id="simple-database-actions" name="simple-database-actions">Simple Database Actions</a></h1>
+<h1><a id="simple-database-actions-i" name="simple-database-actions-i">Simple Database Actions I</a></h1>
 <p>In this section we will handle simple and single records. We use the persitent
 connection, so make sure that the mother configuration file enables it.
 Note that the faster way to execute simple db actions is explained in the
@@ -684,6 +685,87 @@ class ClsStars(DbMotther):
 <p>It's possible to modify and extend the Mother classes also coding some plugin.
 For now, take a look at the submodule mother.plugins: a new section explaining
 how to code new plugins will be published as soon as possible.</p>
+</div>
+<div class="section">
+<h1><a id="simple-database-actions-ii" name="simple-database-actions-ii">Simple Database Actions II</a></h1>
+<p>In the previous chapter we learned how to define DbMother classes, handling
+simple records. The goal of these classes is to build intelligent structures:
+they are extendible with our functions and, as We will see in the next
+sections, they can be extended in a very simple way to handle children and
+relations with a strong introspection.</p>
+<p>But We don't need always such structures: when, for example, We need only to
+handle records on an isolated table, without children or relations, and without
+the need to extend our Mother class with custom methods.</p>
+<p>In such situations, it's possible to use a <strong>MotherFly</strong> class, whithout the
+need to define a DbMother class for each table.</p>
+<p>In the previous section, we defined the class ClsStars:</p>
+<pre class="literal-block">
+class ClsStars(DbMother):
+
+    table_name= 'stars'
+
+    def __init__(self, store= {}, flag= MO_NOA, session= None):
+        DbMother.__init__(self, store, flag, session)
+</pre>
+<p>To perform the same db actions explained before, We don't need to define this
+class: We can dynamically obtain it using the following methods:</p>
+<blockquote>
+<ul class="simple">
+<li>getMotherBuilder(table_name)</li>
+<li>getMotherObj(table_name [, store= {}, flag= MO_NOA, session= None])</li>
+</ul>
+</blockquote>
+<p>For example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; ClsStars= getMotherBuilder('stars')
+&gt;&gt;&gt; type(ClsStars)
+&gt;&gt;&gt; sun_dict= {'star_name': 'sun'}
+&gt;&gt;&gt; sun= ClsStars(sun_dict, MO_SAVE)
+</pre>
+<p>As it's possible to see, the ClsStars is now a MotherFly instance. We can use
+a MotherFly instance at the same way We use a DbMother class.
+So, it's possible to perform the simple database actions explained in the
+previous section without define any class.</p>
+<p>The getMotherObj function is simply a wrapper:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; ClsStars= getMotherBuilder('stars')
+&gt;&gt;&gt; sun= ClsStars(sun_dict, MO_SAVE)
+
+    is eqaul to:
+
+&gt;&gt;&gt; sun= getMotherObj('stars', sun_dict, MO_SAVE)
+</pre>
+<p>Although the usage of getMotherBuilder and getMotherObj is very useful and
+easy, a MotherFly instance does not allow children and relations handling.
+Moreover, the MotherFly instances can not be extended with our methods (not
+in an easy way), or plugins and so on.</p>
+<p>So, the decision to use a MotherFly class or a DbMother class depends on the
+various situations. Obviously, it's always possible to use both.</p>
+<p>It's higly recommended to use a MotherFly instance when We need to perform a
+simple db action, because, generally, it's faster.</p>
+<p>When, instead, We need to handle complex tasks, being the simple db actions
+only a part of them, a DbMother class is better, because We can handle these
+tasks with a Object Oriented behaviour, defining our custom methods:</p>
+<pre class="literal-block">
+class ClsStars(DbMother):
+
+    table_name= 'stars'
+
+    def __init__(self, my_arg1, my_arg2, store= {}, flag= MO_NOA, session= None)
+
+        DbMother.__init__(self, store, flag, session)
+        self.my_arg1= my_arg1
+        self.my_arg2= my_arg2
+
+    def get_arg1(self):
+
+        return self.my_arg1
+
+    def get_star_image(self):
+        something.wget(self.my_arg2)
+
+    ...
+</pre>
 </div>
 <div class="section">
 <h1><a id="handling-multiple-records" name="handling-multiple-records">Handling Multiple Records</a></h1>
@@ -1613,6 +1695,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 </div>
 <div class="section">
 <h1><a id="changelog-history" name="changelog-history">Changelog History</a></h1>
+<p>VERSION = 0.6.4</p>
+<blockquote>
+<ul class="simple">
+<li>mothermapper uses MotherMany for -f option</li>
+</ul>
+</blockquote>
 <p>VERSION = 0.6.3</p>
 <blockquote>
 <ul class="simple">

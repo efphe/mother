@@ -27,7 +27,8 @@ Index:
 
 **The basic principles:**
 
-    * `Simple Database Actions`_: handling a record on a table
+    * `Simple Database Actions I`_: handling a record on a table, first way
+    * `Simple Database Actions II`_: handling a record on a table, second way
     * `Handling Multiple Records`_: handling multiple records on a table
     * `Handling Many Records`_: faster way to handle multiple records on a table
 
@@ -251,8 +252,8 @@ Success!!
 
 
 
-Simple Database Actions
------------------------
+Simple Database Actions I
+-------------------------
 
 
 In this section we will handle simple and single records. We use the persitent 
@@ -417,6 +418,98 @@ redefining the __init__() method and/or adding some function:
 It's possible to modify and extend the Mother classes also coding some plugin.
 For now, take a look at the submodule mother.plugins: a new section explaining 
 how to code new plugins will be published as soon as possible.
+
+Simple Database Actions II
+--------------------------
+
+In the previous chapter we learned how to define DbMother classes, handling
+simple records. The goal of these classes is to build intelligent structures:
+they are extendible with our functions and, as We will see in the next
+sections, they can be extended in a very simple way to handle children and
+relations with a strong introspection. 
+
+But We don't need always such structures: when, for example, We need only to
+handle records on an isolated table, without children or relations, and without
+the need to extend our Mother class with custom methods.
+
+In such situations, it's possible to use a **MotherFly** class, whithout the
+need to define a DbMother class for each table.
+
+In the previous section, we defined the class ClsStars:
+::
+
+    class ClsStars(DbMother):
+    
+        table_name= 'stars'
+
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            DbMother.__init__(self, store, flag, session)
+
+To perform the same db actions explained before, We don't need to define this
+class: We can dynamically obtain it using the following methods:
+
+    - getMotherBuilder(table_name)
+    - getMotherObj(table_name [, store= {}, flag= MO_NOA, session= None])
+
+For example:
+::
+    
+    >>> ClsStars= getMotherBuilder('stars')
+    >>> type(ClsStars)
+    >>> sun_dict= {'star_name': 'sun'}
+    >>> sun= ClsStars(sun_dict, MO_SAVE)
+
+As it's possible to see, the ClsStars is now a MotherFly instance. We can use
+a MotherFly instance at the same way We use a DbMother class. 
+So, it's possible to perform the simple database actions explained in the
+previous section without define any class.
+
+The getMotherObj function is simply a wrapper:
+::
+
+    >>> ClsStars= getMotherBuilder('stars')    
+    >>> sun= ClsStars(sun_dict, MO_SAVE)     
+
+        is eqaul to:
+
+    >>> sun= getMotherObj('stars', sun_dict, MO_SAVE)
+
+Although the usage of getMotherBuilder and getMotherObj is very useful and
+easy, a MotherFly instance does not allow children and relations handling.
+Moreover, the MotherFly instances can not be extended with our methods (not
+in an easy way), or plugins and so on.
+
+So, the decision to use a MotherFly class or a DbMother class depends on the
+various situations. Obviously, it's always possible to use both.
+
+It's higly recommended to use a MotherFly instance when We need to perform a
+simple db action, because, generally, it's faster.
+
+When, instead, We need to handle complex tasks, being the simple db actions
+only a part of them, a DbMother class is better, because We can handle these
+tasks with a Object Oriented behaviour, defining our custom methods:
+::
+
+    class ClsStars(DbMother):
+
+        table_name= 'stars'
+
+        def __init__(self, my_arg1, my_arg2, store= {}, flag= MO_NOA, session= None)
+
+            DbMother.__init__(self, store, flag, session)
+            self.my_arg1= my_arg1
+            self.my_arg2= my_arg2
+
+        def get_arg1(self):
+
+            return self.my_arg1
+
+        def get_star_image(self):
+            something.wget(self.my_arg2)
+
+        ...
+
+
 
 Handling Multiple Records
 -------------------------
