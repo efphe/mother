@@ -3,6 +3,14 @@ Changelog History
 
 VERSION = 0.6.4
 
+	* MotherBox: debugged updateBox
+	* MotherMany is now iterable
+	* MotherFusion is now iterable
+	* MotherBox is now iterable
+	* MotherBox: dropped triggers
+	* initManyManager and initChildManager extended.
+	  children list is not mandatory and children can
+	  be specified by table names.
 	* mothermapper uses MotherMany for -f option
 
 

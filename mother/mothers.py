@@ -185,7 +185,7 @@ def MotherPoolStratus():
     """ MotherPoolStratus() -> string
 
     This is a wrapper of MotherPoolStatus. 
-    The return value is a human readable report."""
+    Differently form MotherPoolStatus, the return value is human readable."""
 
     return """
     Pool Type               ~ %s
@@ -1618,10 +1618,39 @@ class MotherManager:
         if flag_obj: return r_obj
         else: return r_obj.getFields()
 
-    def initManyManager(self, children):
+    def initManyManager(self, children= None):
+        """initManyManager(self [, children= None]) --> None
+        
+        Calling this method, a family of function will be created
+        inside your Mother instance: the ManyManager family.
+
+        `children` is a list or None.
+        If None, for each table child the following methods will be created:
+
+            insertMany<Child>
+            deleteMany<Child>
+            updateMany<Child>
+            loadMany<Child>
+
+        `children` can also be a list of table names. For each table
+        the same methods will be created.
+
+        Finally, `children` can be a list of DbMother classes: this is
+        useful, because it's possible to handle children using your
+        custom DbMother classes.
+
+        * NOTE: methods already defined are not overwritten.
+        """
 
         self.log_info("The initManyManager() methods are not tested deeply: if You "\
                       "encounter bugs, don't panic: please, signal them.")
+
+        if not children:
+            children= [getMotherBuilder(c) 
+                    for c in self._table_children(self.table_name)]
+        else:
+            children= [isinstance(c, str) and getMotherBuilder(c) 
+                        or c for c in children]
 
         def handle_children(builder, flag):
             def fly_handle_children(dlist, fields= None):
@@ -1661,31 +1690,37 @@ class MotherManager:
 
               setattr(self, attr_name, attr)
 
-    def initChildManager(self, children):
-        """initChildManager(self,children) --> None
-        
-        You can define a Mother class for each Child-TABLE.
-        In fact, children is a list of Mother Builders.
-        The following functions will be wrappered:
-            
-            insertChild(Foo,dict)
-            deleteChildren(Foo, filter)
-            updateChildren(Foo, dict, filter)
-            getChild(Foo, dict)
-            getChildren(builder,fields,filter,jbuilder,jfilter,outer,order)
+    def initChildManager(self, children= None):
+        """initChildManager(self [, children= None]) --> None
 
+        Calling this method, a family of function will be created
+        inside your Mother instance: the ChildManager family.
 
-        So, if FOO is a child, you can create the Mother Class
-        Foo and have the methods:
+        `children` is a list or None.
+        If None, for each table child the following methods will be created:
 
-            insertFoo(dict)
-            deleteMultipleFoo(filter)
-            updateMultipleFoo(dict, filter)
-            getFoo(dict)
-            getMultipleFoo(fields, filter, jbuilder, jfilter, outer, order)
+            insert<Child>
+            get<Child>
+            deleteMultiple<Child>
+            updateMultiple<Child>
+            getMultiple<Child>
+
+        `children` can also be a list of table names. For each table
+        the same methods will be created.
+
+        Finally, `children` can be a list of DbMother classes: this is
+        useful, because it's possible to handle children using your
+        custom DbMother classes.
 
         * NOTE: methods already defined are not overwritten.
         """
+
+        if not children:
+            children= [getMotherBuilder(c) 
+                    for c in self._table_children(self.table_name)]
+        else:
+            children= [isinstance(c, str) and getMotherBuilder(c) 
+                        or c for c in children]
 
         def insert_child(builder):
             def fly_insert_child(d):
@@ -1793,27 +1828,31 @@ class MotherManager:
                 setattr(self, attr_name, attr)
 
     def initRelationManager(self, rels):
-        """initRelationManager(children) --> None
-        
-        This is a magic function.
-        It's a wrapper for the methods:
 
-            - assigRelation
-            - joinRelation
-            - dropRelation
-            - dropRelations
-            - relParams
+        """initRelationManager(self, rels) --> None
 
-        The wrappers will be:
+        Calling this method, a family of function will be created
+        inside your Mother instance: the RelationManager family.
 
-            - assigFoo
-            - joinFoo
-            - dropFoo
-            - dropMultipleFoo
-            - paramsFoo
+        `rels` is a list of DbMother classes or table names.
+        For each related table, the following methods will be created:
 
-        NOTE: methods already defined are not overwritten.
+            assign<Rel>
+            join<Rel>
+            drop<Rel>
+            dropMultiple<Rel>
+            updateMultiple<Rel>
+            parmas<Rel>
+
+        `children` can be a list of DbMother classes: this is
+        useful, because it's possible to handle related records using your
+        custom DbMother classes.
+
+        * NOTE: methods already defined are not overwritten.
         """
+       
+        rels= [isinstance(c, str) and getMotherBuilder(c) 
+                    or c for c in rels]
 
         def assign_rel(builder):
             def fly_assign_rel(d, flag= MO_NOA, params= {}):
@@ -1897,7 +1936,7 @@ class MotherManager:
             attr_name= camel(rtbl, 'params')
             if not hasattr(self, attr_name):
                 attr= rel_params(rel)
-                attr.__doc__=\
+                attr.__doc__=                                                               \
                     " %s(obj [,fields= None, flag_obj= False]) --> dict Mother Object\n\n"  \
                     "Returns, depending on flag_obj,  a dict or a Mother Object that\n"     \
                     "represents the relation between `self' and the record on the table\n"  \
@@ -1916,17 +1955,19 @@ class MotherManager:
 #
 
 class MotherBox(DbOne):
+
     def __init__(self, builder, filter= None, flag= MO_NOA, 
                     fields= None, order= None, session= None, 
-                    distinct= False, notriggers= False):
+                    distinct= False):
 
         iface= session or DbOne
         iface.export_iface(self)
         self.session= session
 
-        self.builder= builder
+        self.builder= isinstance(builder, str) \
+                and getMotherBuilder(builder) or builder
+
         self.momma= builder(session= session)
-        self.notriggers= notriggers
     
         if filter:
             if not isinstance(filter, MoFilter):
@@ -1953,33 +1994,21 @@ class MotherBox(DbOne):
             return
 
         else:
-            self.log_int_raise("Invalid Flag %s for MotherBox", ERR_COL(flag))
+            self.log_int_raise("Invalid Flag %s for MotherBox", 
+                    ERR_COL(flag))
 
         del self.momma
 
 
     def __len__(self):
+
         return len(self._store)
 
-    def _retrieve_mothers(self, filter):
+    def __iter__(self):
+        for d in self._store:
+            yield d
 
-        where= filter or ''
-        tbl= self.momma.table_name
-        fields= self.momma.pkeys
-        fields= _J([f for f in fields])
-
-        qry= "SELECT %(fields)s from %(tbl)s %(where)s" % locals()
-
-        res= self.mr_query(qry)
-        session= self.session
-        mothers= [self.builder(d, session= session) for d in res]
-        return mothers
-
-    def _trigger_mothers(self, mothers, flag, when):
-        for m in mothers:
-            m.trigger(flag, when)
-
-    def _loadBox(self, filter, fields, order, distinct):
+    def loadBox(self, filter, fields, order, distinct):
 
         tbl= self.builder.table_name
 
@@ -2009,31 +2038,7 @@ class MotherBox(DbOne):
         self.log_info("Action %s.", OKI_COL("completed"))
 
 
-    def loadBox(self, filter, fields, order, distinct):
-
-        if self.notriggers or not self.momma.has_trigger(MO_LOAD):
-            self._loadBox(filter, fields, order, distinct)
-            return 
-            
-        self.log_info("Launching Triggers on Box (MO_LOAD)...")
-        ms= self._retrieve_mothers(filter)
-        self._trigger_mothers(ms, MO_LOAD, MO_BEFORE)
-        self._loadBox(filter, fields, order, distinct)
-        self._trigger_mothers(ms, MO_LOAD, MO_AFTER)
-
-    def updateBox(self, d, filter= None):
-
-        if self.notriggers or not self.momma.has_trigger(MO_UP):
-            self._updateBox(d, filter)
-            return
-
-        self.log_info("Launching Triggers on Box (MO_UP) operation...")
-        ms= self._retrieve_mothers(filter)
-        self._trigger_mothers(ms, MO_UP, MO_BEFORE)
-        self._updateBox(d, filter)
-        self._trigger_mothers(ms, MO_UP, MO_AFTER)
-
-    def _updateBox(self, filter, d):
+    def updateBox(self, filter, d):
         """ updateBox(self, filter, d): --> None
 
         Update a set of records.
@@ -2076,18 +2081,6 @@ class MotherBox(DbOne):
         self.log_info("Action %s.", OKI_COL("completed"))
 
     def deleteBox(self, filter=None):
-
-        if self.notriggers or not self.momma.has_trigger(MO_DEL):
-            self._deleteBox(filter)
-            return 
-        
-        self.log_info("Launching Triggers on Box (MO_DEL) operations...")
-        ms= self._retrieve_mothers(filter) 
-        self._trigger_mothers(ms, MO_DEL, MO_BEFORE)
-        self._deleteBox(filter)
-        self._trigger_mothers(ms, MO_DEL, MO_AFTER)
-
-    def _deleteBox(self, filter=None):
         """ deleteBox(self, filter= None, stored= False) --> None
 
         delete from DB.
@@ -2115,16 +2108,6 @@ class MotherBox(DbOne):
         else:
             return self._store
 
-    def getFields(self, flag_obj= False):
-        """ getRecords(self, flag_obj= False) -> list(dict) or list(Mothers)
-
-        The return value depends on flag_obj.
-        MotherBox.getFields is obsolete! Use MotherBox.getRecords!
-        """
-        self.log_warning(ERR_COL(
-            "Obsolete Method MotherBox.getFields(). Use getRecords() instead! "
-            "This method will be removed from Mother."))
-        return self.getRecords(flag_obj)
 
 #
 ##
@@ -2179,6 +2162,10 @@ class MotherFusion(_DbMap):
         else:
             self.rtbl= rtbl
             self.joinBuilders()
+
+    def __iter__(self):
+        for d in self._store:
+            yield d
 
     def swap(self, a, b, fields):
 
@@ -2373,6 +2360,11 @@ class MotherMany(_DbMap):
     def __len__(self):
 
         return len(self._records)
+
+    def __iter__(self):
+
+        for d in self.store:
+            yield d
 
     def addRows(self, rows):
 
