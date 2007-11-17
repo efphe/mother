@@ -3,6 +3,7 @@ Changelog History
 
 VERSION = 0.6.4
 
+	* License is applied to each source file
 	* MO_ULOAD and DbMother.uload dropped
 	* MotherBox.getFields() dropped
 	* triggers is now a plugin, so DbMother is lighter
