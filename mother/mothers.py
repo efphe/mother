@@ -18,36 +18,23 @@ Where the main Mother Classes and methods are defined:
  * MotherPoolStratus
 """
             
-from commons import ERR_COL, INF_COL, OKI_COL
-from abdbda import DbOne, MoFilter
-from speaker import Speaker
+from mother.speaker import Speaker
 
 #
-##
-### Mother Symbols
-##
+## Mother Symbols
 #
 
-#
-## MoThEr: init flags.
-#
-
-MO_NOA    = 0     # No Action
-MO_DEL    = 1     # Del Action
-MO_UP     = 2     # Update Action
-MO_SAVE   = 3     # Save Action
-MO_LOAD   = 4     # Load Action
-MO_ULOAD  = 5     # Unsafe Load Action
-
-MO_BEFORE = 0     # Before?!?
-MO_AFTER  = 1     # After?!?
+from mother.commons import ERR_COL, INF_COL, OKI_COL
+from mother.commons import MO_NOA, MO_DEL, MO_UP, MO_SAVE, MO_LOAD
+from mother.commons import MO_BEFORE, MO_AFTER
 
 #
 ## MoThEr: SQL symbols.
 #
 
-from abdbda import SQL_DEFAULT, SQL_NULL, SQL_TRUE, SQL_FALSE
-from abdbda import _J, _A
+from mother.abdbda import DbOne, MoFilter
+from mother.abdbda import SQL_DEFAULT, SQL_NULL, SQL_TRUE, SQL_FALSE
+from mother.abdbda import _J, _A
 
 #
 ##
@@ -83,8 +70,8 @@ def init_mother(cfile, fnaming= None):
         return
 
     d= {}
-    import speaker
-    import abdbda
+    import mother.speaker as speaker
+    import mother.abdbda as abdbda
     names_dict= speaker.__dict__.copy()
     names_dict.update(abdbda.__dict__)
     execfile(cfile, names_dict, d)
@@ -127,14 +114,13 @@ def init_mother(cfile, fnaming= None):
             res_str= fnaming('foo')
             assert isinstance(res_str, str)
         except:
-            from speaker import RED
             Speaker.log_warning(
                     "Testing %s. Default fnaming function "
-                    "will be used.", RED('Failed!'))
+                    "will be used.", ERR_COL('Failed!'))
             fnaming= None
     
     if not fnaming:
-        from commons import MotherNaming
+        from mother.commons import MotherNaming
         fnaming= MotherNaming
 
     DbMother.MotherNaming= staticmethod(fnaming)
@@ -157,7 +143,7 @@ def MotherSession(name= None):
     session.endSession(). This call commit the queries and, if the Mother
     Pool is used, put the connection inside the pool. """
 
-    from abdbda import MotherPool
+    from mother.abdbda import MotherPool
 
     if not name:
         import random
@@ -175,7 +161,7 @@ def MotherPoolStatus():
     max: maximum number of connections allowed on the Pool.
     active: number of connections used now."""
 
-    from abdbda import MotherPool
+    from mother.abdbda import MotherPool
 
     if not MotherPool._pool_initialized:
         return ('NoPool', -1, -1, -1, -1, -1)
@@ -211,7 +197,6 @@ class _DbMap(Speaker):
         if flag == MO_NOA: return _do_nothing
         if flag == MO_SAVE: return obj.insert
         if flag == MO_LOAD: return obj.load
-        if flag == MO_ULOAD: return obj.uload 
         obj.log_int_raise("Invalid flag %s", ERR_COL(flag))
 
     @staticmethod
@@ -498,17 +483,8 @@ class DbMother(_DbMap):
             MO_UP: 'MO_UP', 
             MO_SAVE: 'MO_SAVE', 
             MO_LOAD: 'MO_LOAD', 
-            MO_ULOAD: 'MO_ULOAD'
             }
         
-    @staticmethod
-    def _trigger_actions(obj, flag):
-        if flag == MO_UP: return obj._update
-        if flag == MO_DEL: return obj._delete
-        if flag == MO_SAVE: return obj._insert
-        if flag == MO_LOAD: return obj._load
-        obj.log_int_raise("Invalid flag %s", ERR_COL(flag))
-
     def __init__(self, store= {}, flag= MO_NOA, session= None):
         """ __init__(dict_values, flag, session)
         """
@@ -553,21 +529,17 @@ class DbMother(_DbMap):
         self._initStore(store, flag)
         # ... and enjoy ;)
 
-    def initTriggers(self):
-        """ initTriggers() -> None
-
-        Initialize triggers. Don't call it directly. Use
-        addTrigger instead.\n"""
-
-        self.triggers_map= {}
-        t= self.triggers_map
-            
-        for flag in [MO_UP, MO_LOAD, MO_SAVE, MO_DEL]:
-            t[flag]= {}
-            for when in [MO_AFTER, MO_BEFORE]:
-                t[flag][when]= []
-
-        self._trigger_initialized= True
+    def __str__(self):
+        """ __str__() --> string 
+        """
+        u= INF_COL("Unset")
+        res= "  Table |%s|\n\n" % self.table_name
+        sget= self._store.get
+        for k in self.fields:
+            val= sget(k,u)
+            sep= k in self._moved and '*' or '~'
+            res+= ("  %12s %s %s\n" % (k,sep,str(val)))
+        return res
 
     def _initStore(self, store, flag):
         """ _initStore(store, flag) --> None
@@ -599,27 +571,7 @@ class DbMother(_DbMap):
 
     def unsetParanoia(self):
         setattr(self, 'paranoid', 0)
-        
 
-#
-##
-### Internal Core
-##
-#
-    def _triggers_are_initialized(self):
-        return hasattr(self, 'triggers_map')
-
-    def __str__(self):
-        """ __str__() --> string 
-        """
-        u= INF_COL("Unset")
-        res= "  Table |%s|\n\n" % self.table_name
-        sget= self._store.get
-        for k in self.fields:
-            val= sget(k,u)
-            sep= k in self._moved and '*' or '~'
-            res+= ("  %12s %s %s\n" % (k,sep,str(val)))
-        return res
 
 #
 ##
@@ -841,79 +793,6 @@ class DbMother(_DbMap):
         if not self.session:
             self.commit()
 
-    def get_triggers(self, flag, when):
-        """ get_triggers(flag, when) -> list(functions)
-
-        Returns triggers.
-        """
-
-        if not self._triggers_are_initialized():
-            self.log_int_raise("Trigger are not initialized.")
-
-        t= self.triggers_map
-        try:
-            d= t[flag]
-        except:
-            self.log_int_raise("get_trigger(): invalid flag %s.", ERR_COL(flag))
-
-        try:
-            l= d[when]
-        except:
-            self.log_int_raise("get_trigger(): invalid time %s.", ERR_COL(when))
-
-        return l
-
-    def get_flag_triggers(self, flag):
-        """ get_flag_triggers(flag) -> list(functions)
-
-        Returns triggers.
-        """
-        return  self.get_triggers(flag, MO_BEFORE) + \
-                self.get_triggers(flag, MO_AFTER)
-
-    def has_trigger(self, flag):
-        """ has_trigger(flag) -> bool
-
-        Is there a trigger for the flag `flag`?
-        """
-        if not self._triggers_are_initialized():
-            return False
-
-        return len(self.get_flag_triggers(flag)) > 0
-
-    def add_trigger(self, flag, when, trigger):
-        """ add_trigger(flag, when, f) --> None
-
-        flag= MO_LOAD, MO_SAVE, MO_DEL, MO_UP
-        when= MO_AFTER, MO_BEFORE
-
-        f is the trigger: a python function
-        """
-
-        if not self._triggers_are_initialized():
-            self.initTriggers()
-
-        self.triggers_map[flag][when].append(trigger)
-
-    def trigger(self, flag, when, *args):
-        """ trigger(flag, when, *args) --> None
-
-        flag= MO_LOAD, MO_SAVE, MO_DEL, MO_UP
-        when= MO_AFTER, MO_BEFORE
-
-        execute the tasked triggers for action flag and when
-        """
-
-        if not self._triggers_are_initialized():
-            self.log_int_raise("Triggers are not initialized.")
-
-        l= self.get_triggers(flag, when)
-        when_str= when == MO_AFTER and 'After' or 'Before'
-        for f in l:
-            f(*args)
-            self.log_info("Trigger %s (%s-%s) Fired!", 
-                    OKI_COL(f.func_name), when_str, self._mo_flags[flag])
-
     def setField(self, field_name, field_value):
         """ setField(field_name, field_value) --> None
 
@@ -1073,7 +952,7 @@ class DbMother(_DbMap):
         mf= fields and set(fields) or set(self._fieldsMissing())
 
         if not mf <= self.fields:
-            from eccez import SelectError
+            from mother.eccez import SelectError
             self.log_raise("Invalid Fields %s for table %s.",
                     ERR_COL(list(mf - self.fields)), 
                     self.table_name, SelectError)
@@ -1090,35 +969,13 @@ class DbMother(_DbMap):
         # Useful return, that's all
         return self.getFields()
 
-    def _triggered_action(self, flag, *args):
-
-        f= self._trigger_actions(self, flag)
-
-        if not self._triggers_are_initialized() or \
-           not self.get_flag_triggers(flag):
-            res= f(*args)
-        else:
-            self._safeBeginTrans()
-            try:
-                self.trigger(flag, MO_BEFORE)
-                res= f(*args)
-                self.trigger(flag, MO_AFTER)
-
-            except Exception, s:
-                self._safeRollback()
-                self.log_int_raise(str(s))
-
-            self._safeCommit()
-
-        self.log_info("Action %s.", OKI_COL("completed"))
-        return res
-
     def delete(self):
         """ delete() --> None
 
         Really do you want to kill me?
         """
-        self._triggered_action(MO_DEL)
+        self._delete()
+        self.log_info("Action %s.", OKI_COL("completed"))
     
     def load(self, fields= None):
         """ load([fields= None]) --> dict
@@ -1127,7 +984,9 @@ class DbMother(_DbMap):
         if fields is not None, only fields specified will
         be loaded.
         """
-        return self._triggered_action(MO_LOAD,fields)
+        res= self._load(fields)
+        self.log_info("Action %s.", OKI_COL("completed"))
+        return res
 
     def insert(self):
         """ insert() --> None
@@ -1135,7 +994,8 @@ class DbMother(_DbMap):
         Insert to db the values stored in store.
         For field with no value, SQL_DEFAULT is assumed.
         """
-        self._triggered_action(MO_SAVE)
+        self._insert()
+        self.log_info("Action %s.", OKI_COL("completed"))
         
     def update(self, updict= None):
         """ update([updict= None]) --> None
@@ -1148,16 +1008,8 @@ class DbMother(_DbMap):
         if updict:
             self.setFields(updict)
 
-        self._triggered_action(MO_UP)
-
-    def uload(self, fields= None):
-        """ uload([fields= None]) --> dict
-
-        """
-        self.log_warning(ERR_COL("Obsolete action MO_ULOAD: from Mother "
-                         "0.6.0 MO_ULOAD and MO_LOAD are equivalent. "
-                         "MO_ULOAD will be dropped. Use MO_LOAD."))
-        return self.load(fields)
+        self._update()
+        self.log_info("Action %s.", OKI_COL("completed"))
 
     def refresh(self, d, flag= MO_NOA):
         """ refresh(d[,flag=MO_NOA]) --> None
@@ -1804,12 +1656,10 @@ class MotherManager:
                 attr.__doc__=\
                         " %s(dict) --> DbMother\n\n"                                    \
                         "retrieve a unique child.\n"                                    \
-                        "Here dict acts has a filter. Note that Mother will try to\n"   \
-                        "'MO_ULOAD' the record, so dict does not have to contain\n"     \
-                        "necessarily the primary key for your record.\n"                \
+                        "Here dict acts has a filter and does not have to contain\n"    \
+                        "the primary key for your record.\n"                            \
+                        "If a unique record is not found, an exception will be raised." \
                         "Don't specify the foreign key: it's assigned automatically.\n" \
-                        "This method has the same beahaviour of DbMother.uload(): \n"   \
-                        "if a unique record is not found, an exception will be raised." \
                         % attr_name
 
                 setattr(self, attr_name, attr)

@@ -1,7 +1,7 @@
 
-from speaker import Speaker
-from commons import OKI_COL, INF_COL, ERR_COL
-from eccez import QueryError, ConnectionError, BrokenConnection, InvalidFilter
+from mother.speaker import Speaker
+from mother.commons import OKI_COL, INF_COL, ERR_COL
+from mother.eccez import QueryError, ConnectionError, BrokenConnection, InvalidFilter
 
 """
 The Mother DB engine.
@@ -889,7 +889,7 @@ def init_abdbda(conf, forced= {}):
     # will be possible to log them
     err= None
     if not isinstance(conf, dict):
-        import speaker
+        import mother.speaker as speaker
         loc= {}
         names_dict= speaker.__dict__.copy()
         names_dict.update(globals())
@@ -904,7 +904,7 @@ def init_abdbda(conf, forced= {}):
     loc.update(forced)
 
     if hasattr(Speaker, '_spkr_initialized'):
-        from speaker import init_speaker
+        from mother.speaker import init_speaker
         init_speaker(loc)
 
     # now that speaker is up, error is printable

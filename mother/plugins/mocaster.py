@@ -41,9 +41,11 @@ wrong.mfields means missing fields (required but not present).
 
 
 class MoWrongFields(Exception):
+
     def __init__(self, ifields, mfields):
         self.ifields = ifields
         self.mfields = mfields
+
     def __str__(self):
         l= self.ifields + self.mfields
         return ','.join([str(k) for k in l])

@@ -4,11 +4,6 @@ import logging
 The Mother logger: Speaker.
 """
 
-
-##    WoC    ##
-# |{speaker}| #
-##           ##
-
 # From Syslog: facilities
 LOG_KERN= 0
 LOG_USER= 8

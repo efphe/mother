@@ -3,6 +3,11 @@ Changelog History
 
 VERSION = 0.6.4
 
+	* MO_ULOAD and DbMother.uload dropped
+	* MotherBox.getFields() dropped
+	* triggers is now a plugin, so DbMother is lighter
+	* imports are now absolute
+	* Manual: new section for MotherFly
 	* MotherBox: debugged updateBox
 	* MotherMany is now iterable
 	* MotherFusion is now iterable
