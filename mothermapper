@@ -52,17 +52,21 @@ twirl_len=len(twirl_sequence)
 
 
 def twirl():
+
     global twirl_sequence
     global twirl_spinops
     global twirl_len
+
     twirl_spinops=(twirl_spinops + 1) % twirl_len
     outlog("\b\b "+ twirl_sequence[twirl_spinops])
+
     return True
 
 
 
 _QUIET= False
 def quiet():
+
     global _QUIET
     _QUIET= True
 
@@ -71,14 +75,17 @@ def quiet():
 #
 
 def loginfo(s):
+
     sys.stderr.write(s)
     sys.stderr.flush()
 
 def stdoutinfo(s):
+
     sys.stdout.write(s)
     sys.stdout.flush()
 
 def outlog(s):
+
     if not _QUIET:
         loginfo(s)
 
@@ -90,23 +97,28 @@ _DROP_TABLES_SPEED_UP= False
 #
 
 class God:
+
     def __init__(self, devil):
+
         self.children= set()
         self.orphaned= set()
         self.devil= devil
         self.disordered= set()
 
     def clean(self):
+
         self.children=set()
         self.orphaned= set()
         self.disordered= set()
         self.devil.clean()
 
     def load_tables(self):
+
         tables= DbOne._iface_instance.get_tables()
         return tables
 
     def fill_God(self):
+
         OKI_COL_DONE= OKI_COL("Done")+'\n'
         outlog( "\tLoading DB World...   ")
         sys.stdout.flush()
@@ -121,15 +133,18 @@ class God:
         outlog("\b\b %s" % OKI_COL_DONE)
 
     def add_child(self, c):
+
         self.children.add(c)
 
     def find_fathers(self, tbl):
+
         res=set()
         for child in self.children:
             res |= child.find_fathers(tbl)
         return res
 
     def build_God(self):
+
         OKI_COL_DONE= OKI_COL("Done")+'\n'
         outlog("\tBuilding DB Picture...   ")
         sys.stdout.flush()
@@ -180,13 +195,17 @@ class God:
 
 
 class Devil:
+
     def __init__(self):
+
         self.fathers=set()
 
     def add_father(self, f):
+
         self.fathers.add(f)
 
     def pop_damned(self):
+
         res=[]
         second_level= set()
         for f in self.fathers:
@@ -203,11 +222,14 @@ class Devil:
         return res
     
     def clean(self):
+
         self.fathers=set()
 
 
 class Tbl:
+
     def __init__(self, name):
+
         self.name= name
         self.fields= []
         self.pkeys= []
@@ -221,55 +243,68 @@ class Tbl:
         self.load_fkeys()
 
     def get_father_map(self, tbl):
+
         for a,b,c in self.fathers_map:
             if b==tbl:
                 return a,c
 
     def is_god_child(self):
+
         if len(self.fathers_map):
             return False
         return True
     
     def is_devil_father(self):
+
         if len(self.children):
             return False
         return True
 
     def load_pkeys(self):
+
         self.pkeys= DbOne._iface_instance.get_table_pkeys(self.name)
 
     def load_fkeys(self):
+
         res= DbOne._iface_instance.get_table_fkeys(self.name)
         for mk, tbl, fk in res:
             self.fathers_map.append((mk, tbl, fk))
             self.unlinked_fathers.add(tbl)
 
     def load_keys(self):
+
         self.keys= DbOne._iface_instance.get_table_fields(self.name)
 
     def add_father(self, tbl_obj):
+
         tbl= tbl_obj.name
         self.unlinked_fathers.remove(tbl)
         self.fathers.add(tbl_obj)
         tbl_obj.add_child(self)
 
     def del_father(self, tbl_obj):
+
         self.fathers.remove(tbl_obj)
         tbl_obj.children.remove(self)
 
     def add_child(self, tbl_obj):
+
         self.children.add(tbl_obj)
 
     def is_parented(self):
+
         return len(self.unlinked_fathers)==0
 
     def get_fathers(self):
+
         return self.fathers.copy()
 
     def get_unlinked_fathers(self):
+
         return list(self.unlinked_fathers)
 
     def find_fathers(self, tbl):
+
         res=set()
         if self.name==tbl:
             res.add(self)
@@ -277,8 +312,11 @@ class Tbl:
             res |= child.find_fathers(tbl)
         return res
 
+
 class MotherWorld:
+
     def __init__(self, scripts= []):
+
         # Devil first, and after that, God.
         devil= Devil()
         self.devil= devil
@@ -335,10 +373,12 @@ class MotherWorld:
         outlog(OKI_COL("Done")+'\n')
 
     def create_pcfile(self):
+
         ccfile= self.pcfile
         self._create_cfile(ccfile, 0)
 
     def create_scfile(self):
+
         ccfile= self.scfile
         self._create_cfile(ccfile, 1)
         #loginfo("Note: SQLite support is not tested deeply; "
@@ -346,21 +386,18 @@ class MotherWorld:
                 #"will be fixed!\n")
 
     def add_symbols_file(self, f):
-        #if not f.endswith('.py'):
-        #    loginfo("Symbols file has to be a python file. "\
-        #            "%s won't be loaded.\n" % ERR_COL(f))
-        #    return -1
-        
-        #self.symbols_files.append(f[:-3])
+
         self.symbols_files.append(f)
         return 0
 
     def load_symbols_file(self):
+
         f= self.symbols_files.pop(0)
         init_mother(self.cfile)
         self._load_symbols_files(f)
 
     def _update_table_symbols(self, t, news, ses):
+
         outlog("\tWorking on table %s... " % OKI_COL(t))
         builder= getMotherBuilder(t)
         olds= MotherBox(builder, None, MO_LOAD, session= ses).getRecords()
@@ -402,8 +439,7 @@ class MotherWorld:
 
 
     def _load_symbols_files(self, f):
-        #p= os.path
-        #pyfil= "%s.py" % f
+
         outlog("Processing symbol file %s ...\n" % OKI_COL(f))
 
         space= {}
@@ -449,6 +485,7 @@ class MotherWorld:
         self.world_created= True
 
     def pop_damned(self):
+
         return self.devil.pop_damned()
 
     def drop_all_tables(self):
@@ -486,6 +523,7 @@ class MotherWorld:
         outlog("Dropped %s tables\n" % ERR_COL(count))
 
     def drop_all_records(self):
+
         self.create_world()
 
         world= copy.copy(self)
@@ -502,13 +540,16 @@ class MotherWorld:
         del world
 
     def add_script(self, s):
+
         self.scripts.append(s)
 
     def exec_script(self):
+
         s=self.scripts.pop(0)
         self._exec_script(s)
 
     def _exec_script(self, script):
+
         OKI_COL_DONE= OKI_COL("Done")+'\n'
         outlog("Executing script %s... " % INF_COL(script))
         try:
@@ -528,6 +569,7 @@ class MotherWorld:
         outlog(OKI_COL_DONE)
 
     def find_dbstruct_dest(self):
+
         cfile= self.cfile
         d= {}
         from mother import speaker
