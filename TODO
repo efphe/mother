@@ -5,20 +5,11 @@
   for each table on the DB, using MotherManager automatically when a 
   table has children or relations. Perhaps this is not a good idea
 
-* Let use MoFilter at the upper level.
-    Done? Test!
-
-* adding other database is now easy
-  It seems that only pgres and sqlite are mother compatible
- 
-* Implements iterator on MotherBox and MotherFusion
-
-* initChildManager and initRelationManager, if called without args,
-  have to guess which tables to configure
- 
 * drop relation: is it necessary to load related records?
 
 * MotherFusion: getRecords() splitted for tables
 
 * MotherFusion: is it possible to perform multiple joins?
    example: MotherFusion(ClsStars, ClsMoons)
+
+* MotherCaster: implement mapping dict
