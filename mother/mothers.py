@@ -951,7 +951,7 @@ class DbMother(_DbMap):
         qry= self._sqlInsert()
         self._moved.clear()
 
-    def _update(self):
+    def _update(self, updict= None):
 
         # Really need to update?
         if not self._moved:
