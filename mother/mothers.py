@@ -972,7 +972,7 @@ class DbMother(_DbMap):
 
         # Delete all informations...  
         self._moved.clear()
-        self._store.clear()
+        #self._store.clear()
 
     def _load(self, fields= None):
 

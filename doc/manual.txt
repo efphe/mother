@@ -49,12 +49,15 @@ Index:
     * `Transactions`_: how to use transactions
     * `Sessions and Threaded Environments`_: isolated working sessions
 
+**Plugins:**
+
+    * `MotherTrigger`_: Plugin: how to trigger DbMother classes
+    * `MotherCaster`_: how to check and cast fields
+
 **Appendix:**
 
     * `Logging`_: handling logs 
-    * `Triggers`_: define triggers
     * `Custom Complex Filters`_: avoid SQL injection 
-    * `Using Mother without Class Definition`_: under the hood
     * `Copyright and License`_
     * `Changelog history`_
 
@@ -581,6 +584,12 @@ do:
     >>> filter= {'star_mass': 15}
     >>> MotherBox(ClsStars, filter= filter, fields= fup, flag= MO_UP)
 
+Finally, a MotherBox instance is iterable:
+::
+
+    >>> for record in MyBox:
+    ...     print record
+
 
 Handling Many Records
 ---------------------
@@ -685,6 +694,12 @@ class and added with addRows().
 For the MO_LOAD action, instead, the results are the records fetched from the
 database.
 
+Remember that a MotherMany instance is iterable:
+::
+
+    >>> for record in momma:
+    ...     print record
+
 
 Handling Children
 -----------------
@@ -719,6 +734,28 @@ Note that we have subclassed the ClsStars class with **MotherManager** and calle
 the **initChildManager()** method to specify that we want to handle planets
 children. There is no need to call initChildManager() on the __init__ method.
 It's possible to call it manually, for example when We need it.
+
+Children can be specified also as table names:
+::
+
+    class ClsStars(DbMother, MotherManager):
+        table_name= 'stars'
+        def __init__(self, store= {}, flag= MO_NOA, session= None):
+            self.initChildManager(['planets'])
+            DbMother.__init__(self, store, flag, session)
+
+So, which is the best way? Using table names does not require classes
+definition: in this example there is no need to define ClsStars. 
+
+Using custom classes is more powerful, because when children will be handled,
+there will be the chance to handle children with your custom classed insted of
+handling them with a MotherFly class.
+
+Another important point is: there is no need to specify a list of children.
+If initChildManager() is called without arguments, Mother is able to
+understand which children have to be handled. 
+In other words, if no argument is specified, children defaults to the list of
+all children, specified by table names.
 
 Now, let's create the Sun star and insert the planet Earth:
 ::
@@ -843,6 +880,11 @@ will produce the following queries:
     INSERT INTO planets (planet_name, star_id) VALUES ('mars', 1);
 
 The call returns a MotherMany instance.
+
+As for initChildManager, it's possible to specify a list of table names
+instead of a list of Mother classes. 
+Once more, there is no need to specify the list: if no argument is used
+calling initManyManager, the magic methods will be created for each child.
 
 Note that, as for the MotherMany class, for the SELECT and UPDATE actions We
 can provide a list of fields: this repeats exactly the MotherMany behaviour.
@@ -1121,6 +1163,11 @@ LEFT join:
 
 Note that, whed using side, the order of the two Mother builders is important.
 
+Finally, a MotherFusion instance is iterable:
+::
+
+    >>> for record in momma:
+    ...     print record
 
 
 
@@ -1315,7 +1362,6 @@ with the last commit() statement inside bar() itself.
 Obviously you can call directly foo(), obtaining now a classic behaviour.
 
 
-
 Sessions and Threaded Environments
 ----------------------------------
 
@@ -1419,13 +1465,138 @@ Finally, to monitor the connection pool, use the following methods:
     >>> print MotherPoolStratus()
 
 
+MotherTrigger
+-------------
+
+We can define some triggers to be fired before or after DbMother actions.
+This feature requires the usage of the MotherTrigger class. To use it, We
+have to subclass our DbMother class with it.
+
+Explainig this feature with an example is the faster way.
+Suppose that We want to send a mail to some God after a Lifeform extinction 
+from our Universe.
+We can do the following:
+::
+    
+     from mother.mothers import *
+     from mother.plugins import MotherTrigger
+
+     class Lifeform(DbMother, MotherTrigger):
+    
+       table_name= 'stars'
+    
+       def __init__(self, my_god= 'Shiva', store= {}, 
+                        flag= MO_NOA, session= None):
+    
+           self.my_god= my_god
+           self.add_trigger(MO_DEL, MO_AFTER, self.gods_alert)
+           DbMother.__init__(self, store, flag, session)
+    
+       def gods_alert(self):
+    
+           my_god= self.my_god
+           life_name= self.getField('life_name')
+           sub= "Lifeform Extinction"
+           body= "The Lifeform %s is dead." % life_name
+           sendmailto(my_god, sub, body)
+
+Each action flag (MO_SAVE, MO_DEL, MO_UP and MO_LOAD) can be used with the
+add_trigger() call. To trigger function before an action, it's possible to use 
+the MO_BEFORE symbol:
+::
+
+           self.add_trigger(MO_DEL, MO_BEFORE, self.gods_alert)
+
+.. Important:: 
+    Triggers have to be called before the DbMother.__init__() call, otherwise
+    they will be ignored when using an action flag during the initialization.
+
+
+MotherCaster
+------------
+
+The MotherCaster plugin has two goals:
+
+  * Provide a validation for fields types
+  * Provide a validation for required fields
+
+The plugin is very useful when Mother is used with a Web Form, because it's 
+possible to control fields consistency (types) and fields presence (required 
+fields).
+
+The Plugin is simple: a DbMother class has to be subcalssed with the
+MotherCaster class, which is contained in mother.plugins.
+After that, We need to define an internal dict.
+
+Let's see an example:
+::
+
+    from mother.mothers import DbMother, MO_NOA
+    from mother.plugins.mocaster import *
+
+    class ClsStars(DbMother, MotherCaster):
+
+      cast_fields= {
+          star_mass: int,
+          star_age: int,
+          star_name: str }
+
+      # Optionally...
+      required_fields= ['star_age']
+
+      def __init__(self, d= {}, flag= MO_NOA, session= None):
+
+          MotherCaster.__init__(self, autocast= True)
+          DbMother.__init__(self, d, flag, session)
+
+
+Note that:
+
+  * cast_fields does not have to contain all fields for the table.
+  * required_fields is optional and the previous consideration apply there.
+
+When a ClsStars is initialized, the following happens:
+
+  * fields are checked: if they have a wrong type, a casting is automatically 
+    done (auotcast= True). 
+
+  * if a provided field is not present in the table stars, it's 
+    dropped (note that this does not depend on cast_fields or required_fields
+    declarations).
+
+  * Mother controls if all required_fields are provided.
+
+If an error occurs, the following exception will be raised: MoWrongFields.
+This is more then an exception: it has the following attributes: **ifields** and 
+**mfields**. Ifields is a list of invalid fields, while mfields is a list of 
+missing fields (they are required but absent):
+::
+ 
+    >>> MyDict= dict(star_name= 19, star_age= '12', not_existent_field=1)
+    >>> MyStar= ClsStars(MyDict, MO_NOA)
+
+    # Here, star_name becomes '19' and star_age 12. not_existent_field 
+    # is silently dropped.
+
+    >>> MyDict= dict(star_name= 'sun', star_mass='www')
+    >>> try:
+    ...  MyStar= ClsStars(MyDict, MO_NOA)
+    ... except MoWrongFields, errors:
+    ...  print "Invalid types:", errors.ifields
+    ...  print "Missing fields:", errors.mfields
+    >>> 
+
+Here, star_mass is invalid because it's impossible to cast it to an 
+int, and star_age, which is a required field, is missing.
+
+
 Logging
 -------
 
-Logging, likw the pool, is configurable on the Mother configuration file.
+Logging, like the pool, is configurable on the Mother configuration file.
 It's possbile to log to standard output, to file (with file rotation
 capabilites), to mail and to syslog (this requires to enable syslog tcp
-daemon, because windows does not support Unix socket).
+daemon, because windows does not support Unix sockets).
 
 Once the logging features are tuned on the Mother configuration file, it's
 possbible to begin to produces some string activity:
@@ -1466,35 +1637,6 @@ it, You can send some logs via mail.
 
 
 
-
-Triggers
---------
-
-We can define some triggers to be fired during a DbMother instance action.
-To explain how to use triggers, an example is maybe the faster way:
-
-::
-
-    >>> from mother.mothers import *
-    >>> from mother.speaker import *
-    >>> def before_trigger(*args):
-    ...   Speaker.log_info(GREEN('this is my before trigger'))
-    >>>
-    >>> def after_trigger(*args):
-    ...   Speaker.log_info(GREEN('this is my after trigger'))
-    >>>
-    >>> class TriggeredStar(DbMother):
-    ...   table_name= 'stars'
-    ...   def __init__(self, store= {}, flag= MO_NOA, session= None):
-    ...       self.add_trigger(MO_SAVE, MO_BEFORE, before_trigger)
-    ...       self.add_trigger(MO_SAVE, MO_AFTER, after_trigger)
-    ...       DbMother.__init__(self, store, flag, session)
-    >>>
-    >>> sun= TriggeredStar({'star_name': 'sun'}, MO_SAVE)
-
-Remember, when using triggers, to add them before to call the
-DbMother.__init__() methods, otherwise they will be ingored when an instance
-will be initialized with a flag different from MO_NOA.
 
 
 Custom Complex Filters
@@ -1544,31 +1686,6 @@ If You want to force a filter on a specific table, use the following argument:
 ::
 
     >>> filter= MoFilter({'my': 'filter'}, table= 'my_table)
-
-
-
-Using Mother without Class Definition
--------------------------------------
-
-Sometimes we don't need the Child Manager, the Relation Manager or other
-complex tools: we just want to perform basic action on some table.
-
-To perform the basic db actions there is no need to define Mother classes:
-it's possible to create on demand these classes:
-::
-
-    >>> from mother.mothers import getMotherBuilder
-    >>> FastClsStars= getMotherBuilder('stars')
-    >>> FastClsStars({'star_name': 'sun'}, MO_SAVE, MySession)
-
-This is a very fast way to perform basic actions without writing useless lines
-of code.
-
-Moreover, the class MotherMany, introduced with the version 0.6.3, is often 
-better and faster: 
-::
-
-    >>> MotherMany('stars', [{'star_name': 'sun'}], MO_SAVE, MySession)
 
 Copyright and License
 ---------------------

@@ -3,6 +3,8 @@ Changelog History
 
 VERSION = 0.6.4
 
+	* DbMother.delete() does not clean the store
+	* Manual updated
 	* License is applied to each source file
 	* MO_ULOAD and DbMother.uload dropped
 	* MotherBox.getFields() dropped
