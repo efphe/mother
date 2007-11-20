@@ -146,7 +146,7 @@ class MotherTrigger:
             
     def _triggered_action(self, flag, *args):
 
-        f= self._trigger_actions(self, flag)
+        f= self._trigger_actions(flag)
 
         if not self._triggers_are_initialized() or \
            not self.get_flag_triggers(flag):
