@@ -306,16 +306,6 @@ ul.auto-toc {
 <div class="document" id="mother-manual">
 <h1 class="title">Mother Manual</h1>
 <div class="section">
-<h1><a id="introduction" name="introduction">Introduction</a></h1>
-<p>This manual is very far to be complete and with a fine language. My english is
-poor: I hope that my errors will be a reason to read it with a little bit of
-irony.</p>
-<p>If You are using Mother, if You like this python module and You have some ideas to
-improve this manual, please, give your contribute: it will be really appreciated.</p>
-<p>At the same time, feel free to read the code, to mail your opinions, your
-ideas and your patches.</p>
-</div>
-<div class="section">
 <h1><a id="index" name="index">Index:</a></h1>
 <p><strong>Configuring Mother:</strong></p>
 <blockquote>
@@ -360,7 +350,7 @@ ideas and your patches.</p>
 <p><strong>Plugins:</strong></p>
 <blockquote>
 <ul class="simple">
-<li><a class="reference" href="#mothertrigger">MotherTrigger</a>: Plugin: how to trigger DbMother classes</li>
+<li><a class="reference" href="#mothertrigger">MotherTrigger</a>: how to trigger DbMother classes</li>
 <li><a class="reference" href="#mothercaster">MotherCaster</a>: how to check and cast fields</li>
 </ul>
 </blockquote>
@@ -379,8 +369,8 @@ ideas and your patches.</p>
 <p>Pre-install requirements, one of the 2 libraries:</p>
 <blockquote>
 <ul class="simple">
-<li>psycopg2  <a class="reference" href="http://www.initd.org/">http://www.initd.org/</a>            { If your using Postgres }</li>
-<li>apsw      <a class="reference" href="http://initd.org/tracker/pysqlite/wiki/APSW">http://initd.org/tracker/pysqlite/wiki/APSW</a>  { for SQLite }</li>
+<li>psycopg2  <a class="reference" href="http://www.initd.org/">http://www.initd.org/</a>                        { Postgres }</li>
+<li>apsw      <a class="reference" href="http://initd.org/tracker/pysqlite/wiki/APSW">http://initd.org/tracker/pysqlite/wiki/APSW</a>  { SQLite }</li>
 </ul>
 </blockquote>
 <p>Grab the DBMother tarball at:</p>
@@ -440,7 +430,8 @@ will be working at all.</p>
 <div class="important">
 <p class="first admonition-title">Important</p>
 <p class="last">fields names are completely arbitrary: in particular, there is
-no need to create keys and foreign keys with the same name.</p>
+no need for DbMother to create keys and foreign keys with the
+same name.</p>
 </div>
 <pre class="literal-block">
 create table stars (
@@ -522,8 +513,9 @@ and most options contain suitable default values.</p>
 <div class="important">
 <p class="first admonition-title">Important</p>
 <p class="last">One value you should pay
-attention to is &quot;<strong>MOTHER_MAP</strong>&quot;.  Here you should place a reasonable directory and
-file name value like &quot;/my/path/dbmother.map&quot;.</p>
+attention to is &quot;<strong>MOTHER_MAP</strong>&quot;.  Here you should place a
+reasonable directory and file name value like
+&quot;/my/path/dbmother.map&quot;.</p>
 </div>
 <p>When you are done with your edits, test your configuration like so:</p>
 <pre class="literal-block">
@@ -592,7 +584,7 @@ the Sun age is 10 and the Sun mass is 20:</p>
 &gt;&gt;&gt; sun_id = Sun.getField('star_id')
 </pre>
 <p>Note that Mother has retrieved for us the primary key of Sun automatically.
-Note also that Mother knows the primary key of the table stars.
+Note also that Mother knows which is the primary key of the table stars.
 Moreover, Mother knows the fields of that table; try to do:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; wrong_dict= {'foo': 1}
@@ -687,9 +679,7 @@ class ClsStars(DbMotther):
     def my_function(self, *args):
         print args
 </pre>
-<p>It's possible to modify and extend the Mother classes also coding some plugin.
-For now, take a look at the submodule mother.plugins: a new section explaining
-how to code new plugins will be published as soon as possible.</p>
+<p>It's possible to modify and extend the Mother classes also coding some plugin.</p>
 </div>
 <div class="section">
 <h1><a id="simple-database-actions-ii" name="simple-database-actions-ii">Simple Database Actions II</a></h1>
@@ -730,7 +720,7 @@ class: We can dynamically obtain it using the following methods:</p>
 <p>As it's possible to see, the ClsStars is now a MotherFly instance. We can use
 a MotherFly instance at the same way We use a DbMother class.
 So, it's possible to perform the simple database actions explained in the
-previous section without define any class.</p>
+previous section without the need to define any class.</p>
 <p>The getMotherObj function is simply a wrapper:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; ClsStars= getMotherBuilder('stars')
@@ -785,6 +775,8 @@ we don't need to create a class for each table.</p>
 &gt;&gt;&gt; from sample import *
 &gt;&gt;&gt; init_mother('/my/conf/file')
 &gt;&gt;&gt; star_box= MotherBox(ClsStars, filter= None, flag= MO_LOAD)
+&gt;&gt;&gt; # it's also possible to use the table name instead of ClsStarts:
+&gt;&gt;&gt; # star_box= MotherBox('stars', filter= None, flag= MO_LOAD)
 &gt;&gt;&gt; print len(star_box)
 </pre>
 <p>Now the star_box instance contains the records. len(star_box) gives us the
@@ -800,6 +792,9 @@ Mother instances:</p>
 ...    print d
 ...
 </pre>
+<p>When getting records as Mother instances, if a DbMother class was used to
+initialize the MotherBox, instances of this class will be returned. Otherwise,
+the return value is a list of MotherFly instances.</p>
 <p>The MotherBox technology is more complex: a lot of args could be specified
 during the initialization. First of all, the filters. Just take all records
 with star_mass equal to 10:</p>
@@ -844,8 +839,8 @@ The goal of MotherMany is to speed up massive db actions
 and to provide an easy way to perform db actions without
 DbMother classes definition.</p>
 <p>Often We don't need complex structures to execute sql statements.
-A Mother class is a structured class: We can extending it, We can use the auto
-created methods and so on. But sometimes, We don't need this machinery.</p>
+A Mother class is a structured class: We can extend it with plugins, We can
+handle children and relations, But sometimes, We don't need this machinery.</p>
 <p>When, for example, We have an isolated table, without children and without
 relations, the definition and the usage of a Mother class should be avoided.</p>
 <p>The same applies when We have to perform a great number of statements: when We
@@ -881,9 +876,9 @@ builder a table name):</p>
 &gt;&gt;&gt; momma.addRows(other_record)
 &gt;&gt;&gt; momma.insert()
 </pre>
-<p>As You can see, addRows() accepts a list of dicts or a dict, as for the
-argument 'store' used initializing a MotherMany instance.</p>
-<p>Deleting records is exactly the same (the manual method is MotherMany.delete()).</p>
+<p>As You can see, addRows() accepts a list of dicts or a dict.</p>
+<p>Deleting records is exactly the same: just use the MO_DEL flag or the
+MotherMany.delete() call.</p>
 <p>To select records, It's possible to use the argument fields, which is a list
 of strings: only these fields will be loaded from the database. If the
 argument fields is omitted, all the table fields will be selected:</p>
@@ -968,7 +963,7 @@ class ClsStars(DbMother, MotherManager):
 <p>So, which is the best way? Using table names does not require classes
 definition: in this example there is no need to define ClsStars.</p>
 <p>Using custom classes is more powerful, because when children will be handled,
-there will be the chance to handle children with your custom classed insted of
+there will be the chance to handle children with our custom classes instead of
 handling them with a MotherFly class.</p>
 <p>Another important point is: there is no need to specify a list of children.
 If initChildManager() is called without arguments, Mother is able to
@@ -1094,7 +1089,7 @@ can provide a list of fields: this repeats exactly the MotherMany behaviour.</p>
 <div class="section">
 <h1><a id="handling-relations" name="handling-relations">Handling Relations</a></h1>
 <p>As for the children of one table we can handle relations with Mother.
-Now we focus our attention on the table Lifeforms, Planets and Civilizations.</p>
+Now we focus our attention on the tables Lifeforms, Planets and Civilizations.</p>
 <p>A record on the Civilizations table means that a certain form of life lives on
 a certein planet.</p>
 <p>To handle children we need to enable the Children Manager calling
@@ -1123,7 +1118,8 @@ class ClsPlanets(DbMother, MotherManager):
 &gt;&gt;&gt; martians_dict= {'life_name': 'green_people'}
 &gt;&gt;&gt; Martians= Mars.assignLifeforms(martians_dict, MO_SAVE)
 </pre>
-<p>What happens? A new record is inserted on the table Lifeforms (MO_SAVE) and,
+<p>What happens? The assignLifeforms method is a magic, auto-created method.
+A new record is inserted on the table Lifeforms (MO_SAVE) and,
 after that, a new record is inserted on the table Civilizations.
 At the end, Martians is a Mother instance for the record inserted on the table
 lifeforms.</p>
@@ -1297,7 +1293,7 @@ force the relation table to be used:</p>
 <p>In the same case, we could be interested to load also the records on
 the relation tables (for example 'civilizations.age').
 If we set params= True, MotherFusion will load all the fields on the
-relation table, excluding the foreign keys:</p>
+relation table:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; momma= MotherFusion(ClsLifeforms, ClsPlanets, params= True)
 </pre>
@@ -1377,6 +1373,7 @@ a transaction state):</p>
 &gt;&gt;&gt; session.oc_query('DELETE * FROM planets')
 &gt;&gt;&gt; session.endSession()
 </pre>
+<p>Now, the methods explanation.</p>
 <p>The methods to handle transactions are self explanatory.
 The methods <em>oc_query</em>, <em>ov_query</em>, <em>or_query</em>, <em>mr_query</em> have the same
 syntax:</p>
@@ -1520,7 +1517,7 @@ session:</p>
 <p>The db actions are now inside your session: note that this applies also to the
 db actions produced by Earth, because Earth is born inside a session.</p>
 <p>Sessions are always in a transaction state. To commit the queries we can call
-commit() or endSession(). The endSession() call closes the transactions, and
+commit() or endSession(). The endSession() call commit the transaction, and
 puts the connections used just now back to the pool:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; session.endSession()
@@ -1599,7 +1596,7 @@ class Lifeform(DbMother, MotherTrigger):
 
   table_name= 'stars'
 
-  def __init__(self, my_god= 'Shiva', store= {},
+  def __init__(self, my_god= 'Shiva&#64;Olympus.Paradise', store= {},
                    flag= MO_NOA, session= None):
 
       self.my_god= my_god
@@ -1622,7 +1619,7 @@ self.add_trigger(MO_DEL, MO_BEFORE, self.gods_alert)
 </pre>
 <div class="important">
 <p class="first admonition-title">Important</p>
-<p class="last">Triggers have to be called before the DbMother.__init__() call, otherwise
+<p class="last">Triggers have to be setted before the DbMother.__init__() call, otherwise
 they will be ignored when using an action flag during the initialization.</p>
 </div>
 </div>
@@ -1714,7 +1711,7 @@ possbible to begin to produces some string activity:</p>
 &gt;&gt;&gt; from mother.Speaker import RED, GREEN, YELLOW
 &gt;&gt;&gt; import datetime
 &gt;&gt;&gt; Sun= ClsStars()
-&gt;&gt;&gt; Sun.log_info('It's %s', GREEN(datetime.datetime.today))
+&gt;&gt;&gt; Sun.log_info('It's %s', GREEN(datetime.datetime.today()))
 &gt;&gt;&gt; Sun.log_warning('aia aia %s %s', RED(1), YELLOW('foo'))
 &gt;&gt;&gt; from mother.speaker import *
 &gt;&gt;&gt; Speaker.log_debug('the same methods are callable from the Speaker class')
@@ -1814,6 +1811,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 <p>VERSION = 0.6.4</p>
 <blockquote>
 <ul class="simple">
+<li>DbMother._update() debugged</li>
 <li>DbMother.delete() does not clean the store</li>
 <li>Manual updated</li>
 <li>License is applied to each source file</li>

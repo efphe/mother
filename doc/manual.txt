@@ -2,20 +2,6 @@
 Mother Manual
 =============
 
-Introduction
-------------
-
-This manual is very far to be complete and with a fine language. My english is
-poor: I hope that my errors will be a reason to read it with a little bit of
-irony.
-
-If You are using Mother, if You like this python module and You have some ideas to 
-improve this manual, please, give your contribute: it will be really appreciated.
-
-At the same time, feel free to read the code, to mail your opinions, your
-ideas and your patches.
-
-
 Index:
 ------
 
@@ -51,7 +37,7 @@ Index:
 
 **Plugins:**
 
-    * `MotherTrigger`_: Plugin: how to trigger DbMother classes
+    * `MotherTrigger`_: how to trigger DbMother classes
     * `MotherCaster`_: how to check and cast fields
 
 **Appendix:**
@@ -66,8 +52,8 @@ Install Mother
 
 Pre-install requirements, one of the 2 libraries:
 
-    * psycopg2  http://www.initd.org/            { If your using Postgres }
-    * apsw      http://initd.org/tracker/pysqlite/wiki/APSW  { for SQLite }
+    * psycopg2  http://www.initd.org/                        { Postgres }
+    * apsw      http://initd.org/tracker/pysqlite/wiki/APSW  { SQLite }
 
 Grab the DBMother tarball at:
 
@@ -135,7 +121,8 @@ Here's the sql script (shipped with the tarball):
     
 .. Important:: 
     fields names are completely arbitrary: in particular, there is
-    no need to create keys and foreign keys with the same name.
+    no need for DbMother to create keys and foreign keys with the 
+    same name.
 
 ::
 
@@ -221,8 +208,9 @@ for your particular environment.  Don't worry: the conf file is heavy commented
 and most options contain suitable default values.  
 
 .. Important:: One value you should pay 
-               attention to is "**MOTHER_MAP**".  Here you should place a reasonable directory and 
-               file name value like "/my/path/dbmother.map".
+               attention to is "**MOTHER_MAP**".  Here you should place a 
+               reasonable directory and file name value like 
+               "/my/path/dbmother.map".
 
 
 When you are done with your edits, test your configuration like so:
@@ -306,7 +294,7 @@ the Sun age is 10 and the Sun mass is 20:
     >>> sun_id = Sun.getField('star_id')
 
 Note that Mother has retrieved for us the primary key of Sun automatically.
-Note also that Mother knows the primary key of the table stars.
+Note also that Mother knows which is the primary key of the table stars.
 Moreover, Mother knows the fields of that table; try to do:
 ::
 
@@ -419,8 +407,6 @@ redefining the __init__() method and/or adding some function:
             print args
 
 It's possible to modify and extend the Mother classes also coding some plugin.
-For now, take a look at the submodule mother.plugins: a new section explaining 
-how to code new plugins will be published as soon as possible.
 
 Simple Database Actions II
 --------------------------
@@ -465,7 +451,7 @@ For example:
 As it's possible to see, the ClsStars is now a MotherFly instance. We can use
 a MotherFly instance at the same way We use a DbMother class. 
 So, it's possible to perform the simple database actions explained in the
-previous section without define any class.
+previous section without the need to define any class.
 
 The getMotherObj function is simply a wrapper:
 ::
@@ -531,6 +517,8 @@ Let's start retrieving all records on the table stars:
     >>> from sample import *
     >>> init_mother('/my/conf/file')
     >>> star_box= MotherBox(ClsStars, filter= None, flag= MO_LOAD)
+    >>> # it's also possible to use the table name instead of ClsStarts:
+    >>> # star_box= MotherBox('stars', filter= None, flag= MO_LOAD)
     >>> print len(star_box)
 
 Now the star_box instance contains the records. len(star_box) gives us the
@@ -546,6 +534,10 @@ Mother instances:
     >>> for d in dicts:
     ...    print d
     ...
+
+When getting records as Mother instances, if a DbMother class was used to
+initialize the MotherBox, instances of this class will be returned. Otherwise,
+the return value is a list of MotherFly instances.
 
 The MotherBox technology is more complex: a lot of args could be specified
 during the initialization. First of all, the filters. Just take all records
@@ -600,8 +592,8 @@ and to provide an easy way to perform db actions without
 DbMother classes definition. 
 
 Often We don't need complex structures to execute sql statements.
-A Mother class is a structured class: We can extending it, We can use the auto
-created methods and so on. But sometimes, We don't need this machinery.
+A Mother class is a structured class: We can extend it with plugins, We can
+handle children and relations, But sometimes, We don't need this machinery.
 
 When, for example, We have an isolated table, without children and without
 relations, the definition and the usage of a Mother class should be avoided.
@@ -646,10 +638,10 @@ builder a table name):
     >>> momma.addRows(other_record)
     >>> momma.insert()
 
-As You can see, addRows() accepts a list of dicts or a dict, as for the
-argument 'store' used initializing a MotherMany instance.
+As You can see, addRows() accepts a list of dicts or a dict.
 
-Deleting records is exactly the same (the manual method is MotherMany.delete()).
+Deleting records is exactly the same: just use the MO_DEL flag or the
+MotherMany.delete() call.
 
 To select records, It's possible to use the argument fields, which is a list
 of strings: only these fields will be loaded from the database. If the
@@ -748,7 +740,7 @@ So, which is the best way? Using table names does not require classes
 definition: in this example there is no need to define ClsStars. 
 
 Using custom classes is more powerful, because when children will be handled,
-there will be the chance to handle children with your custom classed insted of
+there will be the chance to handle children with our custom classes instead of
 handling them with a MotherFly class.
 
 Another important point is: there is no need to specify a list of children.
@@ -894,7 +886,7 @@ Handling Relations
 ------------------
 
 As for the children of one table we can handle relations with Mother.
-Now we focus our attention on the table Lifeforms, Planets and Civilizations.
+Now we focus our attention on the tables Lifeforms, Planets and Civilizations.
 
 A record on the Civilizations table means that a certain form of life lives on
 a certein planet.
@@ -928,7 +920,8 @@ Now we can start to handle lifeforms and civilization in a powerful way:
     >>> martians_dict= {'life_name': 'green_people'}
     >>> Martians= Mars.assignLifeforms(martians_dict, MO_SAVE)
 
-What happens? A new record is inserted on the table Lifeforms (MO_SAVE) and, 
+What happens? The assignLifeforms method is a magic, auto-created method.
+A new record is inserted on the table Lifeforms (MO_SAVE) and, 
 after that, a new record is inserted on the table Civilizations.
 At the end, Martians is a Mother instance for the record inserted on the table 
 lifeforms.
@@ -1143,7 +1136,7 @@ force the relation table to be used:
 In the same case, we could be interested to load also the records on
 the relation tables (for example 'civilizations.age').
 If we set params= True, MotherFusion will load all the fields on the
-relation table, excluding the foreign keys:
+relation table:
 ::
 
     >>> momma= MotherFusion(ClsLifeforms, ClsPlanets, params= True)
@@ -1233,6 +1226,8 @@ a transaction state):
     >>> earth.update()
     >>> session.oc_query('DELETE * FROM planets')
     >>> session.endSession()
+
+Now, the methods explanation.
 
 The methods to handle transactions are self explanatory.
 The methods *oc_query*, *ov_query*, *or_query*, *mr_query* have the same
@@ -1395,7 +1390,7 @@ The db actions are now inside your session: note that this applies also to the
 db actions produced by Earth, because Earth is born inside a session.
 
 Sessions are always in a transaction state. To commit the queries we can call
-commit() or endSession(). The endSession() call closes the transactions, and 
+commit() or endSession(). The endSession() call commit the transaction, and 
 puts the connections used just now back to the pool:
 ::
 
@@ -1485,7 +1480,7 @@ We can do the following:
     
        table_name= 'stars'
     
-       def __init__(self, my_god= 'Shiva', store= {}, 
+       def __init__(self, my_god= 'Shiva@Olympus.Paradise', store= {}, 
                         flag= MO_NOA, session= None):
     
            self.my_god= my_god
@@ -1508,7 +1503,7 @@ the MO_BEFORE symbol:
            self.add_trigger(MO_DEL, MO_BEFORE, self.gods_alert)
 
 .. Important:: 
-    Triggers have to be called before the DbMother.__init__() call, otherwise
+    Triggers have to be setted before the DbMother.__init__() call, otherwise
     they will be ignored when using an action flag during the initialization.
 
 
@@ -1606,7 +1601,7 @@ possbible to begin to produces some string activity:
     >>> from mother.Speaker import RED, GREEN, YELLOW
     >>> import datetime
     >>> Sun= ClsStars()
-    >>> Sun.log_info('It's %s', GREEN(datetime.datetime.today))
+    >>> Sun.log_info('It's %s', GREEN(datetime.datetime.today()))
     >>> Sun.log_warning('aia aia %s %s', RED(1), YELLOW('foo'))
     >>> from mother.speaker import *
     >>> Speaker.log_debug('the same methods are callable from the Speaker class')
@@ -1634,10 +1629,6 @@ To turn off the logging feature, set the log level to 0.
 
 If smtp logging is enabled, the function log_mail() will be available: using
 it, You can send some logs via mail.
-
-
-
-
 
 Custom Complex Filters
 ----------------------
