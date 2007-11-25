@@ -79,7 +79,11 @@ class MotherPostgres:
         self.connection.commit()
 
     def _close(self):
-        self.connection.close()
+    	Speaker.log_insane("Closing Connection...")
+        try:
+            self.connection.close()
+        except:
+            pass
 
     def _extract(self):
 

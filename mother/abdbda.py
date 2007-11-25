@@ -423,6 +423,10 @@ class DbOne(Speaker):
 
         return res
 
+    @staticmethod
+    def close():
+        DbOne._iface_instance._close()
+
 class DbFly(Speaker):
 
     # Iface methods
@@ -644,6 +648,9 @@ class DbFly(Speaker):
         self._queries_n+= len(l) - 1
         return res
 
+    def close(self):
+        self._iface_instance._close()
+
 class MotherPool:
 
     from Queue import Empty as _empty_queue
@@ -658,6 +665,7 @@ class MotherPool:
     _pool_queue= None
     _pool_type= DB_POOL_LIMITED
     _pool_calm= False
+    _pool_added= []
 
     import threading
 
@@ -747,6 +755,7 @@ class MotherPool:
             q= MotherPool._pool_queue
             p._pool_queue= q
             q.put(p)
+            MotherPool._pool_added.append(p)
 
         MotherPool._pool_current+= n
 
@@ -902,6 +911,10 @@ class MotherPool:
         Speaker.log_warning("Connection %s dropped from Pool.", 
                 ERR_COL(dbfly.session_name))
 
+    @staticmethod
+    def close():
+        for c in MotherPool._pool_added:
+            c.close()
 
 
 def init_abdbda(conf, forced= {}):
@@ -954,10 +967,13 @@ def init_abdbda(conf, forced= {}):
     pool= loc.get('DB_POOL', False)
     db_one= loc.get('DB_PERSISTENT_ONE', False)
 
+    import atexit
+
     if not pool or db_one:
         DbOne._import_iface()
         #DbOne._connect()
         DbOne._db_initialized= True
+        atexit.register(DbOne.close)
 
     if not pool:
         _DbInfo.db_initialized= True
@@ -984,6 +1000,8 @@ def init_abdbda(conf, forced= {}):
     MotherPool._pool_calm= pool_calm
 
     MotherPool._init_pool()
+    atexit.register(MotherPool.close)
+
     _DbInfo.db_initialized= True
 
     return

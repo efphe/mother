@@ -68,7 +68,11 @@ class MotherSqlite:
         self.cursor.execute('BEGIN')
 
     def _close(self):
-        self.connection= None
+    	Speaker.log_insane("Closing Connection...")
+	try:
+	    self.connection.close()
+	except:
+	    pass
 
     def _extract(self):
         c= self.cursor

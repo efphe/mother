@@ -1,6 +1,12 @@
 Changelog History
 -----------------
 
+VERSION = 0.6.4-r1
+
+	* registering atexit functions to close connections
+	* mothermapper: new option -g
+
+
 VERSION = 0.6.4
 
 	* DbMother._update() debugged
