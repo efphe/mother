@@ -341,7 +341,10 @@ class DbOne(Speaker):
         # logging info...
         mogrify= getattr(DbOne._iface_instance, '_mogrify', None)
         if mogrify is not None:
-            Speaker.log_info("QSQL- %s", mogrify(s, d))
+            try:
+                Speaker.log_info("QSQL- %s", mogrify(s, d))
+            except:
+                Speaker.log_info("QSQL- %s", str(s))
         else:
             Speaker.log_info("QSQL- %s, Filter= %s" % (s, d))
 
@@ -580,7 +583,10 @@ class DbFly(Speaker):
 
         mogrify= getattr(self._iface_instance, '_mogrify', None)
         if mogrify is not None:
-            self.log_info("%s: QSQL- %s", INF_COL(self.session_name), mogrify(s, d))
+            try:
+                self.log_info("%s: QSQL- %s", INF_COL(self.session_name), mogrify(s, d))
+            except:
+                self.log_info("%s: QSQL- %s", INF_COL(self.session_name), str(s))
         else:
             self.log_info("%s: QSQL- %s, Filter= %s" , INF_COL(self.session_name), s, d)
 
