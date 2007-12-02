@@ -1,6 +1,12 @@
 Changelog History
 -----------------
 
+VERSION = 0.6.4-r2
+
+	* Mother does not have to crash if and when 
+	  psycopg2.mogrify() crash.
+
+
 VERSION = 0.6.4-r1
 
 	* registering atexit functions to close connections
