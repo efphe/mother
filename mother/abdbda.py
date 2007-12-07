@@ -263,6 +263,8 @@ class DbOne(Speaker):
                     "nested rollback?")
             return
 
+        Speaker.log_debug("Rollbacking queries... (trans level= %s) ", 
+                DbOne.trans_level)
         DbOne._rollback()
         DbOne.trans_level= 0
 
