@@ -2213,8 +2213,6 @@ class MotherMany(_DbMap):
     def __init__(self, builder, store= None, flag= MO_NOA, 
                     session= None, fields= None):
 
-        self.log_info("The MotherMany class is not tested deeply: if You "\
-                      "encounter bugs, don't panic: please, signal them.")
         if isinstance(builder, str):
             self.builder= None
             self.table_name= builder
@@ -2273,6 +2271,7 @@ class MotherMany(_DbMap):
         qry= 'INSERT INTO %(table)s (%(fields)s) VALUES (%(values)s)' % locals()
         self.log_info("MotherMany: Inserting on %s %s row(s) (template= `%s`)...", 
                         INF_COL(table), INF_COL(len(s)), INF_COL(qry))
+        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
         self.mq_query(qry, s)
 
         self._records= self.store
@@ -2295,6 +2294,7 @@ class MotherMany(_DbMap):
 
         self.log_info("MotherMany: Deleting on %s with %s filter(s) "
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
+        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
 
         self.mq_query(qry, s)
         self._records= self.store
@@ -2324,6 +2324,7 @@ class MotherMany(_DbMap):
 
         self.log_info("MotherMany: Updating %s with %s filter(s) "
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
+        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
 
         self.mq_query(qry, s)
         self._records= self.store
@@ -2346,6 +2347,7 @@ class MotherMany(_DbMap):
 
         self.log_info("MotherMany: Loading on %s with %s filter(s) "
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
+        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
 
         self._records= self.mg_query(qry, s)
 

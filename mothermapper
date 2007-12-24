@@ -733,29 +733,29 @@ def usage():
     mothermapper -S conf_file
 
   OPTIONS:
-      -q (--quiet)                  Don't you love loqaucity?
-      -g (--debug)                  For debuggers or developers
-      -Q (--no-color)               No colors on output. Note: on win32 systems,
-                                    colors are always disabled.
+    -q (--quiet)                  Don't you love loqaucity?
+    -g (--debug)                  For debuggers or developers
+    -Q (--no-color)               No colors on output. Note: on win32 systems,
+                                  colors are always disabled.
 
-      -t (--testdb)                 Test db connection.
-      -d (--drop-tables)            Drop all db tables.
-      -E (--empty-tables)           Drop all records in all tables.
-      -e (--exec-script=script)     Execute the SQL script `script'.
+    -t (--testdb)                 Test db connection.
+    -d (--drop-tables)            Drop all db tables.
+    -E (--empty-tables)           Drop all records in all tables.
+    -e (--exec-script=script)     Execute the SQL script `script'.
 
-      -c (--cfile=file)             Use the Mother configuration file `file'.
-      -s (--dbstructure)            Create the Mother database map.
-      -P (--create-pfile=file)      Create a new configuration Mother file with default 
-                                    values. Useful to create a new Mother environment 
-                                    for Postgresql. 
-      -S (--create-sfile=file)      Create a new configuration Mother file with default 
-                                    values. Useful to create a new Mother environment 
-                                    for SQLite. 
+    -c (--cfile=file)             Use the Mother configuration file `file'.
+    -s (--dbstructure)            Create the Mother database map.
+    -P (--create-pfile=file)      Create a new configuration Mother file with default 
+                                  values. Useful to create a new Mother environment 
+                                  for Postgresql. 
+    -S (--create-sfile=file)      Create a new configuration Mother file with default 
+                                  values. Useful to create a new Mother environment 
+                                  for SQLite. 
 
-      -f (--fill-symbols=file)      Fill db symbols. `-f help' to know more.
+    -f (--fill-symbols=file)      Fill db symbols. `-f help' to know more.
 
-      -v (--version)                Mother and mothermapper Version.
-      -h (--help)                   Help me please\n\n""")
+    -v (--version)                Mother and mothermapper Version.
+    -h (--help)                   Help me please\n\n""")
 
     sys.exit(1)
 
