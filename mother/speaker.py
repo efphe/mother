@@ -133,7 +133,6 @@ class Speaker:
         Speaker.log_error(s)
         raise InternalError(s)
 
-
 #
 ##
 ### logging initialization
