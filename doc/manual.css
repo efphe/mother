@@ -17,7 +17,7 @@ body {
   border: 2px;
   width: 80%
   background-image: none;
-  background-color: #f4e7c5; /* pale dirty yellow */
+  background-color: #fff; /* pale dirty yellow */
   /*font-family: helvetica, arial, sans-serif;
   font-size: 14px;*/
   color: black;
@@ -228,7 +228,7 @@ pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
   margin-right: 2em ;
   border: solid thin #aaaaaa;
-  background-color: #bdc1c1 }
+  background-color: #dee7ec }
 
 span.classifier {
   font-family: sans-serif ;

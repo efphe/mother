@@ -27,9 +27,9 @@ There is an interactive example on examples/sqlite.
 The better idea is to read a little bit the official 
 guide at:
 
-    http://www.fenilot.org/mother_manual.html
+    http://www.dbmother.org/docs.html
 
-and then running this sample. Note that before 
+and then running this sample. Note that before to run it,
 you need to install Mother.
 
 To install the module, just run the script setup.py as
@@ -38,4 +38,4 @@ usual (read INSTALL to know more).
 Please, if you encounter Bugs, report them to the
 Mother Mailing List: it will be very appreciated.
 If you don't want to subscribe to the mailing list
-you can contact the main author: efphe@dbmother.org
+it's possible to contact the main author: efphe@freaknet.org

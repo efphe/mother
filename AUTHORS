@@ -1,23 +1,33 @@
 
- * Main developer:
-        Federico Tomassini aka efphe
+Main developer:
+            Federico Tomassini aka Efphe
 
- * Developer and Tester:
-        Michele Antinori
-        Luis Cortes
+Developers and Testers:
+            Michele Antinori aka Depa
+            Michele Amori aka Amoz
+            Luis Cortes
+            Gregory Baker
 
- * Main Site Designer:
-        Francesco Ballarini aka balla
+Various:
+            Luca Cascioli aka Lio
+            Francesco Ballarini aka Balla
+            Francesco Leopoldi aka Kecco
+            The Freaknet community
 
- * Logo Designer:
-        Luca Cascioli aka Lio
-           
- * Site Style Designer:
-        Elisa Ridolfi aka el
+In particular:
 
- * Contributors:
-      * Gregory Baker
-           - Patch from 0.5.2 to 0.5.3
-      * Luis Cortes
-           - Site works
-           - Ideas and Support
+Depa and Amoz saw the Mother borning: They proposed some good ideas 
+and a lot of bugs were discovered by them.
+
+Thanks to Luis for his work and his testing activity. The SQLite 
+support is one of his proposals and some chapter of the MotherManual 
+are written by his hands.
+
+Gregory fixed some bugs for the windows environment.
+
+When Plone was used to build this site, Lio created the Mother logo 
+and Balla was the main style designer. The migration of the site 
+from Plone to html was supervised by Kecco.
+
+Thanks to the Freaknet community, which hosts this site and the 
+subversion repository.
