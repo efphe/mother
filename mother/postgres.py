@@ -1,7 +1,7 @@
 # file: postgres.py
 # This file is part of Mother: http://dbmother.org
 #
-# Copyright (c) 2007, Federico Tomassini aka efphe (effetom AT gmail DOT com)
+# Copyright (c) 2007, Federico Tomassini aka efphe (effetom AT dbmother DOT org)
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
