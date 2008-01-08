@@ -1,0 +1,149 @@
+.TH "mothermapper" 1
+.SH NAME
+mothermapper \- Mother configuration tool
+.SH SYNOPSIS
+.B mothermapper 
+-S conf_file
+.br
+.B mothermapper 
+-P conf_file
+.br
+.B mothermapper 
+-c conf_file OPTIONS 
+.SH DESCRIPTION
+The mothermapper tool is used to configure a Mother environment. 
+Before to use Mother, a configuration file is needed: a default 
+configuration file for postgres or sqlite can be produced using 
+mothermapper options -S and -P. The files created with these 
+options are heavy commented.
+
+After that, mothermapper has to be used to generate a Mother map
+file: this is accomplished with the -s option.
+
+The mothermapper tool can be used also to perform other tasks.
+Please, see the various options to know more.
+.SH OPTIONS
+.TP
+.B \-q, --quiet
+Do your work and be silent.
+.TP
+.B \-g, --debug
+Allow (generous) debugging output.
+.TP
+.B \-Q, --no-color
+Disable colors on output. On windows platforms colors are always disabled.
+.TP
+.B \-v, --version
+Print mothermapper and Mother versions. 
+.TP
+.B \-h, --help
+Help me please. The runtime help is printed also when no option is specified.
+.TP
+.B \-S, --create-sfile FILE
+Create the new Mother configuration file `FILE' with default values
+for SQLite.
+.TP
+.B \-P, --create-pfile FILE
+Create the new Mother configuration file `FILE' with default values
+for PostgreSQL.
+.TP
+.B \-c, --conf-file FILE
+Use the Mother configuration file `FILE'. 
+.TP
+
+The following options require a Mother configuration file, which has to be specified with the -c option.
+.TP
+.B \-s, --dbstructure FILE
+Create the Mother map file `FILE'.
+.TP
+.B \-t, --testdb
+Test the database connection. 
+.TP
+.B \-d, --drop-tables
+Drop all the user tables. 
+.TP
+.B \-E, --empty-tables
+Delete all records on all user tables.
+.TP
+.B \-e, --exec-script SCRIPT
+Execute the SQL script `SCRIPT'. 
+.TP
+.B \-f, --fill-symbols FILE
+With this option is possible to sync records tables with 
+python dictionnaries. `FILE' is a python file containing 
+the variable RECORDS_TO_BE_INSERTED. This variable must be a list 
+of tuples, where you can specify a set of records for each table.
+For example, consider the following file:
+
+ BLUE= 1
+ RED= 2
+ records_colors= [
+    {'color_name': 'Blue', 'color_id': BLUE),
+    {'color_name': 'Red', 'color_id': RED) ]
+
+ ROME= 1
+ PARIS= 2
+ records_cities= ,
+    dict(city_name= 'Paris', city_id= PARIS),
+    dict(city_name= 'Rome', city_id= ROME) ]
+
+ RECORDS_TO_BE_INSERTED = [
+    ('table_colors', records_colors), 
+    ('table_cities', records_cities) ]
+
+When you use this file with `mothermapper -f`, the tables 
+"table_colors" and "table_cities" are filled with the records 
+specified with lists "records_colors" and "records_cities".
+Records already present in these tables are skipped.
+
+Moreover, each record present on a table, but not on the
+respective list, will be removed.
+
+So, the tables will be sync`ed with these dicts.
+
+A symbol file is useful for static tables: the variables 
+BLUE and RED, or PARIS and ROME, will be available importing the
+python file `FILE'. After that, it will be possible to refer db
+records using them and being sure to be synced with the database.
+.SH BUGS
+Colors on windows platforms do not work. Is it possible to fix this?
+.SH REPORTING BUGS
+Please, if You encounter a bug, mail it here:
+  efphe@dbmother.org
+.SH LICENSE
+Mother and mothermapper are distributed under a BSD license, contained 
+on the tarball.
+.SH AUTHORS
+Main developer:
+            Federico Tomassini aka Efphe
+
+Developers and Testers:
+            Michele Antinori aka Depa
+            Luis Cortes
+            Gregory Baker
+
+Various:
+            Luca Cascioli aka Lio
+            Francesco Ballarini aka Balla
+            Francesco Leopoldi aka Kecco
+            The Freaknet community
+
+In particular:
+
+Depa saw the Mother borning: He proposed some good ideas
+and a lot of bugs were discovered by him.
+
+Thanks to Luis for his work and his testing activity. The SQLite
+support is one of his proposals and some chapter of the MotherManual 
+are written by his hands.
+
+Gregory fixed some bugs for the windows environment.
+
+When Plone was used to build the Mother site, Lio created the Mother logo
+and Balla was the main style designer. The migration of the site
+from Plone to html was supervised by Kecco.
+
+Thanks to the Freaknet community, which hosts this site and the
+subversion repository.
+
+

@@ -4,7 +4,6 @@ Main developer:
 
 Developers and Testers:
             Michele Antinori aka Depa
-            Michele Amori aka Amoz
             Luis Cortes
             Gregory Baker
 
@@ -16,8 +15,8 @@ Various:
 
 In particular:
 
-Depa and Amoz saw the Mother borning: They proposed some good ideas 
-and a lot of bugs were discovered by them.
+Depa saw the Mother borning: He proposed some good ideas 
+and a lot of bugs were discovered by him.
 
 Thanks to Luis for his work and his testing activity. The SQLite 
 support is one of his proposals and some chapter of the MotherManual 
@@ -25,7 +24,7 @@ are written by his hands.
 
 Gregory fixed some bugs for the windows environment.
 
-When Plone was used to build this site, Lio created the Mother logo 
+When Plone was used to build the Mother site, Lio created the Mother logo 
 and Balla was the main style designer. The migration of the site 
 from Plone to html was supervised by Kecco.
 
