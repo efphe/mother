@@ -2,6 +2,7 @@
 
 from distutils.core import setup
 
+
 __version__ = '0.6.4-r2'
 
 mo_desc="""Mother is a Python Orm oriented to introspection and self autoadaption."""
@@ -43,3 +44,13 @@ setup(
     license= "BSD",
     platforms = ["any"],
 )
+
+from os import name as _osname
+if _osname == 'posix':
+    import shutil
+    try:
+        shutil.copy('doc/mothermapper.1', '/usr/local/share/man/man1/')
+        print ' \033[0;32m*\033[0m Mothermapper Man Page installed.'
+    except Exception, ss:
+        print " \033[0;31m*\033[0m ERROR installing mothermapper man page:", str(ss)
+

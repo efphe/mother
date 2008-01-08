@@ -75,8 +75,8 @@ to use the absolute python path on Windows if python won't be
 recognized as valid command.
 
 Besides the addition of the python module, a command line tool called 
-"mothermapper" will also get installed (normally in "/usr/bin/" on Unix 
-systems). 
+"mothermapper" will also get installed (normally in "/usr/bin/" and with
+a man page on Unix systems).
 
 
 
@@ -182,6 +182,7 @@ If you are ever in doubt what parameters you could use with mothermapper, try:
 ::
 
     $ mothermapper -h
+    $ man mothermapper
 
 Thanks to DBMother's introspection, there is no need to write XML and models 
 files: DBMother is able to automatically obtain the database structure. 
