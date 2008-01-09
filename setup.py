@@ -49,6 +49,7 @@ from os import name as _osname
 if _osname == 'posix':
     import shutil
     try:
+        os.system('mkdir -p /usr/local/share/man/man1/')
         shutil.copy('doc/mothermapper.1', '/usr/local/share/man/man1/')
         print ' \033[0;32m*\033[0m Mothermapper Man Page installed.'
     except Exception, ss:
