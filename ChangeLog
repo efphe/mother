@@ -5,7 +5,7 @@ VERSION = 0.6.4-r3
 
 	* man page installation with setup.py
 	* mothermapper man page
-	* adjusting log levels 
+	* adjusting log levels: sql logs only on debug
 
 
 VERSION = 0.6.4-r2

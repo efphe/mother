@@ -1003,7 +1003,7 @@ class DbMother(_DbMap):
         Really do you want to kill me?
         """
         self._delete()
-        self.log_info("Action %s.", OKI_COL("completed"))
+        self.log_debug("Action %s.", OKI_COL("completed"))
     
     def load(self, fields= None):
         """ load([fields= None]) --> dict
@@ -1013,7 +1013,7 @@ class DbMother(_DbMap):
         be loaded.
         """
         res= self._load(fields)
-        self.log_info("Action %s.", OKI_COL("completed"))
+        self.log_debug("Action %s.", OKI_COL("completed"))
         return res
 
     def insert(self):
@@ -1023,7 +1023,7 @@ class DbMother(_DbMap):
         For field with no value, SQL_DEFAULT is assumed.
         """
         self._insert()
-        self.log_info("Action %s.", OKI_COL("completed"))
+        self.log_debug("Action %s.", OKI_COL("completed"))
         
     def update(self, updict= None):
         """ update([updict= None]) --> None
@@ -1037,7 +1037,7 @@ class DbMother(_DbMap):
             self.setFields(updict)
 
         self._update()
-        self.log_info("Action %s.", OKI_COL("completed"))
+        self.log_debug("Action %s.", OKI_COL("completed"))
 
     def refresh(self, d, flag= MO_NOA):
         """ refresh(d[,flag=MO_NOA]) --> None
@@ -1913,7 +1913,7 @@ class MotherBox(DbOne):
         self.log_debug("Loaded %s records on %s",\
                 OKI_COL(len(self._store)), tbl)
 
-        self.log_info("Action %s.", OKI_COL("completed"))
+        self.log_debug("Action %s.", OKI_COL("completed"))
 
 
     def updateBox(self, filter, d):
@@ -1956,7 +1956,7 @@ class MotherBox(DbOne):
         self.oc_query(qry, filter)
         self.log_insane("Box: Updatetd records.")
 
-        self.log_info("Action %s.", OKI_COL("completed"))
+        self.log_debug("Action %s.", OKI_COL("completed"))
 
     def deleteBox(self, filter=None):
         """ deleteBox(self, filter= None, stored= False) --> None
@@ -1972,7 +1972,7 @@ class MotherBox(DbOne):
         self.oc_query('DELETE FROM %s' % tbl, filter)
         self.log_insane("Records deleted.")
 
-        self.log_info("Action %s.", OKI_COL("completed"))
+        self.log_debug("Action %s.", OKI_COL("completed"))
 
     def getRecords(self, flag_obj= False):
         """ getRecords(self, flag_obj= False) -> list(dict) or list(Mothers)
