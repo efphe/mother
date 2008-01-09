@@ -9,3 +9,9 @@ For example, on Unix:
 
 A new module will be created in site-packages and a script
 will be installed: mothermapper.
+This script has a man page: on Unix system, setup.py attempts
+to install the man page on /usr/local/share/man/man1.
+If this fails, the man page has to be installed manually in 
+the proper directory, for example doing:
+
+  # cp doc/mothermapper.1 /usr/share/man/man1

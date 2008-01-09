@@ -38,7 +38,7 @@ from mother.abdbda import *
 from mother.mothers import *
 
 
-__version__= '0.6.4-r2'
+__version__= '0.6.4-r3'
 
 #        
 ##      

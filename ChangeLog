@@ -1,6 +1,13 @@
 Changelog History
 -----------------
 
+VERSION = 0.6.4-r3
+
+	* man page installation with setup.py
+	* mothermapper man page
+	* adjusting log levels 
+
+
 VERSION = 0.6.4-r2
 
 	* Mother does not have to crash if and when 
