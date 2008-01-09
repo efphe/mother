@@ -27,3 +27,6 @@ DB_ENGINE= DB_ENGINE_SQLITE
 
 # where the db resides
 DB_FILE= 'sqlite_db'
+
+# the log level
+LOG_LEVEL= DBG_NORMAL
