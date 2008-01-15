@@ -1,5 +1,5 @@
 * mothermapper has a slow computatinal model. For great DB, it's slow.
-  Optimizations should be nice (see postgres autodoc).
+  Optimizations should be nice (see postgres autodoc). 
 
 * mothermapper new option -M: write the declaration of  Mother classes
   for each table on the DB, using MotherManager automatically when a 
