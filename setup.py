@@ -44,14 +44,3 @@ setup(
     license= "BSD",
     platforms = ["any"],
 )
-
-from os import name as _osname, system as _sys
-if _osname == 'posix':
-    import shutil
-    try:
-        _sys('mkdir -p /usr/local/share/man/man1/')
-        shutil.copy('doc/mothermapper.1', '/usr/local/share/man/man1/')
-        print ' \033[0;32m*\033[0m Mothermapper Man Page installed.'
-    except Exception, ss:
-        print " \033[0;31m*\033[0m ERROR installing mothermapper man page:", str(ss)
-
