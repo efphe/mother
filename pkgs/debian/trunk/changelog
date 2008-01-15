@@ -1,0 +1,22 @@
+mother (0.6.4-r3) unstable; urgency=low
+
+  * New Upstream release, it adds:
+    - man page installation with setup.py
+    - mothermapper man page
+    - adjusting log levels: sql logs only on debug
+  * debian/control: changed architectures field to 'all'.
+  * debian/copyright: corrected again license from GPL to BSD.
+
+ -- Antonio De Luci <osrevolution@gmail.com>  Fri, 11 Jan 2008 11:31:25 +0100
+
+mother (0.6.4-r2) unstable; urgency=low
+
+  * debian/copyright: corrected license from GPL to BSD.
+
+ -- Andrea Gasparini <gaspa@yattaweb.it>  Wed, 09 Jan 2008 23:12:27 +0100
+
+mother (0.6.4-r2) unstable; urgency=low
+
+  * First Mother package.
+
+ -- Andrea Gasparini <gaspa@yattaweb.it>  Sun, 23 Dec 2007 22:03:38 +0100
