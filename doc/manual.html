@@ -392,8 +392,8 @@ $ cd mother-x.y.z
 to use the absolute python path on Windows if python won't be
 recognized as valid command.</p>
 <p>Besides the addition of the python module, a command line tool called
-&quot;mothermapper&quot; will also get installed (normally in &quot;/usr/bin/&quot; on Unix
-systems).</p>
+&quot;mothermapper&quot; will also get installed (normally in &quot;/usr/bin/&quot; and with
+a man page on Unix systems).</p>
 </div>
 <div class="section">
 <h1><a id="the-database-example-used-on-this-guide" name="the-database-example-used-on-this-guide">The Database example used on this guide</a></h1>
@@ -487,6 +487,7 @@ using the <strong>mothermapper</strong> tool.
 If you are ever in doubt what parameters you could use with mothermapper, try:</p>
 <pre class="literal-block">
 $ mothermapper -h
+$ man mothermapper
 </pre>
 <p>Thanks to DBMother's introspection, there is no need to write XML and models
 files: DBMother is able to automatically obtain the database structure.</p>
@@ -1809,6 +1810,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 </div>
 <div class="section">
 <h1><a id="changelog-history" name="changelog-history">Changelog History</a></h1>
+<p>VERSION = 0.6.4-r3</p>
+<blockquote>
+<ul class="simple">
+<li>man page installation with setup.py</li>
+<li>mothermapper man page</li>
+<li>adjusting log levels: sql logs only on debug</li>
+</ul>
+</blockquote>
 <p>VERSION = 0.6.4-r2</p>
 <blockquote>
 <ul class="simple">
