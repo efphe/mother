@@ -1,17 +1,23 @@
 
  * Mother Setup
 
-To install mother, use distutils.
+To install mother, it's possible to use distutils or make.
+If you are on Unix, using make is recommended, because the 
+mothermapper manpage will be installed; be sure to be root
+and: 
 
-For example, on Unix:
+  # make install
+
+
+To install Mother via distutils, just type:
 
   # python setup.py install
 
+On windows, be sure that the `python` command is in your
+path, otherwise you have to specify the full path of python,
+for example:
+
+  # C:\python25\python setup.py install
+
 A new module will be created in site-packages and a script
 will be installed: mothermapper.
-This script has a man page: on Unix system, setup.py attempts
-to install the man page on /usr/local/share/man/man1.
-If this fails, the man page has to be installed manually in 
-the proper directory, for example doing:
-
-  # cp doc/mothermapper.1 /usr/share/man/man1
