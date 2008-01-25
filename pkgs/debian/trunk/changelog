@@ -1,5 +1,9 @@
 mother (0.6.4-r3) unstable; urgency=low
 
+  [ Andrea Gasparini ]
+  * debian/pyversions & debian/rules merge and cleaning. :)
+
+  [ Antonio De Luci ]
   * New Upstream release, it adds:
     - man page installation with setup.py
     - mothermapper man page
