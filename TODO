@@ -13,3 +13,5 @@
    example: MotherFusion(ClsStars, ClsMoons)
 
 * MotherCaster: implement mapping dict
+
+* control file log rotation (time and activation)
