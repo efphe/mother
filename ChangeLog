@@ -1,6 +1,11 @@
 Changelog History
 -----------------
 
+VERSION = 0.6.4-r4
+
+	* Stupid Bug on MotherMany
+
+
 VERSION = 0.6.4-r3
 
 	* man page installation with setup.py

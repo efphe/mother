@@ -992,7 +992,7 @@ class DbMother(_DbMap):
 
         qry= self._sqlSelect(mf)
 
-        self._moved-= mf
+        self._moved.clear()
 
         # Useful return, that's all
         return self.getFields()
@@ -2271,7 +2271,7 @@ class MotherMany(_DbMap):
         qry= 'INSERT INTO %(table)s (%(fields)s) VALUES (%(values)s)' % locals()
         self.log_info("MotherMany: Inserting on %s %s row(s) (template= `%s`)...", 
                         INF_COL(table), INF_COL(len(s)), INF_COL(qry))
-        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
+        self.log_insane("Using MotherMany dlist: %s", INF_COL(s))
         self.mq_query(qry, s)
 
         self._records= self.store

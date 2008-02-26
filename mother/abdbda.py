@@ -922,7 +922,7 @@ class MotherPool:
 def init_abdbda(conf, forced= {}):
 
     if _DbInfo.db_initialized:
-        Speaker.log_warning('AbDbDa already initialized.')
+        Speaker.log_info('AbDbDa already initialized.')
         return
 
     # Take trace of possible errors: 
