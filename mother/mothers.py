@@ -2294,7 +2294,7 @@ class MotherMany(_DbMap):
 
         self.log_info("MotherMany: Deleting on %s with %s filter(s) "
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
-        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
+        self.log_insane("Using MotherMany dlist: %s", INF_COL(s))
 
         self.mq_query(qry, s)
         self._records= self.store
@@ -2324,7 +2324,7 @@ class MotherMany(_DbMap):
 
         self.log_info("MotherMany: Updating %s with %s filter(s) "
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
-        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
+        self.log_insane("Using MotherMany dlist: %s", INF_COL(s))
 
         self.mq_query(qry, s)
         self._records= self.store
@@ -2347,7 +2347,7 @@ class MotherMany(_DbMap):
 
         self.log_info("MotherMany: Loading on %s with %s filter(s) "
                       "(template= `%s`)...", table, INF_COL(len(s)), INF_COL(qry))
-        self.log_insane("Using MotherMany dlist: %s", YELLOW(s))
+        self.log_insane("Using MotherMany dlist: %s", INF_COL(s))
 
         self._records= self.mg_query(qry, s)
 
