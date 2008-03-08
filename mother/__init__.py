@@ -36,7 +36,7 @@ BSD License.
 """
 
 __all__     = ['speaker', 'abdbda', 'commons', 'eccez', 'mothers']
-__version__ = '0.6.4-r3'
+__version__ = '0.6.4-r4'
 __author__  = 'Federico Tomassini aka efphe'
 __contact__ = 'Report Bugs and Ideas to efphe@dbmother.org '
 __website__ = 'dbmother.org'

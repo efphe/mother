@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 
-__version__ = '0.6.4-r3'
+__version__ = '0.6.4-r4'
 
 mo_desc="""Mother is a Python Orm oriented to introspection and self autoadaption."""
 
