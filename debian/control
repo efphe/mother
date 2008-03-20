@@ -1,0 +1,24 @@
+Source: mother
+Section: python
+Priority: optional
+Maintainer: Antonio De Luci <osrevolution@gmail.com>
+Uploaders: Andrea Gasparini <gaspa@yattaweb.it>
+Build-Depends: cdbs, debhelper (>= 5), python-all-dev (>= 2.4.4-2), python-support (>= 0.5.3)
+Standards-Version: 3.7.3
+
+Package: python-mother
+Architecture: all
+Depends: ${python:Depends}, psycopg2 | python-apsw
+Provides: ${python:Provides}
+Description: Mother is an Object Relational Mapper with strong introspection
+ Mother is a Python module that hides SQL syntax and gives you a set of
+ intelligent classes and methods.
+ By `intelligent` we mean that the classes are
+ able to understand autonomously various situations.
+ Think of Mother as an Object Relational Mapper with strong introspection.
+ When dealing with ORMs you usually need configuration files, tables, fields
+ and keys declarations, but not with Mother because Mother knows the database
+ structure herself.
+ .
+ Mother currently works with PostgreSQL and SQLite.
+ Homepage : http://www.dbmother.org/
