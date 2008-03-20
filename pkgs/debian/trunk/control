@@ -10,8 +10,8 @@ Package: python-mother
 Architecture: all
 Depends: ${python:Depends}, psycopg2 | python-apsw
 Provides: ${python:Provides}
-Description: mother is an Object Relational Mapper with strong introspection
- Mother is a python module that hides SQL syntax and gives you a set of
+Description: Mother is an Object Relational Mapper with strong introspection
+ Mother is a Python module that hides SQL syntax and gives you a set of
  intelligent classes and methods.
  By `intelligent` we mean that the classes are
  able to understand autonomously various situations.

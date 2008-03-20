@@ -1,3 +1,11 @@
+mother (0.6.4-r4) unstable; urgency=low
+
+  * New Upstream release, it adds:
+     - Stupid Bugs on MotherMany
+  * debian/control: changed description for warning lintian.
+
+ -- Antonio De Luci <osrevolution@gmail.com>  Wed, 19 Mar 2008 19:25:25 +0100
+
 mother (0.6.4-r3) unstable; urgency=low
 
   [ Andrea Gasparini ]
