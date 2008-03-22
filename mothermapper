@@ -495,15 +495,20 @@ class MotherWorld:
 
         ERR_COL_D=ERR_COL('D')
         outlog("Deleting all tables...\n")
-        if _DROP_TABLES_SPEED_UP:
+        from mother.postgres import MotherPostgres
+        if DbOne._iface_instance.__class__ == MotherPostgres:
+        #if _DROP_TABLES_SPEED_UP:
             tbls= self.god.load_tables()
-            outlog("\n")
             count=0
-            for t in tbls:
-                DbOne.oc_query("DROP TABLE %s cascade" % t)
-                outlog( "\t%s %s\n" % (ERR_COL_D, ERR_COL(t)))
-                count+=1
-            self.world_created= False
+            outlog("\n")
+            while tbls:
+              t= tbls[0]
+              DbOne.oc_query("DROP TABLE %s cascade" % t)
+              outlog( "\t%s %s\n" % (ERR_COL_D, ERR_COL(t)))
+              count+=1
+              self.world_created= False
+              tbls= self.god.load_tables()
+              #for t in tbls:
             outlog("Dropped %s tables.\n" % ERR_COL(count))
             return
 

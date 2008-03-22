@@ -1,5 +1,7 @@
 
- * Mother Setup
+  * Mother Setup *
+
+ - Sources
 
 To install mother, it's possible to use distutils or make.
 If you are on Unix, using make is recommended, because the 
@@ -21,3 +23,11 @@ for example:
 
 A new module will be created in site-packages and a script
 will be installed: mothermapper.
+
+
+ - Debian
+
+Debian packages are available in the directory debian.
+You can also download them here:
+
+  http://download.tuxfamily.org/osrdebian/dists/unstable/mother/index.html
