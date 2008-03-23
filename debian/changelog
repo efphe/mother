@@ -1,4 +1,18 @@
-mother (0.6.4-r4) unstable; urgency=low
+mother (0.6.4-r5-1) unstable; urgency=low
+
+  * Closed ITP Bug: #472182
+  - debian/control: reformatted long description.
+  - debian/control: removed homepage from long description.
+  - debian/control: changed short description.
+  - debian/control: correct name from Depends : python-psycopg2.
+  - debian/changelog : added debian revision
+  * New Upstream release, it adds:
+  - Debian Packages alignement.
+  - mothermapper -d: bug corrected.
+
+ -- Antonio De Luci <osrevolution@gmail.com>  Sun, 23 Mar 2008 00:21:05 +0100
+
+mother (0.6.4-r4) unstable; urgency=low 
 
   * New Upstream release, it adds:
      - Stupid Bugs on MotherMany
