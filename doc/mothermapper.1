@@ -3,22 +3,22 @@
 mothermapper \- Mother configuration tool
 .SH SYNOPSIS
 .B mothermapper 
--S conf_file
+\-S conf_file
 .br
 .B mothermapper 
--P conf_file
+\-P conf_file
 .br
 .B mothermapper 
--c conf_file OPTIONS 
+\-c conf_file OPTIONS 
 .SH DESCRIPTION
 The mothermapper tool is used to configure a Mother environment. 
 Before to use Mother, a configuration file is needed: a default 
 configuration file for postgres or sqlite can be produced using 
-mothermapper options -S and -P. The files created with these 
+mothermapper options \-S and \-P. The files created with these 
 options are heavy commented.
 
 After that, mothermapper has to be used to generate a Mother map
-file: this is accomplished with the -s option.
+file: this is accomplished with the \-s option.
 
 The mothermapper tool can be used also to perform other tasks.
 Please, see the various options to know more.
@@ -51,7 +51,7 @@ for PostgreSQL.
 Use the Mother configuration file `FILE'. 
 .TP
 
-The following options require a Mother configuration file, that has to be specified with the -c option.
+The following options require a Mother configuration file, that has to be specified with the \-c option.
 .TP
 .B \-s, --dbstructure FILE
 Create the Mother map file `FILE'.
@@ -91,7 +91,7 @@ For example, consider the following file:
     ('table_colors', records_colors), 
     ('table_cities', records_cities) ]
 
-When you use this file with `mothermapper -f`, the tables 
+When you use this file with `mothermapper \-f`, the tables 
 "table_colors" and "table_cities" are filled with the records 
 specified on "records_colors" and "records_cities" lists.
 Records already present in these tables are skipped.
