@@ -1,0 +1,22 @@
+Mother for Debian
+-----------------
+
+  Mother's build depends (Please install it):
+  cdbs,
+  debhelper (>= 5),
+  python-all-dev (>= 2.4.4-2),
+  python-support (>= 0.5.3)
+  
+  Mother's depends:
+  For PostgreSQL : python-psycopg2, python (>= 2.3)
+  For SQLite : python-apsw, python (>=2.3)
+
+-----------------
+
+  Recommended method is running "fakeroot debian/rules binary" in the top
+  directory, it build all packages (python-mother-postgres end python-mother-sqlite) 
+  please install all depency for build.
+
+-----------------
+
+  --Antonio De Luci - imu <osrevolution@gmail.com>  Thu, 20 Mar 2008 19:22:10 +0100
