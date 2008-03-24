@@ -10,18 +10,30 @@ Build-Depends: cdbs,
   python-support (>= 0.5.3)
 Standards-Version: 3.7.3
 
-Package: python-mother
+Package: python-mother-postgres
 Architecture: all
-Depends: ${python:Depends}, python-psycopg2 | python-apsw
+Depends: ${python:Depends}, python-psycopg2
 Provides: ${python:Provides}
 Description: Object Relational Mapper with strong introspection
- Mother is a Python module that hides SQL syntax and gives you a set of 
- intelligent classes and methods. By `intelligent` we mean that the classes are 
- able to understand utonomously various situations.
+ Object Relational Mapper developed as a Python module. It hides SQL syntax 
+ and gives you a set of intelligent classes and methods.
+ .
+ The classes are able to handle automatically various situations. It doesn't 
+ need configuration files, tables, fields and keys declarations to work as it
+ knows the database structure.
+ .
+ Mother currently works with PostgreSQL and SQLite.
  
- Think of Mother as an Object Relational Mapper with strong introspection. When 
- dealing with ORMs you usually need configuration files, tables, fields and keys
- declarations, but not with Mother because Mother knows the database structure
- herself.
- 
+Package: python-mother-sqlite
+Architecture: all
+Depends: ${python:Depends}, python-apsw
+Provides: ${python:Provides}
+Description: Object Relational Mapper with strong introspection
+ Object Relational Mapper developed as a Python module. It hides SQL syntax 
+ and gives you a set of intelligent classes and methods.
+ .
+ The classes are able to handle automatically various situations. It doesn't 
+ need configuration files, tables, fields and keys declarations to work as it
+ knows the database structure.
+ .
  Mother currently works with PostgreSQL and SQLite.
