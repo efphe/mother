@@ -1,3 +1,13 @@
+mother (0.6.4-r5-2) unstable; urgency=low
+
+  * Closed ITP Bug: #472182
+  - debian/control: Added section specific homepage.
+  - debian/control: reformatted long description.
+  - debian/copyright: correct email upstream (removed anti spam).
+  - debian/README.debian: removed file from package (stupid me).
+
+ -- Antonio De Luci <osrevolution@gmail.com>  Sun, 23 Mar 2008 11:30:00 +0100
+ 
 mother (0.6.4-r5-1) unstable; urgency=low
 
   * Closed ITP Bug: #472182
