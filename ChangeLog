@@ -4,7 +4,7 @@ Changelog History
 VERSION = 0.6.4-r5
 
 	* Debian Packages alignement
-	* mothermapper -d: bug corrected
+	* mothermapper -d: postgresql bug corrected
 
 
 VERSION = 0.6.4-r4
