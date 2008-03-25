@@ -10,9 +10,9 @@ Build-Depends: cdbs,
   python-support (>= 0.5.3)
 Standards-Version: 3.7.3
 
-Package: python-mother-postgres
+Package: python-mother
 Architecture: all
-Depends: ${python:Depends}, python-psycopg2
+Depends: ${python:Depends}, python-psycopg2 |  python-apsw
 Provides: ${python:Provides}
 Description: Object Relational Mapper with strong introspection
  Object Relational Mapper developed as a Python module. It hides SQL syntax 
@@ -24,16 +24,3 @@ Description: Object Relational Mapper with strong introspection
  .
  Mother currently works with PostgreSQL and SQLite.
  
-Package: python-mother-sqlite
-Architecture: all
-Depends: ${python:Depends}, python-apsw
-Provides: ${python:Provides}
-Description: Object Relational Mapper with strong introspection
- Object Relational Mapper developed as a Python module. It hides SQL syntax 
- and gives you a set of intelligent classes and methods.
- .
- The classes are able to handle automatically various situations. It doesn't 
- need configuration files, tables, fields and keys declarations to work as it
- knows the database structure.
- .
- Mother currently works with PostgreSQL and SQLite.

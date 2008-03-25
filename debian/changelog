@@ -6,7 +6,6 @@ mother (0.6.4-r5-2) unstable; urgency=low
     description. (Thanks Emilio Scalise)
   - debian/copyright: correct email upstream (removed anti spam).
   - debian/README.debian: removed file from package (stupid me).
-  - debian/control: added separate package according depends to different db.
 
  -- Antonio De Luci <osrevolution@gmail.com>  Mon, 25 Mar 2008 23:05:34 +0100
  
