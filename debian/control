@@ -7,20 +7,19 @@ Homepage: http://www.dbmother.org
 Build-Depends: cdbs,
   debhelper (>= 5),
   python-all-dev (>= 2.4.4-2),
-  python-support (>= 0.5.3)
+  python-support (>= 0.6.4)
 Standards-Version: 3.7.3
 
 Package: python-mother
 Architecture: all
-Depends: ${python:Depends}, python-psycopg2 |  python-apsw
+Depends: ${python:Depends}, python-psycopg2, python-apsw
 Provides: ${python:Provides}
 Description: Object Relational Mapper with strong introspection
- Object Relational Mapper developed as a Python module. It hides SQL syntax 
- and gives you a set of intelligent classes and methods.
+ Object Relational Mapper with strong introspection as a Python module. It hides
+ SQL syntax and gives you a set of intelligent classes and methods.
  .
  The classes are able to handle automatically various situations. It doesn't 
  need configuration files, tables, fields and keys declarations to work as it
  knows the database structure.
  .
- Mother currently works with PostgreSQL and SQLite.
- 
+ Mother works with PostgreSQL and SQLite.

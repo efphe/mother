@@ -1,6 +1,15 @@
+mother (0.6.4-r5-3) unstable; urgency=low
+
+  * Changes :
+  - debian/control: Character symbol removed "|" (or) from Depends.
+  - debian/control: Changed version python-support (>= 0.6.4)
+  - debian/pyversion : Review version python, changed from "2.3-" on "2.4-".
+
+ -- Antonio De Luci <osrevolution@gmail.com>  Wed, 26 Mar 2008 17:38:56 +0100
+
 mother (0.6.4-r5-2) unstable; urgency=low
 
-  * Closed ITP Bug: #472182
+  * Changes (Thanks Chris Lamb, UK):
   - debian/control: Added section specific Homepage.
   - debian/control: correct grammatical and formatting errors from long 
     description. (Thanks Emilio Scalise)
@@ -8,10 +17,11 @@ mother (0.6.4-r5-2) unstable; urgency=low
   - debian/README.debian: removed file from package (stupid me).
 
  -- Antonio De Luci <osrevolution@gmail.com>  Mon, 25 Mar 2008 23:05:34 +0100
- 
+
 mother (0.6.4-r5-1) unstable; urgency=low
 
-  * Changes :
+  * Changes (Thanks Cyril Brulebois):
+  - Bug IPT (closes: #472182)
   - debian/control: reformatted long description.
   - debian/control: removed homepage from long description.
   - debian/control: changed short description.
