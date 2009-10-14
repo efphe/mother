@@ -248,7 +248,8 @@ def init_speaker(conf= {}):
         setattr(Speaker, k, v)
 
     def get_lvl():
-        return logging.getLevelName(_root_logger.getEffectiveLevel())
+        #return logging.getLevelName(_root_logger.getEffectiveLevel())
+        return _root_logger.getEffectiveLevel()
     
     Speaker.get_log_level= staticmethod(get_lvl)
     
