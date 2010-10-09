@@ -263,7 +263,7 @@ def init_speaker(conf= {}):
 
     sdefs= SpeakerDefaults()
     cf_ok= True
-    smtp_ok= True
+    #smtp_ok= True
 
     # need to read conf file or already done?
     if isinstance(conf, dict):
@@ -320,32 +320,32 @@ def init_speaker(conf= {}):
         _handler.setFormatter(_fmt_log)
 
 
-    logsmtp= sdefs['LOG_TO_SMTP']
-    if logsmtp:
-        srv= sdefs['LOG_SMTP_SERVER']
-        rcp= sdefs['LOG_SMTP_RCPT']
-        snd= sdefs['LOG_SMTP_SENDER']
+    #logsmtp= sdefs['LOG_TO_SMTP']
+    #if logsmtp:
+        #srv= sdefs['LOG_SMTP_SERVER']
+        #rcp= sdefs['LOG_SMTP_RCPT']
+        #snd= sdefs['LOG_SMTP_SENDER']
 
-        if srv and rcp and snd:
-            from logging.handlers import SMTPHandler
-            _smtp_logger= logging.getLogger('SMTP%s' % pref)
-            sbj= sdefs['LOG_SMTP_SUBJECT']
-            _handler= SMTPHandler(srv, snd, rcp, sbj)
-            _smtp_logger.addHandler(_handler)
-            _handler.setFormatter(_fmt_log)
+        #if srv and rcp and snd:
+            #from logging.handlers import SMTPHandler
+            #_smtp_logger= logging.getLogger('SMTP%s' % pref)
+            #sbj= sdefs['LOG_SMTP_SUBJECT']
+            #_handler= SMTPHandler(srv, snd, rcp, sbj)
+            #_smtp_logger.addHandler(_handler)
+            #_handler.setFormatter(_fmt_log)
 
-        else:
-            smtp_ok= False
+        #else:
+            #smtp_ok= False
 
     if not cf_ok:
         Speaker.log_error("Unable to load conf file %s: %s. "\
                           "Using default values for logger configuration. ",
                           RED(conf), str(cf_ko))
 
-    if not smtp_ok:
-        Speaker.log_error("Invalid configuration for SMTP logging: "
-                "Options LOG_SMTP_SENDER, LOG_SMTP_SERVER and LOG_SMTP_RCPT "
-                "are manadatory if you want to use SMTP. SMTP disabled.")
+    #if not smtp_ok:
+        #Speaker.log_error("Invalid configuration for SMTP logging: "
+                #"Options LOG_SMTP_SENDER, LOG_SMTP_SERVER and LOG_SMTP_RCPT "
+                #"are manadatory if you want to use SMTP. SMTP disabled.")
 
     del Speaker._spkr_initialized
 
