@@ -107,7 +107,7 @@ from twisted.python.log import msg as _twilog
 class Speaker:
 
     _spkr_initialized= False
-    colored= True
+    #colored= True
     level= 0
     _root_logger= None
     _totwisted= False
@@ -375,8 +375,9 @@ YELLOWCOL = "\033[1;33m"
 #WHITECOL = "\033[1;37m"
 
 def _STRCOLOR(s, col):
-    return Speaker.colored and\
-            "%s%s%s" %(col, s, DEFCOL) or str(s)
+    return "%s%s%s" %(col, s, DEFCOL) or str(s)
+    #return Speaker.colored and\
+            #"%s%s%s" %(col, s, DEFCOL) or str(s)
 
 def RED(s):
     return _STRCOLOR(s, REDCOL)
