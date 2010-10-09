@@ -26,6 +26,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 
 import logging
+_fmt_log= logging.Formatter('%(asctime)s: %(message)s', datefmt= '%h %d %H:%M:%S')
+
+
 
 """
 The Mother logger: Speaker.
@@ -110,6 +113,19 @@ class Speaker:
     _totwisted= False
 
     @staticmethod
+    def initConsoleLogging():
+      if Speaker._root_logger: return
+      _root_logger= Speaker.init_logging(1, 'console')
+      _handler= logging.StreamHandler()
+      _root_logger.addHandler(_handler)
+      _handler.setFormatter(_fmt_log)
+      Speaker.disableTwisted()
+
+    @staticmethod
+    def disableTwisted():
+      Speaker._totwisted= 0
+
+    @staticmethod
     def init_logging(lvl, pref):
       if Speaker._root_logger: return
       Speaker._root_logger= logging.getLogger(pref)
@@ -117,22 +133,26 @@ class Speaker:
       return Speaker._root_logger
 
     @staticmethod
+    def lastMsg(ss):
+      try:
+        print 'Error: %s' % str(ss)
+        if Speaker._root_logger:
+          Speaker._root_logger.info('spkr_error %s ' % str(ss))
+        if Speaker._totwisted:
+          _twilog('spkr_error %s ' % str(ss))
+      except: pass
+
+    @staticmethod
     def log_info(msg, *a, **kw):
       if Speaker.level > DBG_INFO: return
       try:
         if Speaker._totwisted:
           #_twilog('spkr (INFO): %s ' % msg, *a, **kw)
-          _twilog(('spkr (INFO): %s ' % msg) % a)
+          _twilog(('(INFO): %s ' % msg) % a)
         if Speaker._root_logger:
-          Speaker._root_logger.info('spkr (INFO): %s ' % msg, *a, **kw)
+          Speaker._root_logger.info('(INFO): %s ' % msg, *a, **kw)
       except Exception, ss:
-        try:
-          print 'Error: %s' % str(ss)
-          if Speaker._root_logger:
-            Speaker._root_logger.info('spkr_error %s ' % str(ss))
-          if Speaker._totwisted:
-            _twilog('spkr_error %s ' % str(ss))
-        except: pass
+        Speaker.lastMsg(ss)
 
     @staticmethod
     def log_insane(msg, *a, **kw):
@@ -140,84 +160,59 @@ class Speaker:
       try:
         if Speaker._totwisted:
           #_twilog('spkr (INSANE): %s ' % msg, *a, **kw)
-          _twilog(('spkr (INSANE): %s ' % msg) % a)
+          _twilog(('(INSANE): %s ' % msg) % a)
         if Speaker._root_logger:
-          Speaker._root_logger.info('spkr (INSANE): %s ' % msg, *a, **kw)
+          Speaker._root_logger.info('(INSANE): %s ' % msg, *a, **kw)
       except Exception, ss:
-        try:
-          print 'Error: %s' % str(ss)
-          if Speaker._root_logger:
-            Speaker._root_logger.info('spkr_error %s ' % str(ss))
-          if Speaker._totwisted:
-            _twilog('spkr_error %s ' % str(ss))
-        except: pass
+        Speaker.lastMsg(ss)
+
     @staticmethod
     def log_debug(msg, *a, **kw):
       if Speaker.level > DBG_INSANE: return
       try:
         if Speaker._totwisted:
           #_twilog('spkr (DEBUG): %s ' % msg, *a, **kw)
-          _twilog(('spkr (DEBUG): %s ' % msg) % a)
+          _twilog(('(DEBUG): %s ' % msg) % a)
         if Speaker._root_logger:
-          Speaker._root_logger.info('spkr (DEBUG): %s ' % msg, *a, **kw)
+          Speaker._root_logger.info('(DEBUG): %s ' % msg, *a, **kw)
       except Exception, ss:
-        try:
-          print 'Error: %s' % str(ss)
-          if Speaker._root_logger:
-            Speaker._root_logger.info('spkr_error %s ' % str(ss))
-          if Speaker._totwisted:
-            _twilog('spkr_error %s ' % str(ss))
-        except: pass
+        Speaker.lastMsg(ss)
+
     @staticmethod
     def log_warning(msg, *a, **kw):
       if Speaker.level > DBG_WARNING: return
       try:
         if Speaker._totwisted:
           #_twilog('spkr (WARNING): %s ' % msg, *a, **kw)
-          _twilog(('spkr (WARNING): %s ' % msg) % a)
+          _twilog(('(WARNING): %s ' % msg) % a)
         if Speaker._root_logger:
-          Speaker._root_logger.info('spkr (WARNING): %s ' % msg, *a, **kw)
+          Speaker._root_logger.info('(WARNING): %s ' % msg, *a, **kw)
       except Exception, ss:
-        try:
-          print 'Error: %s' % str(ss)
-          if Speaker._root_logger:
-            Speaker._root_logger.info('spkr_error %s ' % str(ss))
-          if Speaker._totwisted:
-            _twilog('spkr_error %s ' % str(ss))
-        except: pass
+        Speaker.lastMsg(ss)
+
     @staticmethod
     def log_error(msg, *a, **kw):
       try:
         if Speaker._totwisted:
           #_twilog('spkr (ERROR): %s ' % msg, *a, **kw)
-          _twilog(('spkr (ERROR): %s ' % msg) % a)
+          _twilog(('(ERROR): %s ' % msg) % a)
         if Speaker._root_logger:
-          Speaker._root_logger.info('spkr (ERROR): %s ' % msg, *a, **kw)
+          Speaker._root_logger.info('(ERROR): %s ' % msg, *a, **kw)
       except Exception, ss:
-        try:
-          print 'Error: %s' % str(ss)
-          if Speaker._root_logger:
-            Speaker._root_logger.info('spkr_error %s ' % str(ss))
-          if Speaker._totwisted:
-            _twilog('spkr_error %s ' % str(ss))
-        except: pass
+        Speaker.lastMsg(ss)
+
     @staticmethod
     def log_critical(msg, *a, **kw):
       if Speaker.level > DBG_CRITICAL: return
       try:
         if Speaker._totwisted:
           #_twilog('spkr (CRITICAL): %s ' % msg, *a, **kw)
-          _twilog(('spkr (CRITICAL): %s ' % msg) % a)
+          _twilog(('(CRITICAL): %s ' % msg) % a)
         if Speaker._root_logger:
-          Speaker._root_logger.info('spkr (CRITICAL): %s ' % msg, *a, **kw)
+          Speaker._root_logger.info('(CRITICAL): %s ' % msg, *a, **kw)
       except Exception, ss:
-        try:
-          print 'Error: %s' % str(ss)
-          if Speaker._root_logger:
-            Speaker._root_logger.info('spkr_error %s ' % str(ss))
-          if Speaker._totwisted:
-            _twilog('spkr_error %s ' % str(ss))
-        except: pass
+        Speaker.lastMsg(ss)
+
     @staticmethod
     def log_log(*a, **kw):
       return
@@ -227,13 +222,6 @@ class Speaker:
     def get_log_level(*a, **kw): return Speaker.level
     @staticmethod
     def set_log_color(*a, **kw): pass
-
-    #@staticmethod
-    #def set_log_color(vl):
-        ## Usable only by `posix` systems
-        ## On win32, color are always disabled.
-        #from os import name as _n
-        #Speaker.colored= _n <> 'nt' and vl or False
 
     @staticmethod
     def get_log_color(): return 1
@@ -291,17 +279,12 @@ def init_speaker(conf= {}):
 
     sdefs.update(conf_dict)
 
-    colors= sdefs.get('LOG_COLOR', False)
-    Speaker.set_log_color(colors)
+    #colors= sdefs.get('LOG_COLOR', False)
+    #Speaker.set_log_color(colors)
 
     pref= sdefs['LOG_PREFIX']
     lvl= sdefs['LOG_LEVEL']
     Speaker.level= lvl
-
-    _fmt_log= logging.Formatter(
-        '%(asctime)s %(name)s, %(levelname)s: %(filename)s: %(message)s',
-        datefmt= '%h %d %H:%M:%S')
-
 
     if sdefs['LOG_TO_STDOUT']:
         _root_logger= Speaker.init_logging(lvl, pref)
@@ -353,51 +336,6 @@ def init_speaker(conf= {}):
 
         else:
             smtp_ok= False
-
-
-    # 
-    ## Exported Methods
-    #
-
-    #dd= dict(
-        #log_info=       _root_logger.info,
-        #log_warning=    _root_logger.warning,
-        #log_error=      _root_logger.error,
-        #log_critical=   _root_logger.critical,
-        #log_log=        _root_logger.log,
-        #set_log_level=  _root_logger.setLevel,
-        #)
-    #Speaker._root_logger= _root_logger
-
-    #if logsmtp:
-        #dd['log_mail']= _smtp_logger.log
-
-    #for k, v in dd.iteritems():
-        #setattr(Speaker, k, v)
-
-    #def get_lvl():
-        ##return logging.getLevelName(_root_logger.getEffectiveLevel())
-        #return _root_logger.getEffectiveLevel()
-    
-    #Speaker.get_log_level= staticmethod(get_lvl)
-    
-    #dbg_methods= {
-            #DBG_INSANE: 'log_insane',
-            #DBG_SOFT:   'log_soft',
-            #DBG_NOISE:  'log_noise',
-            #DBG_NORMAL: 'log_debug'
-            #}
-
-    #def log_lvl(k):
-        #def log_log_fly(*args):
-            #Speaker.log_log(k, *args)
-        #return log_log_fly
-
-    #for k, v in dbg_methods.iteritems():
-        #setattr(Speaker, v, staticmethod(log_lvl(k)))
-
-    # Maybe loading conf_file failed...
-    # Now it's possible to log error
 
     if not cf_ok:
         Speaker.log_error("Unable to load conf file %s: %s. "\
