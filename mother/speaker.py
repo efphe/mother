@@ -26,7 +26,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 
 import logging
-_fmt_log= logging.Formatter('%(asctime)s: %(message)s', datefmt= '%h %d %H:%M:%S')
+#_fmt_log= logging.Formatter('%(asctime)s: %(message)s', datefmt= '%h %d %H:%M:%S')
+_fmt_log= logging.Formatter('%(message)s', datefmt= '%h %d %H:%M:%S')
 
 
 
