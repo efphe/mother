@@ -78,6 +78,7 @@ def SpeakerDefaults():
         'LOG_SMTP_RCPT'       : None,
         'LOG_SMTP_SUBJECT'    : None,
         'LOG_TO_SYSLOG'       : False,
+        'LOG_TO_TWISTED'      : False,
         'LOG_SYSLOG_FACILITY' : LOG_USER,
         'LOG_SYSLOG_SERVER'   : ('localhost', 514),
         'LOG_TO_FILE'         : None,
@@ -99,21 +100,144 @@ class InternalError(Exception):
 ## The Great Speaker class ;)
 #
 
+from twisted.python.log import msg as _twilog
 class Speaker:
 
     _spkr_initialized= False
     colored= True
+    level= 0
+    _root_logger= None
+    _totwisted= False
 
     @staticmethod
-    def set_log_color(vl):
-        # Usable only by `posix` systems
-        # On win32, color are always disabled.
-        from os import name as _n
-        Speaker.colored= _n <> 'nt' and vl or False
+    def init_logging(lvl, pref):
+      if Speaker._root_logger: return
+      Speaker._root_logger= logging.getLogger(pref)
+      Speaker._root_logger.setLevel(lvl)
+      return Speaker._root_logger
 
     @staticmethod
-    def get_log_color():
-        return Speaker.colored
+    def log_info(msg, *a, **kw):
+      if Speaker.level > DBG_INFO: return
+      try:
+        if Speaker._totwisted:
+          #_twilog('spkr (INFO): %s ' % msg, *a, **kw)
+          _twilog(('spkr (INFO): %s ' % msg) % a)
+        if Speaker._root_logger:
+          Speaker._root_logger.info('spkr (INFO): %s ' % msg, *a, **kw)
+      except Exception, ss:
+        try:
+          print 'Error: %s' % str(ss)
+          if Speaker._root_logger:
+            Speaker._root_logger.info('spkr_error %s ' % str(ss))
+          if Speaker._totwisted:
+            _twilog('spkr_error %s ' % str(ss))
+        except: pass
+
+    @staticmethod
+    def log_insane(msg, *a, **kw):
+      if Speaker.level > DBG_INSANE: return
+      try:
+        if Speaker._totwisted:
+          #_twilog('spkr (INSANE): %s ' % msg, *a, **kw)
+          _twilog(('spkr (INSANE): %s ' % msg) % a)
+        if Speaker._root_logger:
+          Speaker._root_logger.info('spkr (INSANE): %s ' % msg, *a, **kw)
+      except Exception, ss:
+        try:
+          print 'Error: %s' % str(ss)
+          if Speaker._root_logger:
+            Speaker._root_logger.info('spkr_error %s ' % str(ss))
+          if Speaker._totwisted:
+            _twilog('spkr_error %s ' % str(ss))
+        except: pass
+    @staticmethod
+    def log_debug(msg, *a, **kw):
+      if Speaker.level > DBG_INSANE: return
+      try:
+        if Speaker._totwisted:
+          #_twilog('spkr (DEBUG): %s ' % msg, *a, **kw)
+          _twilog(('spkr (DEBUG): %s ' % msg) % a)
+        if Speaker._root_logger:
+          Speaker._root_logger.info('spkr (DEBUG): %s ' % msg, *a, **kw)
+      except Exception, ss:
+        try:
+          print 'Error: %s' % str(ss)
+          if Speaker._root_logger:
+            Speaker._root_logger.info('spkr_error %s ' % str(ss))
+          if Speaker._totwisted:
+            _twilog('spkr_error %s ' % str(ss))
+        except: pass
+    @staticmethod
+    def log_warning(msg, *a, **kw):
+      if Speaker.level > DBG_WARNING: return
+      try:
+        if Speaker._totwisted:
+          #_twilog('spkr (WARNING): %s ' % msg, *a, **kw)
+          _twilog(('spkr (WARNING): %s ' % msg) % a)
+        if Speaker._root_logger:
+          Speaker._root_logger.info('spkr (WARNING): %s ' % msg, *a, **kw)
+      except Exception, ss:
+        try:
+          print 'Error: %s' % str(ss)
+          if Speaker._root_logger:
+            Speaker._root_logger.info('spkr_error %s ' % str(ss))
+          if Speaker._totwisted:
+            _twilog('spkr_error %s ' % str(ss))
+        except: pass
+    @staticmethod
+    def log_error(msg, *a, **kw):
+      try:
+        if Speaker._totwisted:
+          #_twilog('spkr (ERROR): %s ' % msg, *a, **kw)
+          _twilog(('spkr (ERROR): %s ' % msg) % a)
+        if Speaker._root_logger:
+          Speaker._root_logger.info('spkr (ERROR): %s ' % msg, *a, **kw)
+      except Exception, ss:
+        try:
+          print 'Error: %s' % str(ss)
+          if Speaker._root_logger:
+            Speaker._root_logger.info('spkr_error %s ' % str(ss))
+          if Speaker._totwisted:
+            _twilog('spkr_error %s ' % str(ss))
+        except: pass
+    @staticmethod
+    def log_critical(msg, *a, **kw):
+      if Speaker.level > DBG_CRITICAL: return
+      try:
+        if Speaker._totwisted:
+          #_twilog('spkr (CRITICAL): %s ' % msg, *a, **kw)
+          _twilog(('spkr (CRITICAL): %s ' % msg) % a)
+        if Speaker._root_logger:
+          Speaker._root_logger.info('spkr (CRITICAL): %s ' % msg, *a, **kw)
+      except Exception, ss:
+        try:
+          print 'Error: %s' % str(ss)
+          if Speaker._root_logger:
+            Speaker._root_logger.info('spkr_error %s ' % str(ss))
+          if Speaker._totwisted:
+            _twilog('spkr_error %s ' % str(ss))
+        except: pass
+    @staticmethod
+    def log_log(*a, **kw):
+      return
+    @staticmethod
+    def set_log_level(l): Speaker.level= l
+    @staticmethod
+    def get_log_level(*a, **kw): return Speaker.level
+    @staticmethod
+    def set_log_color(*a, **kw): pass
+
+    #@staticmethod
+    #def set_log_color(vl):
+        ## Usable only by `posix` systems
+        ## On win32, color are always disabled.
+        #from os import name as _n
+        #Speaker.colored= _n <> 'nt' and vl or False
+
+    @staticmethod
+    def get_log_color(): return 1
+        #return Speaker.colored
 
     @staticmethod
     def log_raise(*args):
@@ -172,9 +296,7 @@ def init_speaker(conf= {}):
 
     pref= sdefs['LOG_PREFIX']
     lvl= sdefs['LOG_LEVEL']
-
-    _root_logger= logging.getLogger(pref)
-    _root_logger.setLevel(lvl)
+    Speaker.level= lvl
 
     _fmt_log= logging.Formatter(
         '%(asctime)s %(name)s, %(levelname)s: %(filename)s: %(message)s',
@@ -182,6 +304,7 @@ def init_speaker(conf= {}):
 
 
     if sdefs['LOG_TO_STDOUT']:
+        _root_logger= Speaker.init_logging(lvl, pref)
         _handler= logging.StreamHandler()
         _root_logger.addHandler(_handler)
         _handler.setFormatter(_fmt_log)
@@ -197,15 +320,19 @@ def init_speaker(conf= {}):
         else:
             _handler= logging.FileHandler(logfile)
 
+        _root_logger= Speaker.init_logging(lvl, pref)
         _root_logger.addHandler(_handler)
         _handler.setFormatter(_fmt_log)
 
+    if sdefs['LOG_TO_TWISTED']:
+      Speaker._totwisted= 1
 
     if sdefs['LOG_TO_SYSLOG']:
         fac= sdefs['LOG_SYSLOG_FACILITY']
         srv= sdefs['LOG_SYSLOG_SERVER']
         from logging.handlers import SysLogHandler
         _handler= SysLogHandler(srv, fac)
+        _root_logger= Speaker.init_logging(lvl, pref)
         _root_logger.addHandler(_handler)
         _handler.setFormatter(_fmt_log)
 
@@ -232,41 +359,42 @@ def init_speaker(conf= {}):
     ## Exported Methods
     #
 
-    dd= dict(
-        log_info=       _root_logger.info,
-        log_warning=    _root_logger.warning,
-        log_error=      _root_logger.error,
-        log_critical=   _root_logger.critical,
-        log_log=        _root_logger.log,
-        set_log_level=  _root_logger.setLevel,
-        )
+    #dd= dict(
+        #log_info=       _root_logger.info,
+        #log_warning=    _root_logger.warning,
+        #log_error=      _root_logger.error,
+        #log_critical=   _root_logger.critical,
+        #log_log=        _root_logger.log,
+        #set_log_level=  _root_logger.setLevel,
+        #)
+    #Speaker._root_logger= _root_logger
 
-    if logsmtp:
-        dd['log_mail']= _smtp_logger.log
+    #if logsmtp:
+        #dd['log_mail']= _smtp_logger.log
 
-    for k, v in dd.iteritems():
-        setattr(Speaker, k, v)
+    #for k, v in dd.iteritems():
+        #setattr(Speaker, k, v)
 
-    def get_lvl():
-        #return logging.getLevelName(_root_logger.getEffectiveLevel())
-        return _root_logger.getEffectiveLevel()
+    #def get_lvl():
+        ##return logging.getLevelName(_root_logger.getEffectiveLevel())
+        #return _root_logger.getEffectiveLevel()
     
-    Speaker.get_log_level= staticmethod(get_lvl)
+    #Speaker.get_log_level= staticmethod(get_lvl)
     
-    dbg_methods= {
-            DBG_INSANE: 'log_insane',
-            DBG_SOFT:   'log_soft',
-            DBG_NOISE:  'log_noise',
-            DBG_NORMAL: 'log_debug'
-            }
+    #dbg_methods= {
+            #DBG_INSANE: 'log_insane',
+            #DBG_SOFT:   'log_soft',
+            #DBG_NOISE:  'log_noise',
+            #DBG_NORMAL: 'log_debug'
+            #}
 
-    def log_lvl(k):
-        def log_log_fly(*args):
-            Speaker.log_log(k, *args)
-        return log_log_fly
+    #def log_lvl(k):
+        #def log_log_fly(*args):
+            #Speaker.log_log(k, *args)
+        #return log_log_fly
 
-    for k, v in dbg_methods.iteritems():
-        setattr(Speaker, v, staticmethod(log_lvl(k)))
+    #for k, v in dbg_methods.iteritems():
+        #setattr(Speaker, v, staticmethod(log_lvl(k)))
 
     # Maybe loading conf_file failed...
     # Now it's possible to log error
