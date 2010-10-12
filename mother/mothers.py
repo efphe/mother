@@ -577,10 +577,12 @@ class DbMother(_DbMap):
 
         # Controls: trivial
         setK= set(store.keys())
-        accio= self._invalidFields(setK)
-        if accio:
-            self.log_int_raise("Invalid Fields %s for table |%s|.",\
-                                ERR_COL(list(accio)), self.table_name)
+
+        # XXX removed controls XXX
+        #accio= self._invalidFields(setK)
+        #if accio:
+            #self.log_int_raise("Invalid Fields %s for table |%s|.",\
+                                #ERR_COL(list(accio)), self.table_name)
 
         self._moved= set([])
         self._store= store.copy()
@@ -837,9 +839,10 @@ class DbMother(_DbMap):
                 "Want to update a Pkey? Create new and delete old."
                 )
 
-        if field_name not in self.fields:
-            self.log_int_raise("Mth: cannot setField(): field "
-                    "%s is invalid.",ERR_COL(field_name))
+        # XXX removed controls XXX
+        #if field_name not in self.fields:
+            #self.log_int_raise("Mth: cannot setField(): field "
+                    #"%s is invalid.",ERR_COL(field_name))
 
         # Ok, new value is good
         self._store[field_name]=field_value
@@ -857,10 +860,11 @@ class DbMother(_DbMap):
         """
         # Is fdict a valid dict?
         new_fields=set(fdict.keys())
-        onzo= self._invalidFields(new_fields)
-        if onzo:
-            self.log_int_raise("Mth: cannot setFields(): "
-                    "invalid fields %s.", ERR_COL(str(onzo)))
+        # XXX removed controls XXX
+        #onzo= self._invalidFields(new_fields)
+        #if onzo:
+            #self.log_int_raise("Mth: cannot setFields(): "
+                    #"invalid fields %s.", ERR_COL(str(onzo)))
 
         # Cannot change pkeys
         if safe_mode:
@@ -900,11 +904,12 @@ class DbMother(_DbMap):
                                ERR_COL(field), ERR_COL(self.table_name))
 
         lfield= [field]
-        onzo= self._invalidFields(lfield)
-        if onzo:
-            self.log_int_raise("Mth: cannot getField(): "
-                               "invalid field %s for table |%s|", 
-                                ERR_COL(str(field)), ERR_COL(self.table_name))
+        # XXX removed controls XXX
+        #onzo= self._invalidFields(lfield)
+        #if onzo:
+            #self.log_int_raise("Mth: cannot getField(): "
+                               #"invalid field %s for table |%s|", 
+                                #ERR_COL(str(field)), ERR_COL(self.table_name))
 
         self.load(lfield)
         return self._store[field]
@@ -923,10 +928,11 @@ class DbMother(_DbMap):
         if fields is None:
             return self._store.copy()
 
-        onzo= self._invalidFields(fields)
-        if onzo:
-            self.log_int_raise("Mth: cannot getFields(): "
-                    "invalid fields %s.", ERR_COL(str(onzo)))
+        # XXX removed controls XXX
+        #onzo= self._invalidFields(fields)
+        #if onzo:
+            #self.log_int_raise("Mth: cannot getFields(): "
+                    #"invalid fields %s.", ERR_COL(str(onzo)))
         newd= {}
         if autoload:
             skeys= set(self._store.keys())
@@ -979,16 +985,16 @@ class DbMother(_DbMap):
         # Which fields we need?
         mf= fields and set(fields) or set(self._fieldsMissing())
 
-        if not mf <= self.fields:
-            from mother.eccez import SelectError
-            self.log_raise("Invalid Fields %s for table %s.",
-                    ERR_COL(list(mf - self.fields)), 
-                    self.table_name, SelectError)
-
-        if not len(mf):
-            self.log_warning("No field has to be SELECTed: table %s",
-                        ERR_COL(self.table_name))
-            return self.getFields()
+        # XXX removed controls XXX
+        #if not mf <= self.fields:
+            #from mother.eccez import SelectError
+            #self.log_raise("Invalid Fields %s for table %s.",
+                    #ERR_COL(list(mf - self.fields)), 
+                    #self.table_name, SelectError)
+        #if not len(mf):
+            #self.log_warning("No field has to be SELECTed: table %s",
+                        #ERR_COL(self.table_name))
+            #return self.getFields()
 
         qry= self._sqlSelect(mf)
 
