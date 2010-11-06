@@ -113,8 +113,10 @@ def init_mother(cfile, fnaming= None):
         use_oids= d.get('MOTHER_OIDS', True)
         if not use_oids:
             DbMother._mo_pg_oids= False
-            abdbda.DbFly.exported_methods.remove('lastrowid')
-            abdbda.DbOne.exported_methods.remove('lastrowid')
+            try:
+              abdbda.DbFly.exported_methods.remove('lastrowid')
+              abdbda.DbOne.exported_methods.remove('lastrowid')
+            except: pass
         else:
             DbMother._mo_pg_oids= True
 
