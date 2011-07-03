@@ -698,7 +698,11 @@ class MotherPool:
     def _del_orphan(db):
         m= MotherPool._pool_orphans_mutex
         m.acquire()
-        MotherPool._pool_orphans.pop(id(db))
+        try:
+          MotherPool._pool_orphans.pop(id(db))
+        except:
+          Speaker.log_error("Unable to close de-orphan connection: %s, %s, %s", 
+              ERR_COL(MotherPool._pool_orphans), ERR_COL(db), ERR_COL(id(db)))
         m.release()
 
     @staticmethod
