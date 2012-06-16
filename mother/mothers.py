@@ -260,11 +260,15 @@ class _DbMap(Speaker):
 
     @staticmethod
     def _table_fields(tbl):
-        return _DbMap._map_fields[tbl]
+      return ['*']
+        # XXX
+        #return _DbMap._map_fields[tbl]
 
     @staticmethod
     def _table_pkeys(tbl):
-        return _DbMap._map_pkeys[tbl]
+        return ['id']
+        # XXX
+        #return _DbMap._map_pkeys[tbl]
 
     @staticmethod
     def _table_children(tbl):
