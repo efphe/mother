@@ -135,7 +135,7 @@ def init_mother(cfile, fnaming= None):
 
     # Load DB map
     momap= d['MOTHER_MAP']
-    _DbMap._load_map(momap)
+    #_DbMap._load_map(momap)
 
     # Design Mother
     if fnaming:
@@ -362,23 +362,25 @@ class _DbMap(Speaker):
             if not s.has_key(k)     \
             or s[k] in self._mo_false_values])
 
-    def _invalidFields(self,fields):
-        """ _invalidFields(fields) --> set
+    #def _invalidFields(self,fields):
+        #""" _invalidFields(fields) --> set
 
-        field in fields are returned if they are not present
-        in self.fields.
-        """
+        #field in fields are returned if they are not present
+        #in self.fields.
+        #"""
 
-        if type(fields) is not set:
-            fields= set(fields)
-        return fields - self.fields
+        #if type(fields) is not set:
+            #fields= set(fields)
+        #return fields - self.fields
 
     def _fieldsMissing(self):
         """ _fieldsMissing() --> set
 
         Returns the list of table fields not valu'ed yet.
         """
-        return self.fields - set(self._store.keys())
+        return ['*']
+        # XXX
+        #return self.fields - set(self._store.keys())
 
     def _sqlJoinParent(self, builder, j_builder, outer= False):
         """ _sqlJoinParent(self, builder, j_builder [, outer= False]) --> (string, string)
