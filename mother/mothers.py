@@ -135,7 +135,8 @@ def init_mother(cfile, fnaming= None):
 
     # Load DB map
     momap= d['MOTHER_MAP']
-    #_DbMap._load_map(momap)
+    # XXX
+    _DbMap._load_map(momap)
 
     # Design Mother
     if fnaming:
@@ -260,12 +261,14 @@ class _DbMap(Speaker):
 
     @staticmethod
     def _table_fields(tbl):
+      return _DbMap._map_fields[tbl]
       return ['*']
         # XXX
         #return _DbMap._map_fields[tbl]
 
     @staticmethod
     def _table_pkeys(tbl):
+        return _DbMap._map_pkeys[tbl]
         return ['id']
         # XXX
         #return _DbMap._map_pkeys[tbl]
@@ -378,6 +381,7 @@ class _DbMap(Speaker):
 
         Returns the list of table fields not valu'ed yet.
         """
+        return self.fields - set(self._store.keys())
         return ['*']
         # XXX
         #return self.fields - set(self._store.keys())
