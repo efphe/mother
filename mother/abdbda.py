@@ -326,19 +326,21 @@ class DbOne(Speaker):
                     ERR_COL('Rollbacked'), ERR_COL(e), QueryError)
 
     @staticmethod
-    def _do_query(s, filter= None, result= True):
+    def _do_query(s, ftr= None, result= True):
 
         execattr= result and DbOne._gquery or DbOne._qquery
 
-        if not filter:
+        if not ftr:
             d= {}
-        elif isinstance(filter, MoFilter):
-            s, d= filter.return_ftrqry(s)
-        elif isinstance(filter, dict):
-            d= filter
+        elif isinstance(ftr, MoFilter):
+            s, d= ftr.return_ftrqry(s)
+        elif isinstance(ftr, dict):
+            d= ftr
+        elif isinstance(ftr, tuple):
+            d= ftr
         else:
             Speaker.log_int_raise('Invalid Filter Type: %s', 
-                    ERR_COL(type(filter)))
+                    ERR_COL(type(ftr)))
 
         # logging info...
         mogrify= getattr(DbOne._iface_instance, '_mogrify', None)
@@ -350,9 +352,9 @@ class DbOne(Speaker):
         return DbOne._safe_execute(execattr, s, d)
 
     @staticmethod
-    def _get_query(s, filter= None):
+    def _get_query(s, ftr= None):
 
-        res= DbOne._do_query(s, filter, True)
+        res= DbOne._do_query(s, ftr, True)
         if not DbOne.trans_level:
             DbOne._commit()
         return res
@@ -566,19 +568,21 @@ class DbFly(Speaker):
             self.log_raise('%s queries: %s.', ERR_COL('Rollbacked'), 
                     ERR_COL(e), QueryError)
 
-    def _do_query(self, s, filter= None, result= True):
+    def _do_query(self, s, ftr= None, result= True):
 
         execattr= result and self._gquery or self._qquery
 
-        if not filter:
+        if not ftr:
             d= {}
-        elif isinstance(filter, MoFilter):
-            s, d= filter.return_ftrqry(s)
-        elif isinstance(filter, dict):
-            d= filter
+        elif isinstance(ftr, MoFilter):
+            s, d= ftr.return_ftrqry(s)
+        elif isinstance(ftr, dict):
+            d= ftr
+        elif isinstance(ftr, tuple):
+            d= ftr
         else:
             self.log_int_raise('Invalid Filter Type: %s', 
-                    ERR_COL(type(filter)))
+                    ERR_COL(type(ftr)))
 
         mogrify= getattr(self._iface_instance, '_mogrify', None)
         try:
